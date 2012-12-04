@@ -1,7 +1,8 @@
-BaumWelch.NB <- function (x, y = NULL, m, Q = NULL, alpha = NULL, theta.x = NULL,
-   initialProb = NULL, maxiter = 500, tol = 1e-05, dig = 3)
+BaumWelch.NB <- function (x, y, m=2, Q=NULL, alpha=1, gamma=c(1,2),
+   beta=1, initialProb=NULL, maxiter=500, tol=1e-05, dig=3) {
 
-{
+# XXX Development XXX
+stopifnot(m == 2)
 
 ###############################################
 #              OPTION PROCESSING              #
@@ -59,20 +60,17 @@ BaumWelch.NB <- function (x, y = NULL, m, Q = NULL, alpha = NULL, theta.x = NULL
       diag(Q) <- 0.9
    }
 
-   if (is.null(alpha))
-      alpha <- 1
-
-   if (is.null(theta.x)) {
-      init.x <- 2*(1:m)*mean(concat.x, na.rm = TRUE) / (m+1)
-      init.y <- mean(concat.y, na.rm = TRUE)
-      tilde.theta.x <- init.x / (init.x + alpha)
-      tilde.theta.y <- init.y / (init.y + alpha)
-      theta.x <- tilde.theta.x * (1 - tilde.theta.y) /
-         (1 - tilde.theta.x*tilde.theta.y)
-      theta.y <- tilde.theta.y * (1 - tilde.theta.x) /
-         (1 - tilde.theta.x*tilde.theta.y)
-      theta.alpha <- 1 - theta.x - theta.y
-   }
+#   if (is.null(theta.x)) {
+#      init.x <- 2*(1:m)*mean(concat.x, na.rm = TRUE) / (m+1)
+#      init.y <- mean(concat.y, na.rm = TRUE)
+#      tilde.theta.x <- init.x / (init.x + alpha)
+#      tilde.theta.y <- init.y / (init.y + alpha)
+#      theta.x <- tilde.theta.x * (1 - tilde.theta.y) /
+#         (1 - tilde.theta.x*tilde.theta.y)
+#      theta.y <- tilde.theta.y * (1 - tilde.theta.x) /
+#         (1 - tilde.theta.x*tilde.theta.y)
+#      theta.alpha <- 1 - theta.x - theta.y
+#   }
 
    adjustInitialProb <- ifelse(is.null(initialProb), TRUE, FALSE)
 
@@ -124,11 +122,19 @@ BaumWelch.NB <- function (x, y = NULL, m, Q = NULL, alpha = NULL, theta.x = NULL
    # Performs the E-step of the modified Baum-Welch algorithm
 
       # Emission probabilities are computed up to constant terms.
+      # The only term that depend on the state are
+      #
+      #        gamma_i^z / (1+gamma_i+1/beta)^(alpha+y+z)
+      #
+      # The other terms are merged into a multiplicative constant
+      # which is normalized away.
       for (i in 1:m)
-         emissionProb[,i] <<- (theta.alpha[i]**alpha) * (theta.x[i]**concat.x) *
-            (theta.y[i]**concat.y)
+#         emissionProb[,i] <<- (theta.alpha[i]**alpha) * (theta.x[i]**concat.x) *
+#            (theta.y[i]**concat.y)
+         emissionProb[,i] <<- (gamma[i]^concat.x) /
+                  (1+gamma[i]+1/beta)^(alpha+concat.y+concat.x)
 
-      # Emission probabilities of NAs are set to 1 for every states.
+      # Emission probabilities of NAs are set to 1 for every state.
       emissionProb[is.na(emissionProb)] <<- 1
 
       if (adjustInitialProb)
@@ -169,13 +175,15 @@ BaumWelch.NB <- function (x, y = NULL, m, Q = NULL, alpha = NULL, theta.x = NULL
 ###############################################
 
 
+   ybar = mean(concat.y)
+
    for (iter in 1:maxiter) {
 
       cat(paste("iteration:", iter, "\n"))
 
       E.step()
 
-      # Modified M-step.
+      # M-step.
 
       sumPhi <- colSums(phi, na.rm = TRUE)
       sumPhi.x <- colSums(phi*concat.x, na.rm = TRUE)
@@ -183,49 +191,33 @@ BaumWelch.NB <- function (x, y = NULL, m, Q = NULL, alpha = NULL, theta.x = NULL
       mean.x <- sumPhi.x / sumPhi
       mean.y <- sumPhi.y / sumPhi
 
-      # Find an upper bound.
-      no.upper.bound <- TRUE
-      new.alpha <- alpha
-      lower.bound <- 0
-      while (no.upper.bound) {
-         zeta <- sumPhi.x / (sumPhi.y + new.alpha*sumPhi)
-         ksi <- (1+zeta) * sum((sumPhi.x + sumPhi.y + new.alpha*sumPhi) / (n*(1 + zeta)))
-# Version with constraint:
-         if (sum(counts*digamma(new.alpha + levels)) / n - digamma(new.alpha) +
-            log(new.alpha) - sum(sumPhi*log(ksi)) / n > 0) {
-# Version without constraint:
-#        if (sum(counts*digamma(new.alpha + levels)) / n - digamma(new.alpha) +
-#           log(new.alpha) - sum(sumPhi*log(mean.x + mean.y + new.alpha)) / n > 0) {
-            lower.bound <- new.alpha
-            new.alpha <- 2 * new.alpha
-         }
-         else {
-            no.upper.bound <- FALSE
-            upper.bound <- new.alpha
-         }
-      }
-      # alpha is estimated with a precision of 0.0001.
-      while (upper.bound - lower.bound > 0.0001) {
-         new.alpha <- (upper.bound + lower.bound) / 2
-         zeta <- sumPhi.x / (sumPhi.y + new.alpha*sumPhi)
-         ksi <- (1+zeta) * sum((sumPhi.x + sumPhi.y + new.alpha*sumPhi) / (1 + zeta)) / n
-         if (sum(counts*digamma(new.alpha + levels)) / n - digamma(new.alpha) +
-            log(new.alpha) - sum(sumPhi*log(ksi)) / n > 0)
-            lower.bound <- new.alpha
-         else
-            upper.bound <- new.alpha
+      new.alpha <- alpha + 2*tol
+      while(abs(new.alpha - alpha) > tol) {
+         alpha <- new.alpha
+         # TODO: tabulate to gain speed.
+         f <- -digamma(alpha) - log(1+ybar/alpha) +
+               mean(digamma(alpha+concat.x+concat.y)) -
+               sum(sumPhi * log(1+mean.x/(alpha+mean.y)))/n
+         df <- -trigamma(alpha) + (ybar/alpha)/(alpha+ybar) +
+               mean(trigamma(alpha+concat.x+concat.y)) +
+               sum(sumPhi*mean.x/((alpha+mean.y)
+                  *(alpha+mean.y+mean.x)))/n
+         new.alpha <- alpha - f/df
       }
 
       # Note: the rounding prevents the oscillation of the estimates.
       alpha <- round(new.alpha, dig)
+      beta <- ybar / alpha
+      gamma <- (1+1/beta)*mean.x/(alpha+mean.y)
+      
 
-      beta.plus.1 <- sum((sumPhi.x + sumPhi.y + alpha*sumPhi) / (1 + zeta)) / (n*alpha)
-      beta.gamma <- beta.plus.1 * zeta
-      theta.x <- round(beta.gamma / (beta.plus.1 + beta.gamma), dig)
-      theta.y <- round((beta.plus.1-1) / (beta.plus.1 + beta.gamma), dig)
-      theta.alpha <- 1 - theta.x - theta.y
+#      beta.plus.1 <- sum((sumPhi.x + sumPhi.y + alpha*sumPhi) / (1 + zeta)) / (n*alpha)
+#      beta.gamma <- beta.plus.1 * zeta
+#      theta.x <- round(beta.gamma / (beta.plus.1 + beta.gamma), dig)
+#      theta.y <- round((beta.plus.1-1) / (beta.plus.1 + beta.gamma), dig)
+#      theta.alpha <- 1 - theta.x - theta.y
 
-      cat(paste(c(alpha, theta.x), "\n"))
+#      cat(paste(c(alpha, theta.x), "\n"))
 
       if (abs(logLikelihood - oldLogLikelihood) < tol)
          break
@@ -241,6 +233,8 @@ BaumWelch.NB <- function (x, y = NULL, m, Q = NULL, alpha = NULL, theta.x = NULL
       
    vPath <- Viterbi(Q, initialProb, emissionProb, blockSizes)
 
-   return(list(logL = logLikelihood, Q = Q, alpha = alpha, theta.x =
-      theta.x, theta.y = theta.y, vPath = vPath, iterations = iter))
+#   return(list(logL = logLikelihood, Q = Q, alpha = alpha, theta.x =
+#      theta.x, theta.y = theta.y, vPath = vPath, iterations = iter))
+   return(list(logL=logLikelihood, Q=Q, alpha=alpha, gamma=gamma,
+      beta=beta, vPath = vPath, iterations = iter))
 }
