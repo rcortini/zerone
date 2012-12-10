@@ -17,15 +17,16 @@ Viterbi <- function (Q, initialProb, emissionProb, blockSizes = NULL) {
 
    for (n.i in blockSizes) {
 
-      viterbi <- .Fortran("vit", n.i, m, log(initialProb),
-         emissionProb[(cumulative.n + 1):(cumulative.n + n.i),], Q,
-         integer(n.i), matrix(double(n.i * m), nrow = n.i), package = "HummingBee")
+      viterbi <- .C("Rvit", as.integer(n.i), as.integer(m),
+         log(initialProb),
+         t(emissionProb[(cumulative.n + 1):(cumulative.n + n.i),]),
+         Q, integer(n.i), package = "HummingBee")
 
       ViterbiPath[(cumulative.n + 1):(cumulative.n + n.i)] <- viterbi[[6]]
       cumulative.n <- cumulative.n + n.i
 
    }
 
-   return(ViterbiPath)
+   return(ViterbiPath+1)
 
 }
