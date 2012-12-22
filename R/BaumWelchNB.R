@@ -102,18 +102,35 @@ BaumWelch.NB <- function (data, m=2, Q=NULL, alpha=NULL, gamma=c(1,2),
       #        gamma_i^z / (1+gamma_i+1/beta)^(alpha+y+z)
       # The other terms are merged into a multiplicative constant
       # which is normalized away.
-      for (i in 1:m) {
-         n.values <- gamma[i]^u.x 
-         d.values <- (1+1/beta+gamma[i])^(alpha+u.x.y)
-         emissionProb[i,] <<- n.values[concat.x + 1L] /
-               d.values[concat.x+concat.y + 1L]
-      }
+      #for (i in 1:m) {
+      #   n.values <- gamma[i]^u.x 
+      #   d.values <- (1+1/beta+gamma[i])^(alpha+u.x.y)
+      #   emissionProb[i,] <<- n.values[concat.x + 1L] /
+      #         d.values[concat.x+concat.y + 1L]
+      #}
 
-      undef <- colSums(emissionProb) == 0
-      emissionProb[,undef] <<- 1
+      emit <- .C(
+         "emit",
+         as.integer(n),
+         as.double(alpha),
+         as.double(beta),
+         as.double(gamma),
+         as.integer(concat.x),
+         as.integer(concat.y),
+         double(n),
+         #double(m*n),
+         NAOK = TRUE,
+         DUP = FALSE,
+         PACKAGE = "HummingBee"
+      )
+
+      emissionProb <<- emit[[7]]
+
+      #undef <- colSums(emissionProb) == 0
+      #emissionProb[,undef] <<- 1
 
       # Emission probabilities of NAs are set to 1 for every state.
-      emissionProb[is.na(emissionProb)] <<- 1
+      #emissionProb[is.na(emissionProb)] <<- 1
 
       if (adjustInitialProb)
          initialProb <- initial.steady.state.probabilities()
@@ -122,24 +139,27 @@ BaumWelch.NB <- function (data, m=2, Q=NULL, alpha=NULL, gamma=c(1,2),
       cumulative.n <- 0
       transitions <- matrix(double(m*m), nrow = m)
 
-
       forwardback <- .C(
          "R_fwdb",
          as.integer(m),
          as.integer(length(blockSizes)),
          as.integer(blockSizes),
-         Q,
-         initialProb,
+         #Q,
+         diag(Q),
+         #initialProb,
+         initialProb[1],
          emissionProb,
-         double(n*m),
+         double(n),
          double(m*m),
          double(1),
          as.integer(0),
+         DUP = FALSE,
          PACKAGE = "HummingBee"
       )
 
-      logLikelihood <<- logLikelihood + forwardback[[9]]
-      phi <<- matrix(forwardback[[7]], ncol=n)
+      #logLikelihood <<- logLikelihood + forwardback[[9]]
+      #phi <<- matrix(forwardback[[7]], ncol=n)
+      phi <<- rbind(forwardback[[7]], 1-forwardback[[7]])
       transitions <- transitions + forwardback[[8]]
       Q <<- transitions / rowSums(transitions)
 
@@ -167,6 +187,8 @@ BaumWelch.NB <- function (data, m=2, Q=NULL, alpha=NULL, gamma=c(1,2),
       mean.x <- sumPhi.x / sumPhi
       mean.y <- sumPhi.y / sumPhi
 
+      oldparams <- c(alpha, beta, gamma)
+
       dalpha <- 2*tol
       while(abs(dalpha) > tol) {
          alpha <- alpha + dalpha
@@ -178,7 +200,7 @@ BaumWelch.NB <- function (data, m=2, Q=NULL, alpha=NULL, gamma=c(1,2),
                sum(sumPhi*mean.x/(alpha+mean.y) /
                   (alpha+mean.y+mean.x))/n
          dalpha = -f/df
-         for (ii in 1:20) {
+         for (j in 1:20) {
             if (alpha + dalpha > 0) break
             dalpha = dalpha/2
          }
@@ -191,7 +213,10 @@ BaumWelch.NB <- function (data, m=2, Q=NULL, alpha=NULL, gamma=c(1,2),
       beta <- ybar / alpha
       gamma <- (1+1/beta)*mean.x/(alpha+mean.y)
       
-      if (abs(logLikelihood - oldLogLikelihood) < tol)
+      #if (abs(logLikelihood - oldLogLikelihood) < tol)
+      #   break
+      print (c(alpha, beta, gamma))
+      if (all(abs(oldparams - c(alpha, beta, gamma)) < tol))
          break
 
       oldLogLikelihood <- logLikelihood
@@ -203,6 +228,7 @@ BaumWelch.NB <- function (data, m=2, Q=NULL, alpha=NULL, gamma=c(1,2),
    if (adjustInitialProb) 
       initialProb <- initial.steady.state.probabilities()
 
+   emissionProb <- rbind(emissionProb, rep(1, n))
    vPath <- Viterbi(Q, initialProb, t(emissionProb), blockSizes)
 
    # XXX DEBUG XXX

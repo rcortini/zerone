@@ -12,7 +12,8 @@ HummingBee.so: $(OBJECTS)
 	#	-L/soft/general/R-2.15.0/lib64/R/lib -lR
 
 fwdb.o: fwdb.c
-	gcc -std=gnu99 -fPIC -g -O3 -c fwdb.c -lpthread -Wall
+	#gcc -std=gnu99 -fPIC -g -O3 -c fwdb.c -lpthread -Wall
+	gcc -std=gnu99 -fPIC -g -O0 -c fwdb.c -lpthread -Wall
 
 viterbi.o: viterbi.c
 	gcc -std=gnu99 -fPIC -g -O3 -c viterbi.c -lpthread -Wall
