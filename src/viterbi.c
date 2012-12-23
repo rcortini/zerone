@@ -2,17 +2,14 @@
 
 void viterbi(
    // input //
-   int *mptr,
-   int *nptr,
-   double *logini,
-   double *logPem,
-   double *logQ,
+   int m,
+   int n,
+   double *log_init,
+   double *log_Q,
+   double *log_pem,
    // output //
    int *path
 ){
-
-   const int m = *mptr;
-   const int n = *nptr;
 
    int i;
    int j;
@@ -24,15 +21,15 @@ void viterbi(
    double *maxmat = (double *) malloc(m*n * sizeof(double));
 
    // Forward pass.
-   for (j = 0 ; j < m ; j++) maxmat[j] = logini[j+0*m] + logPem[j+0*m];
+   for (j = 0 ; j < m ; j++) maxmat[j] = log_init[j+0*m] + log_pem[j+0*m];
    for (k = 1 ; k < n ; k++) {
       for (j = 0 ; j < m ; j++) {
-         max = maxmat[0+(k-1)*m] + logQ[0+j*m];
+         max = maxmat[0+(k-1)*m] + log_Q[0+j*m];
          for (i = 1 ; i < m ; i++) {
-            tmp = maxmat[i+(k-1)*m] + logQ[i+j*m];
+            tmp = maxmat[i+(k-1)*m] + log_Q[i+j*m];
             if (tmp > max) max = tmp;
          }
-         maxmat[j+k*m] = max + logPem[j+k*m];
+         maxmat[j+k*m] = max + log_pem[j+k*m];
       }
    }
 
@@ -42,10 +39,10 @@ void viterbi(
       if (maxmat[j+(n-1)*m] > maxmat[i+(n-1)*m]) i = j;
    path[n-1] = i;
    for (k = n-2 ; k >= 0 ; k--) {
-      max = logQ[0+path[k+1]*m] + maxmat[0+k*m];
+      max = log_Q[0+path[k+1]*m] + maxmat[0+k*m];
       i = 0;
       for (j = 1 ; j < m ; j++) {
-         tmp = logQ[j+path[k+1]*m] + maxmat[j+k*m];
+         tmp = log_Q[j+path[k+1]*m] + maxmat[j+k*m];
          if (tmp > max) {
             max = tmp;
             i = j;
@@ -55,6 +52,29 @@ void viterbi(
    }
 
    free(maxmat);
+   return;
+
+}
+
+void block_viterbi(
+   // input //
+   int *nblocks,
+   int *lengths,
+   double *log_init,
+   double *log_pem,
+   double *log_Q,
+   // output //
+   int *path
+){
+
+   int i;
+   int start = 0;
+
+   for (i = 0 ; i < *nblocks ; i++) {
+      viterbi(2, lengths[i], log_init, log_Q, log_pem+start, path+start);
+      start += lengths[i];
+   }
+
    return;
 
 }

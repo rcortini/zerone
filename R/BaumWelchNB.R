@@ -70,34 +70,43 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gamma=c(1,2),
       # E-step.
       initialProb <- steady_state_probs(Q)
 
-      EstepC <- .C("estep",
+      ccall1 <- .C("compute_pratio",
          # input #
          as.integer(n),
          as.integer(x),
          as.integer(y),
+         # params #
+         as.double(alpha),
+         as.double(beta),
+         as.double(gamma),
+         # output #
+         double(n),                    # Probability ratio.
+         # extra '.C()' arguments #
+         NAOK = TRUE,
+         DUP = FALSE,
+         PACKAGE = "HummingBee"
+      )
+
+      ccall2 <- .C("fwdb",
+         # input #
          as.integer(length(blockSizes)),
          as.integer(blockSizes),
          # params #
-         alpha,
-         beta,
-         gamma,
          diag(Q),
          initialProb,
          # output #
-         double(n),              # Forward alphas.
-         double(n),              # Phi for first state.
-         double(2*2),            # Sum of transitions.
-         # thread control #
-         as.integer(0),
+         ccall1[[7]],                  # Forward alphas.
+         double(n),                    # Phi for first state.
+         double(2*2),                  # Sum of transitions.
          # extra '.C()' arguments #
          DUP = FALSE,
-         NAOK = TRUE
+         NAOK = FALSE
       )
 
-      phi <- cbind(EstepC[[12]], 1-EstepC[[12]])
+      phi <- cbind(ccall2[[6]], 1-ccall2[[6]])
 
       # M-step.
-      Q <- matrix(EstepC[[13]], nrow = m)
+      Q <- matrix(ccall2[[7]], nrow = m)
       Q <- Q / rowSums(Q)
 
       sumPhi <- colSums(phi)
@@ -138,8 +147,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gamma=c(1,2),
    cat("\n")
 
    # Viterbi algorithm.
-
-   pratioC <- .C("compute_pratio",
+   ccall1 <- .C("compute_pratio",
       # input #
       as.integer(n),
       as.integer(x),
@@ -149,23 +157,25 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gamma=c(1,2),
       as.double(beta),
       as.double(gamma),
       # output #
-      double(n),
-      # thread control #
-      as.integer(0),
+      double(n),                    # Probability ratio.
+      # extra '.C()' arguments #
       NAOK = TRUE,
       DUP = FALSE,
       PACKAGE = "HummingBee"
    )
 
    initialProb <- steady_state_probs(Q)
-   pem <- cbind(pratioC[[7]], rep(1,n))
-   pem <- rowSums(pem)
+   pem <- cbind(ccall1[[7]], rep(1,n))
+   pem <- pem / rowSums(pem)
+   log_pem <- log(t(pem))
+   log_pem[log_pem < -320] <- -320
 
-   vitC <- .C("viterbi",
-      as.integer(m),
-      as.integer(n),
+   vitC <- .C("block_viterbi",
+      # input #
+      as.integer(length(blockSizes)),
+      as.integer(blockSizes),
       log(initialProb),
-      log(t(pem)),
+      log_pem,
       log(Q),
       # output #
       integer(n)
