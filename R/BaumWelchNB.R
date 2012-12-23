@@ -41,7 +41,9 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gamma=c(1,2),
    u.x <- 0:(length(tab.x)-1L)
    u.x.y <- 0:(length(tab.x.y)-1L)
 
-   blockSizes <- tapply(X=rep(1,n), INDEX=data[,1], FUN=sum)
+   blockSizes <- tapply(X=rep(1,n), INDEX=as.character(data[,1]), FUN=sum)
+   index <- match(unique(data[,1]), names(blockSizes))
+   blockSizes <- blockSizes[index]
 
 
 ###############################################
@@ -172,8 +174,10 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gamma=c(1,2),
 
    vitC <- .C("block_viterbi",
       # input #
-      as.integer(length(blockSizes)),
-      as.integer(blockSizes),
+      #as.integer(length(blockSizes)),
+      #as.integer(blockSizes),
+      as.integer(1),
+      as.integer(n),
       log(initialProb),
       log_pem,
       log(Q),

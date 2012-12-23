@@ -110,7 +110,8 @@ void compute_pratio(
       }
       if (lx[x[i]] < 0) lx[x[i]] = pow(r, x[i]);
       if (ly[y[i]] < 0) ly[y[i]] = pow(_r, *alpha + y[i]);
-      else pratio[i] = lx[x[i]]*ly[y[i]];
+      pratio[i] = lx[x[i]]*ly[y[i]];
+
    }
 
    free(lx);

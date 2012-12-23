@@ -72,7 +72,7 @@ void block_viterbi(
 
    for (i = 0 ; i < *nblocks ; i++) {
       viterbi(2, lengths[i], log_init, log_Q, log_pem+start, path+start);
-      start += lengths[i];
+      start += 2*lengths[i];
    }
 
    return;
