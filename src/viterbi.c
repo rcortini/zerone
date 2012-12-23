@@ -1,15 +1,18 @@
 #include <stdlib.h>
 
-void cviterbi(
+void viterbi(
    // input //
-   const int n,
-   const int m,
-   const double *logini,
-   const double *logPem,
-   const double *logQ,
+   int *mptr,
+   int *nptr,
+   double *logini,
+   double *logPem,
+   double *logQ,
    // output //
    int *path
 ){
+
+   const int m = *mptr;
+   const int n = *nptr;
 
    int i;
    int j;
@@ -20,7 +23,7 @@ void cviterbi(
 
    double *maxmat = (double *) malloc(m*n * sizeof(double));
 
-   // 
+   // Forward pass.
    for (j = 0 ; j < m ; j++) maxmat[j] = logini[j+0*m] + logPem[j+0*m];
    for (k = 1 ; k < n ; k++) {
       for (j = 0 ; j < m ; j++) {
@@ -32,7 +35,8 @@ void cviterbi(
          maxmat[j+k*m] = max + logPem[j+k*m];
       }
    }
-   // 
+
+   // Backward pass.
    i = 0;
    for (j = 1 ; j < m ; j++)
       if (maxmat[j+(n-1)*m] > maxmat[i+(n-1)*m]) i = j;
@@ -53,11 +57,4 @@ void cviterbi(
    free(maxmat);
    return;
 
-}
-
-void Rvit(int *n, int *m, double *logini, double *logPem,
-      double *logQ, int *path) {
-   cviterbi(*n, *m, (const double *) logini, (const double *) logPem,
-   (const double *) logQ, path);
-   return ;
 }

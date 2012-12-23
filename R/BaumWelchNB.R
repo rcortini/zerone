@@ -1,56 +1,32 @@
-BaumWelch.NB <- function (data, m=2, Q=NULL, alpha=NULL, gamma=c(1,2),
-   beta=1, initialProb=NULL, maxiter=500, tol=1e-9, dig=5) {
-
+BaumWelch.NB <- function (data, Q, alpha=1, beta, gamma=c(1,2),
+   maxiter=1000, tol=1e-5) {
 
 ###############################################
 #              OPTION PROCESSING              #
 ###############################################
 
+   # Number of states is hard coded.
+   m = 2
 
    n <- nrow(data)
-   concat.x = data[,2]
-   concat.y = data[,3]
+   x = data[,2]
+   y = data[,3]
 
-   if (!is.null(Q)) {
+   if (!missing(Q)) {
       if (!all.equal(dim(Q), c(m,m)))
          stop("Q must be an m by m matrix")
    }
    else {
-      Q <- matrix(0.1/(m-1), ncol = m, nrow = m)
-      diag(Q) <- 0.9
+      Q <- matrix(0.05/(m-1), ncol=m, nrow=m)
+      diag(Q) <- 0.95
    }
 
-   # Needed??
-   concat.y[concat.y > 20*median(concat.y)] <- NA
-   ybar <- mean(concat.y, na.rm=TRUE)
-
-   if (is.null(alpha)) {
-      tab <- tabulate(concat.y + 1L)
-      u <- 0:(length(tab) - 1L)
-      a <- 1
-      da <- 2*tol
-      while (abs(da) > tol) {
-         a <- a + da
-         f <- sum(tab*digamma(a+u))/n -digamma(a) - log(1+ybar/a)
-         f. <- sum(tab*trigamma(a+u))/n -trigamma(a) + ybar/a/(a+ybar)
-         da <- -f/f.
-         for (ii in 1:20) {
-            if (a + da > 0) break
-            da <- da/2
-         }
-         if (a + da < 0) {
-            a <- runif(1)
-            da <- 2*tol
-         }
-      }
-      alpha <- a
-   }
-   
-   if (is.null(beta))
-      beta <- mean(concat.y) / alpha
-
-   adjustInitialProb <- ifelse(is.null(initialProb), TRUE, FALSE)
-
+   # Censor outliers in 'y' (they bear a huge weight on the estimation
+   # of the 'alpha' parameter).
+   y[y > quantile(y, .9999)] <- NA
+   ybar <- mean(y, na.rm=TRUE)
+  
+   if (missing(beta)) beta <- ybar / alpha
 
 
 
@@ -59,112 +35,26 @@ BaumWelch.NB <- function (data, m=2, Q=NULL, alpha=NULL, gamma=c(1,2),
 ###############################################
 
 
-   #blockSizes <- sapply(X = x, FUN = length)
-   blockSizes = tapply(X=rep(1,n), INDEX=data[,1], FUN=sum)
-
-   oldLogLikelihood <- -Inf
-
-   phi <- emissionProb <- matrix(NA_real_, nrow = m, ncol = n)
-
-   # Tabulation saves a lot of time.
-   tab.x <- tabulate(concat.x + 1L)
-   tab.x.y <- tabulate(concat.x + concat.y + 1L)
+   # Tabulation saves a lot of time in the M-step.
+   tab.x <- tabulate(x + 1L)
+   tab.x.y <- tabulate(x + y + 1L)
    u.x <- 0:(length(tab.x)-1L)
    u.x.y <- 0:(length(tab.x.y)-1L)
 
+   blockSizes <- tapply(X=rep(1,n), INDEX=data[,1], FUN=sum)
 
 
 ###############################################
 #           FUNCTION DEFINITIONS              #
 ###############################################
 
-
-   initial.steady.state.probabilities <- function () {
-   # Compute the steady-state initial probabilities.
-
-      spectralDecomposition <- eigen(t(Q))
-
-      if (is.complex(spectralDecomposition$values[1]))
-         return(rep(1/m,m))
-      if (spectralDecomposition$values[1] > 0.99)
-         return( spectralDecomposition$vectors[,1] /
-            sum(spectralDecomposition$vectors[,1]))
-
+   steady_state_probs <- function (Q) {
+      eig <- eigen(t(Q))
+      if (is.complex(eig$values[1])) return(rep(1/m,m))
+      if (eig$values[1] > 0.99)
+         return(eig$vectors[,1] / sum(eig$vectors[,1]))
       return(rep(1/m,m))
-
    }
-
-   E.step <- function () {
-   # Performs the E-step of the modified Baum-Welch algorithm
-
-      # Emission probabilities are computed up to constant terms.
-      # The only term that depend on the state are
-      #        gamma_i^z / (1+gamma_i+1/beta)^(alpha+y+z)
-      # The other terms are merged into a multiplicative constant
-      # which is normalized away.
-      #for (i in 1:m) {
-      #   n.values <- gamma[i]^u.x 
-      #   d.values <- (1+1/beta+gamma[i])^(alpha+u.x.y)
-      #   emissionProb[i,] <<- n.values[concat.x + 1L] /
-      #         d.values[concat.x+concat.y + 1L]
-      #}
-
-      emit <- .C(
-         "emit",
-         as.integer(n),
-         as.double(alpha),
-         as.double(beta),
-         as.double(gamma),
-         as.integer(concat.x),
-         as.integer(concat.y),
-         double(n),
-         #double(m*n),
-         NAOK = TRUE,
-         DUP = FALSE,
-         PACKAGE = "HummingBee"
-      )
-
-      emissionProb <<- emit[[7]]
-
-      #undef <- colSums(emissionProb) == 0
-      #emissionProb[,undef] <<- 1
-
-      # Emission probabilities of NAs are set to 1 for every state.
-      #emissionProb[is.na(emissionProb)] <<- 1
-
-      if (adjustInitialProb)
-         initialProb <- initial.steady.state.probabilities()
-
-      logLikelihood <<- 0
-      cumulative.n <- 0
-      transitions <- matrix(double(m*m), nrow = m)
-
-      forwardback <- .C(
-         "R_fwdb",
-         as.integer(m),
-         as.integer(length(blockSizes)),
-         as.integer(blockSizes),
-         #Q,
-         diag(Q),
-         #initialProb,
-         initialProb[1],
-         emissionProb,
-         double(n),
-         double(m*m),
-         double(1),
-         as.integer(0),
-         DUP = FALSE,
-         PACKAGE = "HummingBee"
-      )
-
-      #logLikelihood <<- logLikelihood + forwardback[[9]]
-      #phi <<- matrix(forwardback[[7]], ncol=n)
-      phi <<- rbind(forwardback[[7]], 1-forwardback[[7]])
-      transitions <- transitions + forwardback[[8]]
-      Q <<- transitions / rowSums(transitions)
-
-   }
-
 
 
 
@@ -177,15 +67,42 @@ BaumWelch.NB <- function (data, m=2, Q=NULL, alpha=NULL, gamma=c(1,2),
 
       cat(paste("iteration:", iter, "\r"))
 
-      E.step()
+      # E-step.
+      initialProb <- steady_state_probs(Q)
+
+      EstepC <- .C("estep",
+         # input #
+         as.integer(n),
+         as.integer(x),
+         as.integer(y),
+         as.integer(length(blockSizes)),
+         as.integer(blockSizes),
+         # params #
+         alpha,
+         beta,
+         gamma,
+         diag(Q),
+         initialProb,
+         # output #
+         double(n),              # Forward alphas.
+         double(n),              # Phi for first state.
+         double(2*2),            # Sum of transitions.
+         # thread control #
+         as.integer(0),
+         # extra '.C()' arguments #
+         DUP = FALSE,
+         NAOK = TRUE
+      )
+
+      phi <- cbind(EstepC[[12]], 1-EstepC[[12]])
 
       # M-step.
+      Q <- matrix(EstepC[[13]], nrow = m)
+      Q <- Q / rowSums(Q)
 
-      sumPhi <- rowSums(phi, na.rm = TRUE)
-      sumPhi.x <- colSums(t(phi)*concat.x, na.rm = TRUE)
-      sumPhi.y <- colSums(t(phi)*concat.y, na.rm = TRUE)
-      mean.x <- sumPhi.x / sumPhi
-      mean.y <- sumPhi.y / sumPhi
+      sumPhi <- colSums(phi)
+      mean.x <- colSums(phi*x, na.rm=TRUE) / sumPhi
+      mean.y <- colSums(phi*y, na.rm=TRUE) / sumPhi
 
       oldparams <- c(alpha, beta, gamma)
 
@@ -210,30 +127,51 @@ BaumWelch.NB <- function (data, m=2, Q=NULL, alpha=NULL, gamma=c(1,2),
          }
       }
 
-      beta <- ybar / alpha
-      gamma <- (1+1/beta)*mean.x/(alpha+mean.y)
+      alpha <- round(alpha, 6)
+      beta <- round(ybar / alpha, 6)
+      gamma <- round((1+1/beta)*mean.x/(alpha+mean.y), 6)
       
-      #if (abs(logLikelihood - oldLogLikelihood) < tol)
-      #   break
-      print (c(alpha, beta, gamma))
-      if (all(abs(oldparams - c(alpha, beta, gamma)) < tol))
-         break
-
-      oldLogLikelihood <- logLikelihood
+      if (all(abs(oldparams - c(alpha, beta, gamma)) < tol)) break
 
    } # for (iter in 1:maxiter)
 
    cat("\n")
 
-   if (adjustInitialProb) 
-      initialProb <- initial.steady.state.probabilities()
+   # Viterbi algorithm.
 
-   emissionProb <- rbind(emissionProb, rep(1, n))
-   vPath <- Viterbi(Q, initialProb, t(emissionProb), blockSizes)
+   pratioC <- .C("compute_pratio",
+      # input #
+      as.integer(n),
+      as.integer(x),
+      as.integer(y),
+      # params #
+      as.double(alpha),
+      as.double(beta),
+      as.double(gamma),
+      # output #
+      double(n),
+      # thread control #
+      as.integer(0),
+      NAOK = TRUE,
+      DUP = FALSE,
+      PACKAGE = "HummingBee"
+   )
 
-   # XXX DEBUG XXX
-   print(c(alpha, beta, gamma, logLikelihood))
+   initialProb <- steady_state_probs(Q)
+   pem <- cbind(pratioC[[7]], rep(1,n))
+   pem <- rowSums(pem)
 
-   return(list(logL=logLikelihood, Q=Q, alpha=alpha, gamma=gamma,
-      beta=beta, vPath = vPath, iterations = iter))
+   vitC <- .C("viterbi",
+      as.integer(m),
+      as.integer(n),
+      log(initialProb),
+      log(t(pem)),
+      log(Q),
+      # output #
+      integer(n)
+   )
+
+   return(list(Q=Q, alpha=alpha, beta=beta, gamma=gamma,
+      vPath=vitC[[6]], emissionProb=pem, iterations=iter))
+
 }
