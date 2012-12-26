@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define M_LOOK 10000
-
 void spcfwdb(
    // input //
    const int n,
@@ -93,13 +91,20 @@ void compute_pratio(
 
    int i;
 
+   int max_x = -1;
+   int max_y = -1;
+   for (i = 0 ; i < *n ; i++) {
+      if (x[i] > max_x) max_x = x[i];
+      if (y[i] > max_y) max_y = y[i];
+   }
+
+   double *lx = malloc ((max_x+1) * sizeof(double));
+   double *ly = malloc ((max_y+1) * sizeof(double));
+   for (i = 0 ; i < max_x ; i++) lx[i] = -1.0;
+   for (i = 0 ; i < max_y ; i++) ly[i] = -1.0;
+
    double _r = (1 + 1 / *beta + gamma[1]) / (1 + 1 / *beta + gamma[0]);
    double r = gamma[0] * _r / gamma[1];
-
-   double *lx = (double *) malloc (M_LOOK * sizeof(double));
-   double *ly = (double *) malloc (M_LOOK * sizeof(double));
-   for (i = 0 ; i < M_LOOK ; i++) lx[i] = ly[i] = -1.0;
-
    for (i = 0 ; i < *n ; i++) {
       // NAs are passed as negative values to 'int'. Set ratio to
       // 1.0 in case of NA emission (assuming both states have the

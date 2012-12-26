@@ -18,7 +18,7 @@ void viterbi(
    double max;
    double tmp;
 
-   double *maxmat = (double *) malloc(m*n * sizeof(double));
+   double *maxmat = malloc(m*n * sizeof(double));
 
    // Forward pass.
    for (j = 0 ; j < m ; j++) maxmat[j] = log_init[j+0*m] + log_pem[j+0*m];
