@@ -1,12 +1,12 @@
-BaumWelch.NB <- function (data, Q, alpha=1, beta, gamma=c(1,2),
-   maxiter=1000, tol=1e-5) {
+BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
+   maxiter=1000, tol=1e-4) {
 
 ###############################################
 #              OPTION PROCESSING              #
 ###############################################
 
    # Number of states is hard coded.
-   m = 2
+   m = 3
 
    n <- nrow(data)
    x = data[,2]
@@ -17,8 +17,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gamma=c(1,2),
          stop("Q must be an m by m matrix")
    }
    else {
-      Q <- matrix(0.05/(m-1), ncol=m, nrow=m)
-      diag(Q) <- 0.95
+      Q <- matrix(c(.99, .025, 0, .01, .95, 0.05, 0, .025, .95), nrow=3)
    }
 
    # Censor outliers in 'y' (they bear a huge weight on the estimation
@@ -70,9 +69,8 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gamma=c(1,2),
       cat(paste("iteration:", iter, "\r"))
 
       # E-step.
-      initialProb <- steady_state_probs(Q)
 
-      ccall1 <- .C("compute_pratio",
+      C_call_1 <- .C("compute_pratio",
          # input #
          as.integer(n),
          as.integer(x),
@@ -80,42 +78,44 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gamma=c(1,2),
          # params #
          as.double(alpha),
          as.double(beta),
-         as.double(gamma),
+         as.double(gammas),
          # output #
-         double(n),                    # Probability ratio.
+         double(2*n),                    # Probability ratio.
          # extra '.C()' arguments #
          NAOK = TRUE,
          DUP = FALSE,
          PACKAGE = "HummingBee"
       )
 
-      ccall2 <- .C("fwdb",
+      initialProb <- steady_state_probs(Q)
+
+      C_call_2 <- .C("fwdb",
          # input #
          as.integer(length(blockSizes)),
          as.integer(blockSizes),
          # params #
-         diag(Q),
+         Q,
          initialProb,
          # output #
-         ccall1[[7]],                  # Forward alphas.
-         double(n),                    # Phi for first state.
-         double(2*2),                  # Sum of transitions.
+         C_call_1[[7]],                # Forward alphas.
+         matrix(double(2*n), nrow=2),  # Phi for first two states.
+         double(3*3),                  # Sum of transitions.
          # extra '.C()' arguments #
          DUP = FALSE,
          NAOK = FALSE
       )
 
-      phi <- cbind(ccall2[[6]], 1-ccall2[[6]])
+      phi <- cbind(t(C_call_2[[6]]), 1-colSums(C_call_2[[6]]))
 
       # M-step.
-      Q <- matrix(ccall2[[7]], nrow = m)
-      Q <- Q / rowSums(Q)
+      Q <- matrix(C_call_2[[7]], nrow = 3)
+      Q <- round(Q / rowSums(Q), 5)
 
       sumPhi <- colSums(phi)
       mean.x <- colSums(phi*x, na.rm=TRUE) / sumPhi
       mean.y <- colSums(phi*y, na.rm=TRUE) / sumPhi
 
-      oldparams <- c(alpha, beta, gamma)
+      oldparams <- c(alpha, beta, gammas)
 
       dalpha <- 2*tol
       while(abs(dalpha) > tol) {
@@ -138,18 +138,20 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gamma=c(1,2),
          }
       }
 
-      alpha <- round(alpha, 6)
-      beta <- round(ybar / alpha, 6)
-      gamma <- round((1+1/beta)*mean.x/(alpha+mean.y), 6)
+      alpha <- round(alpha, 5)
+      beta <- round(ybar / alpha, 5)
+      gammas <- round((1+1/beta)*mean.x/(alpha+mean.y), 5)
       
-      if (all(abs(oldparams - c(alpha, beta, gamma)) < tol)) break
+      if (all(abs(oldparams - c(alpha, beta, gammas)) < tol)) break
+      print(oldparams)
+      print(Q)
 
    } # for (iter in 1:maxiter)
 
    cat("\n")
 
    # Viterbi algorithm.
-   ccall1 <- .C("compute_pratio",
+   C_call_1 <- .C("compute_pratio",
       # input #
       as.integer(n),
       as.integer(x),
@@ -157,9 +159,9 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gamma=c(1,2),
       # params #
       as.double(alpha),
       as.double(beta),
-      as.double(gamma),
+      as.double(gammas),
       # output #
-      double(n),                    # Probability ratio.
+      double(2*n),                    # Probability ratio.
       # extra '.C()' arguments #
       NAOK = TRUE,
       DUP = FALSE,
@@ -167,25 +169,26 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gamma=c(1,2),
    )
 
    initialProb <- steady_state_probs(Q)
-   pem <- cbind(ccall1[[7]], rep(1,n))
+   pem <- cbind(t(matrix(C_call_1[[7]], nrow=2)), rep(1,n))
    pem <- pem / rowSums(pem)
    log_pem <- log(t(pem))
    log_pem[log_pem < -320] <- -320
+   log_Q <- log(Q)
+   log_Q[log_Q < -320] <- -320
 
    vitC <- .C("block_viterbi",
       # input #
-      #as.integer(length(blockSizes)),
-      #as.integer(blockSizes),
-      as.integer(1),
-      as.integer(n),
+      as.integer(m),
+      as.integer(length(blockSizes)),
+      as.integer(blockSizes),
       log(initialProb),
       log_pem,
-      log(Q),
+      log_Q,
       # output #
       integer(n)
    )
 
-   return(list(Q=Q, alpha=alpha, beta=beta, gamma=gamma,
-      vPath=vitC[[6]], emissionProb=pem, iterations=iter))
+   return(list(Q=Q, alpha=alpha, beta=beta, gamma=gammas,
+      vPath=vitC[[7]], emissionProb=pem, iterations=iter))
 
 }

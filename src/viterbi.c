@@ -58,6 +58,7 @@ void viterbi(
 
 void block_viterbi(
    // input //
+   int *m,
    int *nblocks,
    int *lengths,
    double *log_init,
@@ -71,8 +72,8 @@ void block_viterbi(
    int start = 0;
 
    for (i = 0 ; i < *nblocks ; i++) {
-      viterbi(2, lengths[i], log_init, log_Q, log_pem+start, path+start);
-      start += 2*lengths[i];
+      viterbi(*m, lengths[i], log_init, log_Q, log_pem+start, path+start);
+      start += *m * lengths[i];
    }
 
    return;
