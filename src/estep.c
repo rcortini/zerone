@@ -122,13 +122,14 @@ void compute_pratio(
    int *y,
    // params //
    double *alpha,
-   double *beta,
+   double *b,
    double *gamma,
    // output //
    double *pratio
 ){
 
    int k;
+   double beta = *b;
 
    int max_x = -1;
    int max_y = -1;
@@ -141,8 +142,8 @@ void compute_pratio(
    double *l2x = malloc ((max_x+1) * sizeof(double));
    double *l1y = malloc ((max_y+1) * sizeof(double));
    double *l2y = malloc ((max_y+1) * sizeof(double));
-   for (k = 0 ; k < max_x ; k++) l1x[k] = l2x[k] = -1.0;
-   for (k = 0 ; k < max_y ; k++) l1y[k] = l2y[k] = -1.0;
+   for (k = 0 ; k < max_x+1 ; k++) l1x[k] = l2x[k] = -1.0;
+   for (k = 0 ; k < max_y+1 ; k++) l1y[k] = l2y[k] = -1.0;
 
    // With our parametrization, the negative binomial is written        
    //                                                                   
@@ -154,10 +155,12 @@ void compute_pratio(
    // sum out to 1, so we can skip C and we need to compute only m-1    
    // ratios, where m is the number of states).
 
-   double _r0 = (1 + 1 / *beta + gamma[2]) / (1 + 1 / *beta + gamma[0]);
-   double _r1 = (1 + 1 / *beta + gamma[2]) / (1 + 1 / *beta + gamma[1]);
-   double r0 = gamma[0] * _r0 / gamma[2];
-   double r1 = gamma[1] * _r1 / gamma[2];
+   // Do the computation in log space (compute log ratios) to avoid
+   // numeric overflow.
+   double _r0 = log(1 + 1/beta + gamma[2]) - log(1 + 1/beta + gamma[0]);
+   double _r1 = log(1 + 1/beta + gamma[2]) - log(1 + 1/beta + gamma[1]);
+   double r0 = log(gamma[0]) + _r0 - log(gamma[2]);
+   double r1 = log(gamma[1]) + _r1 - log(gamma[2]);
    for (k = 0 ; k < *n ; k++) {
       // NAs are passed as negative values to 'int'. Set ratio to
       // 1.0 in case of NA emission (assuming all states have the
@@ -168,15 +171,16 @@ void compute_pratio(
          continue;
       }
       if (l1x[x[k]] < 0) {
-         l1x[x[k]] = pow(r0, x[k]);
-         l2x[x[k]] = pow(r1, x[k]);
+         l1x[x[k]] = r0 * x[k];
+         l2x[x[k]] = r1 * x[k];
       }
       if (l1y[y[k]] < 0) {
-         l1y[y[k]] = pow(_r0, *alpha + y[k]);
-         l2y[y[k]] = pow(_r1, *alpha + y[k]);
+         l1y[y[k]] = _r0 * (*alpha + y[k]);
+         l2y[y[k]] = _r1 * (*alpha + y[k]);
       }
-      pratio[2*k] = l1x[x[k]]*l1y[y[k]];
-      pratio[2*k+1] = l2x[x[k]]*l2y[y[k]];
+      // Take the exponential.
+      pratio[2*k] = exp(l1x[x[k]] + l1y[y[k]]);
+      pratio[2*k+1] = exp(l2x[x[k]] + l2y[y[k]]);
 
    }
 

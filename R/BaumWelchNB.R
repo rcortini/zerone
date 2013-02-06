@@ -109,7 +109,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
 
       # M-step.
       Q <- matrix(C_call_2[[7]], nrow = 3)
-      Q <- round(Q / rowSums(Q), 5)
+      Q <- Q / rowSums(Q)
 
       sumPhi <- colSums(phi)
       mean.x <- colSums(phi*x, na.rm=TRUE) / sumPhi
@@ -143,8 +143,6 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
       gammas <- round((1+1/beta)*mean.x/(alpha+mean.y), 5)
       
       if (all(abs(oldparams - c(alpha, beta, gammas)) < tol)) break
-      print(oldparams)
-      print(Q)
 
    } # for (iter in 1:maxiter)
 
