@@ -118,8 +118,8 @@ void spcfwdb(
 void compute_pratio(
    // input //
    int *n,
-   int *x,
    int *y,
+   int *z,
    // params //
    double *alpha,
    double *b,
@@ -131,26 +131,26 @@ void compute_pratio(
    int k;
    double beta = *b;
 
-   int max_x = -1;
    int max_y = -1;
+   int max_z = -1;
    for (k = 0 ; k < *n ; k++) {
-      if (x[k] > max_x) max_x = x[k];
       if (y[k] > max_y) max_y = y[k];
+      if (z[k] > max_z) max_z = z[k];
    }
 
-   double *l1x = malloc ((max_x+1) * sizeof(double));
-   double *l2x = malloc ((max_x+1) * sizeof(double));
    double *l1y = malloc ((max_y+1) * sizeof(double));
    double *l2y = malloc ((max_y+1) * sizeof(double));
-   for (k = 0 ; k < max_x+1 ; k++) l1x[k] = l2x[k] = -1.0;
+   double *l1z = malloc ((max_z+1) * sizeof(double));
+   double *l2z = malloc ((max_z+1) * sizeof(double));
    for (k = 0 ; k < max_y+1 ; k++) l1y[k] = l2y[k] = -1.0;
+   for (k = 0 ; k < max_z+1 ; k++) l1z[k] = l2z[k] = -1.0;
 
    // With our parametrization, the negative binomial is written        
    //                                                                   
-   //     C * gamma^x * 1/beta^y / (1 + 1/beta + gamma)^(alpha+x+y)     
+   //     C * gamma^z * 1/beta^y / (1 + 1/beta + gamma)^(alpha+z+y)     
    //                                                                   
-   // where C is a constant that does not depend on (x,y). We directly  
-   // take the ratio with the probability of the first state, which     
+   // where C is a term that cancels out upon normalizing. We directly  
+   // take the ratio with the probability of the last state, which     
    // saves computation (the forward probabilities are normalized to    
    // sum out to 1, so we can skip C and we need to compute only m-1    
    // ratios, where m is the number of states).
@@ -165,27 +165,27 @@ void compute_pratio(
       // NAs are passed as negative values to 'int'. Set ratio to
       // 1.0 in case of NA emission (assuming all states have the
       // same probability of producing NAs).
-      if (x[k] < 0 || y[k] < 0) {
+      if (y[k] < 0 || z[k] < 0) {
          pratio[2*k] = 1.0;
          pratio[2*k+1] = 1.0;
          continue;
       }
-      if (l1x[x[k]] < 0) {
-         l1x[x[k]] = r0 * x[k];
-         l2x[x[k]] = r1 * x[k];
+      if (l1z[z[k]] < 0) {
+         l1z[z[k]] = r0 * z[k];
+         l2z[z[k]] = r1 * z[k];
       }
       if (l1y[y[k]] < 0) {
          l1y[y[k]] = _r0 * (*alpha + y[k]);
          l2y[y[k]] = _r1 * (*alpha + y[k]);
       }
       // Take the exponential.
-      pratio[2*k] = exp(l1x[x[k]] + l1y[y[k]]);
-      pratio[2*k+1] = exp(l2x[x[k]] + l2y[y[k]]);
+      pratio[2*k] = exp(l1z[z[k]] + l1y[y[k]]);
+      pratio[2*k+1] = exp(l2z[z[k]] + l2y[y[k]]);
 
    }
 
-   free(l1x);
-   free(l2x);
+   free(l1z);
+   free(l2z);
    free(l1y);
    free(l2y);
 

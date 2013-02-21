@@ -22,7 +22,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
 
    # Censor outliers in 'y' (they bear a huge weight on the estimation
    # of the 'alpha' parameter).
-   y[y > quantile(y, .9999)] <- NA
+   y[y > quantile(y, .9999, na.rm=TRUE)] <- NA
    ybar <- mean(y, na.rm=TRUE)
   
    if (missing(beta)) beta <- ybar / alpha
@@ -73,8 +73,8 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
       C_call_1 <- .C("compute_pratio",
          # input #
          as.integer(n),
-         as.integer(x),
          as.integer(y),
+         as.integer(x),
          # params #
          as.double(alpha),
          as.double(beta),
@@ -169,8 +169,8 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
    initialProb <- steady_state_probs(Q)
    pem <- cbind(t(matrix(C_call_1[[7]], nrow=2)), rep(1,n))
    pem <- pem / rowSums(pem)
-   log_pem <- log(t(pem))
-   log_pem[log_pem < -320] <- -320
+   log_p <- log(t(pem))
+   log_p[log_p < -320] <- -320
    log_Q <- log(Q)
    log_Q[log_Q < -320] <- -320
 
@@ -180,13 +180,31 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
       as.integer(length(blockSizes)),
       as.integer(blockSizes),
       log(initialProb),
-      log_pem,
+      log_p,
       log_Q,
       # output #
       integer(n)
    )
 
-   return(list(Q=Q, alpha=alpha, beta=beta, gamma=gammas,
+   # Compute model's log-likelihood.
+   l <- .C("compute_loglik",
+      as.integer(n),
+      as.integer(y),
+      as.integer(x),
+      as.double(initialProb),
+      as.double(Q),
+      as.double(alpha),
+      as.double(beta),
+      as.double(gammas),
+      # output #
+      double(1),
+      # extra '.C()' arguments #
+      NAOK = TRUE,
+      DUP = FALSE,
+      PACKAGE = "HummingBee"
+   )[[9]]
+
+   return(list(l=l, Q=Q, alpha=alpha, beta=beta, gamma=gammas,
       vPath=vitC[[7]], emissionProb=pem, iterations=iter))
 
 }
