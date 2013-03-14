@@ -1,11 +1,7 @@
-#include <math.h>
-#include <float.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "estep.h"
 
-void spcfwdb(
+void
+spcfwdb (
    // input //
    const int n,
    const double *Q,
@@ -15,7 +11,7 @@ void spcfwdb(
    double *phi,
    // not initialized //
    double *sumtrans
-){
+)
 // SYNOPSIS:                                                             
 //   Special forward-backward algorithm for 3-state chains where only    
 //   the ratio of emission probabilities is given.                       
@@ -40,6 +36,7 @@ void spcfwdb(
 //                                                                       
 // SIDE EFFECTS:                                                         
 //   Replace 'pratio' by alphas, update 'phi' and 'sumtrans' in place.   
+{
 
    int j;
    int k;
@@ -115,84 +112,123 @@ void spcfwdb(
 
 }
 
-void compute_pratio(
+void
+compute_pratio (
    // input //
-   int *n,
+   int *n_obs,
+   int *dim_z,
    int *y,
    int *z,
    // params //
-   double *alpha,
+   double *a,
    double *b,
    double *gamma,
    // output //
    double *pratio
-){
+)
+// SYNOPSIS:                                                             
+//   Compute emission probabilities with a negative multinomial model.   
+//   Since those are up to a multiplicative constant in the forward-     
+//   backward algorithm, we can compute the ratios of the emission       
+//   probabilities relative to a reference state, of which we set the    
+//   emission probability to 1. This saves computation for one state.    
+//                                                                       
+//      Since the negative nultinomial takes discrete values, the time   
+//   series takes a limited number of values. This means that we can     
+//   cache the results for reuse in order to save computation.           
+//                                                                       
+//      My parametrization is of the form                                
+//                                                                       
+//       p_0(i)^alpha * p_1(i)^y * p_2(i)^z_1 * ... * p_r+1(i)^z_r       
+//                                                                       
+//      By taking the ratio relative to state i=3 the terms to compute   
+//   are of the form                                                     
+//                                                                       
+//       q_0(i)^alpha * q_1(i)^y * q_2(i)^z_1 * ... * q_r+1(i)^z_r       
+//                                                                       
+//   where q_0(i) = p_0(i)/p_0(3) etc.                                   
+//                                                                       
+// ARGUMENTS:                                                            
+//   'n_obs': (1) length of the sequence of observations                 
+//   'dim_z': (1) dimension of z (number of profiles).                   
+//   'y': (n_obs) control profile.                                       
+//   'z': (n_obs,dim_z) profiles.                                        
+//   'a': (1) alias 'alpha', model parameter                             
+//   'b': (1) alias 'beta', model parameter                              
+//   'gamma': (dim_z,3) model parameter                                  
+//   'pratio': (n_obs,2) emission probability ratio                      
+//                                                                       
+// RETURN:                                                               
+//   'void'                                                              
+//                                                                       
+// SIDE EFFECTS:                                                         
+//   Updte 'pratio' in place.                                            
+{
 
+   int i;
+   int j;
    int k;
+   int n = *n_obs;
+   int r = *dim_z;
+   // The following aliases are to avoid the statement '1/*beta'
+   // which is interpreted as a comment.
+   double alpha = *a;
    double beta = *b;
 
-   int max_y = -1;
-   int max_z = -1;
-   for (k = 0 ; k < *n ; k++) {
-      if (y[k] > max_y) max_y = y[k];
-      if (z[k] > max_z) max_z = z[k];
+   // Compute p's.
+   double p[(r+2)*3];
+   for (i = 0 ; i < 3 ; i++) {
+      double denom = 1 + 1/beta;
+      for (j = 0 ; j < r ; j++) denom += gamma[j+i*r];
+      for (j = 0 ; j < r ; j++) p[(j+2)+i*(r+2)] = gamma[j+i*r] / denom;
+      // Fill in p_0 and p_1.
+      p[0+i*(r+2)] = 1/beta / denom;
+      p[1+i*(r+2)] = 1 / denom;
    }
 
-   double *l1y = malloc ((max_y+1) * sizeof(double));
-   double *l2y = malloc ((max_y+1) * sizeof(double));
-   double *l1z = malloc ((max_z+1) * sizeof(double));
-   double *l2z = malloc ((max_z+1) * sizeof(double));
-   for (k = 0 ; k < max_y+1 ; k++) l1y[k] = l2y[k] = -1.0;
-   for (k = 0 ; k < max_z+1 ; k++) l1z[k] = l2z[k] = -1.0;
+   // Compute q's in log space.
+   double logq[(r+2)*2];
+   for (i = 0 ; i < 2 ; i++) {
+   for (j = 0 ; j < r+2 ; j++) {
+      logq[j+i*(r+2)] = log(p[j+i*(r+2)]) - log(p[j+2*(r+2)]);
+   }
+   }
 
-   // With our parametrization, the negative binomial is written        
-   //                                                                   
-   //     C * gamma^z * 1/beta^y / (1 + 1/beta + gamma)^(alpha+z+y)     
-   //                                                                   
-   // where C is a term that cancels out upon normalizing. We directly  
-   // take the ratio with the probability of the last state, which     
-   // saves computation (the forward probabilities are normalized to    
-   // sum out to 1, so we can skip C and we need to compute only m-1    
-   // ratios, where m is the number of states).
-
-   // Do the computation in log space (compute log ratios) to avoid
-   // numeric overflow.
-   double _r0 = log(1 + 1/beta + gamma[2]) - log(1 + 1/beta + gamma[0]);
-   double _r1 = log(1 + 1/beta + gamma[2]) - log(1 + 1/beta + gamma[1]);
-   double r0 = log(gamma[0]) + _r0 - log(gamma[2]);
-   double r1 = log(gamma[1]) + _r1 - log(gamma[2]);
-   for (k = 0 ; k < *n ; k++) {
-      // NAs are passed as negative values to 'int'. Set ratio to
+   for (k = 0 ; k < n ; k++) {
+      // NAs of type 'int' is a large negative value. Set ratio to
       // 1.0 in case of NA emission (assuming all states have the
       // same probability of producing NAs).
-      if (y[k] < 0 || z[k] < 0) {
+      int isna = 0;
+      for (i = 0 ; i < r ; i++) {
+         if (z[i+k*r] < 0) {
+            isna = 1;
+            break;
+         }
+      }
+      if (isna || y[k] < 0) {
          pratio[2*k] = 1.0;
          pratio[2*k+1] = 1.0;
          continue;
       }
-      if (l1z[z[k]] < 0) {
-         l1z[z[k]] = r0 * z[k];
-         l2z[z[k]] = r1 * z[k];
+      // Compute log-ratio (no caching).
+      double p1_p0 = alpha * logq[0] + y[k] * logq[1];
+      double p2_p0 = alpha * logq[r+2] + y[k] * logq[r+3];
+      for (i = 0 ; i < r ; i++) {
+         p1_p0 += z[i+k*r] * logq[i+2];
+         p2_p0 += z[i+k*r] * logq[i+2+(r+2)];
       }
-      if (l1y[y[k]] < 0) {
-         l1y[y[k]] = _r0 * (*alpha + y[k]);
-         l2y[y[k]] = _r1 * (*alpha + y[k]);
-      }
-      // Take the exponential.
-      pratio[2*k] = exp(l1z[z[k]] + l1y[y[k]]);
-      pratio[2*k+1] = exp(l2z[z[k]] + l2y[y[k]]);
+
+      // Take exponential.
+      pratio[2*k] = exp(p1_p0);
+      pratio[2*k+1] = exp(p2_p0);
 
    }
-
-   free(l1z);
-   free(l2z);
-   free(l1y);
-   free(l2y);
 
    return;
 }
 
-void fwdb(
+void
+fwdb (
    // input //
    int *nblocks,
    int *lengths,
@@ -203,7 +239,27 @@ void fwdb(
    double *pratio,
    double *phi,
    double *sumtrans
-){
+)
+// SYNOPSIS:                                                             
+//   Wrapper for the forward-backward routine, for an easy call from R.  
+//                                                                       
+// ARGUMENTS:                                                            
+//   'nblocks': (1) number of blocks of the time series.                 
+//   'lengths': (*nblocks) length of each block of the time series.      
+//   'Q': (3,3) transition probabilities.
+//   'init': (3) initial probability of the first state                  
+//   'pratio': (2,n) ratio of emission probabilities                     
+//   'phi': (2,n) smoothed probabilities for the first 2 states          
+//   'sumtrans': (3,3) sum of conditional transitions probabilties       
+//                                                                       
+// RETURN:                                                               
+//   'void'                                                              
+//                                                                       
+// SIDE EFFECTS:                                                         
+//   Update 'sumtrans' and 'phi' in place, replace 'pratio' by the       
+//   forward alpha probabilities.
+
+{
 
    int i;
    int start = 0;

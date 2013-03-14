@@ -1,4 +1,4 @@
-BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
+BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
    maxiter=1000, tol=1e-4) {
 
 ###############################################
@@ -9,15 +9,16 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
    m = 3
 
    n <- nrow(data)
-   x = data[,2]
-   y = data[,3]
+   y <- data[,2]
+   z <- data[,3:ncol(data), drop=FALSE]
+   r <- ncol(data)-2
 
    if (!missing(Q)) {
       if (!all.equal(dim(Q), c(m,m)))
          stop("Q must be an m by m matrix")
    }
    else {
-      Q <- matrix(c(.99, .025, 0, .01, .95, 0.05, 0, .025, .95), nrow=3)
+      Q <- matrix(c(.99, .005, 0, .01, .99, 0.05, 0, .005, .95), nrow=3)
    }
 
    # Censor outliers in 'y' (they bear a huge weight on the estimation
@@ -26,6 +27,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
    ybar <- mean(y, na.rm=TRUE)
   
    if (missing(beta)) beta <- ybar / alpha
+   if (missing(gammas)) gammas <- rep(c(.2,.5,3), each=r)
 
 
 
@@ -33,12 +35,21 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
 #            VARIABLE DEFINITIONS             #
 ###############################################
 
+   # Coerce 'z' for C.
+   z_as_matrix <- t(as.matrix(z))
+
+   # Get complete cases (useful for M-step).
+   complete <- complete.cases(data.frame(y,z))
+   y0 <- y
+   z0 <- t(as.matrix(z))
+   y0[!complete] <- 0
+   z0[,!complete] <- 0
 
    # Tabulation saves a lot of time in the M-step.
-   tab.x <- tabulate(x + 1L)
-   tab.x.y <- tabulate(x + y + 1L)
-   u.x <- 0:(length(tab.x)-1L)
-   u.x.y <- 0:(length(tab.x.y)-1L)
+   tab.z <- tabulate(rowSums(z) + 1L)
+   tab.z.y <- tabulate(y + rowSums(z) + 1L)
+   u.z <- 0:(length(tab.z)-1L)
+   u.z.y <- 0:(length(tab.z.y)-1L)
 
    blockSizes <- tapply(X=rep(1,n), INDEX=as.character(data[,1]), FUN=sum)
    index <- match(unique(data[,1]), names(blockSizes))
@@ -73,8 +84,9 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
       C_call_1 <- .C("compute_pratio",
          # input #
          as.integer(n),
+         as.integer(r),
          as.integer(y),
-         as.integer(x),
+         as.integer(z_as_matrix),
          # params #
          as.double(alpha),
          as.double(beta),
@@ -97,7 +109,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
          Q,
          initialProb,
          # output #
-         C_call_1[[7]],                # Forward alphas.
+         C_call_1[[8]],                # Forward alphas.
          matrix(double(2*n), nrow=2),  # Phi for first two states.
          double(3*3),                  # Sum of transitions.
          # extra '.C()' arguments #
@@ -111,9 +123,17 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
       Q <- matrix(C_call_2[[7]], nrow = 3)
       Q <- Q / rowSums(Q)
 
-      sumPhi <- colSums(phi)
-      mean.x <- colSums(phi*x, na.rm=TRUE) / sumPhi
-      mean.y <- colSums(phi*y, na.rm=TRUE) / sumPhi
+      # FIXME
+      sumPhi <- colSums(phi[complete,])
+
+      normPhi <- phi
+      normPhi <- scale(normPhi, center=FALSE, scale=colSums(normPhi))
+      #mean.y <- colSums(phi[complete,]*y[complete]) / sumPhi
+      #mean.zj <- t((t(phi[complete,]) %*% z[complete,]) / sumPhi)
+      #mean.z <- colSums(mean.zj)
+      mean.y <- colSums(normPhi*y0)
+      mean.zj <- round(z0 %*% normPhi, 5)
+      mean.z <- round(colSums(mean.zj), 5)
 
       oldparams <- c(alpha, beta, gammas)
 
@@ -121,12 +141,12 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
       while(abs(dalpha) > tol) {
          alpha <- alpha + dalpha
          f <- -digamma(alpha) -log(1 + ybar/alpha) +
-               sum(tab.x.y * digamma(alpha + u.x.y))/n -
-               sum(sumPhi * log(1 + mean.x/(alpha+mean.y)))/n
+               sum(tab.z.y * digamma(alpha + u.z.y))/n -
+               sum(sumPhi * log(1 + mean.z/(alpha+mean.y)))/n
          df <- -trigamma(alpha) + ybar/alpha/(alpha+ybar) +
-               sum(tab.x.y * trigamma(alpha + u.x.y))/n +
-               sum(sumPhi*mean.x/(alpha+mean.y) /
-                  (alpha+mean.y+mean.x))/n
+               sum(tab.z.y * trigamma(alpha + u.z.y))/n +
+               sum(sumPhi*mean.z/(alpha+mean.y) /
+                  (alpha+mean.y+mean.z))/n
          dalpha = -f/df
          for (j in 1:20) {
             if (alpha + dalpha > 0) break
@@ -140,9 +160,11 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
 
       alpha <- round(alpha, 5)
       beta <- round(ybar / alpha, 5)
-      gammas <- round((1+1/beta)*mean.x/(alpha+mean.y), 5)
+      tTij <- round(t(mean.zj) / (alpha+mean.y+mean.z), 5)
+      gammas <- round(t(tTij*(1+1/beta)*(1+mean.z/(alpha+mean.y))), 5)
       
       if (all(abs(oldparams - c(alpha, beta, gammas)) < tol)) break
+      print(c(alpha, beta, gammas))
 
    } # for (iter in 1:maxiter)
 
@@ -152,8 +174,9 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
    C_call_1 <- .C("compute_pratio",
       # input #
       as.integer(n),
-      as.integer(x),
+      as.integer(r),
       as.integer(y),
+      as.integer(z_as_matrix),
       # params #
       as.double(alpha),
       as.double(beta),
@@ -167,7 +190,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
    )
 
    initialProb <- steady_state_probs(Q)
-   pem <- cbind(t(matrix(C_call_1[[7]], nrow=2)), rep(1,n))
+   pem <- cbind(t(matrix(C_call_1[[8]], nrow=2)), rep(1,n))
    pem <- pem / rowSums(pem)
    log_p <- log(t(pem))
    log_p[log_p < -320] <- -320
@@ -186,25 +209,27 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas=c(.1,.1,1),
       integer(n)
    )
 
-   # Compute model's log-likelihood.
-   l <- .C("compute_loglik",
-      as.integer(n),
-      as.integer(y),
-      as.integer(x),
-      as.double(initialProb),
-      as.double(Q),
-      as.double(alpha),
-      as.double(beta),
-      as.double(gammas),
-      # output #
-      double(1),
-      # extra '.C()' arguments #
-      NAOK = TRUE,
-      DUP = FALSE,
-      PACKAGE = "HummingBee"
-   )[[9]]
+   # FIXME
 
-   return(list(l=l, Q=Q, alpha=alpha, beta=beta, gamma=gammas,
+   # Compute model's log-likelihood.
+   #l <- .C("compute_loglik",
+   #   as.integer(n),
+   #   as.integer(y),
+   #   as.integer(z_as_matrix),
+   #   as.double(initialProb),
+   #   as.double(Q),
+   #   as.double(alpha),
+   #   as.double(beta),
+   #   as.double(gammas),
+   #   # output #
+   #   double(1),
+   #   # extra '.C()' arguments #
+   #   NAOK = TRUE,
+   #   DUP = FALSE,
+   #   PACKAGE = "HummingBee"
+   #)[[9]]
+
+   return(list(l=NA, Q=Q, alpha=alpha, beta=beta, gamma=gammas,
       vPath=vitC[[7]], emissionProb=pem, iterations=iter))
 
 }

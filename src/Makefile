@@ -11,8 +11,9 @@ HummingBee.so: $(OBJECTS)
 loglik.o: loglik.c
 	gcc -std=gnu99 -fPIC -g -O3 -c estep.c -Wall -lm
 
-estep.o: estep.c
-	gcc -std=gnu99 -fPIC -g -O3 -c estep.c -Wall -lm
+estep.o: estep.c estep.h
+	#gcc -std=gnu99 -fPIC -g -O3 -c estep.c -Wall -lm
+	gcc -std=gnu99 -fPIC -g -O0 -c estep.c -Wall -lm
 
 viterbi.o: viterbi.c
 	gcc -std=gnu99 -fPIC -g -O3 -c viterbi.c -Wall -lm
