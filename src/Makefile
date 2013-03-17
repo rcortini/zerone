@@ -6,14 +6,20 @@ clean:
 	rm -f $(OBJECTS)
 
 HummingBee.so: $(OBJECTS)
-	R CMD SHLIB estep.o viterbi.o loglik.o -o HummingBee.so -lm
+	R CMD SHLIB estep.o viterbi.o loglik.o indexts.o	\
+	sha1.o -o HummingBee.so -lm
 
 loglik.o: loglik.c
 	gcc -std=gnu99 -fPIC -g -O3 -c estep.c -Wall -lm
 
 estep.o: estep.c estep.h
-	#gcc -std=gnu99 -fPIC -g -O3 -c estep.c -Wall -lm
-	gcc -std=gnu99 -fPIC -g -O0 -c estep.c -Wall -lm
+	gcc -std=gnu99 -fPIC -g -O3 -c estep.c -Wall -lm
 
 viterbi.o: viterbi.c
 	gcc -std=gnu99 -fPIC -g -O3 -c viterbi.c -Wall -lm
+
+indexts.o: indexts.c indexts.h sha1.o
+	gcc -std=gnu99 -fPIC -g -O3 -c indexts.c sha1.o -Wall
+
+sha1.o: sha1.c sha1.h
+	gcc -std=gnu99 -fPIC -g -O3 -c sha1.c -Wall

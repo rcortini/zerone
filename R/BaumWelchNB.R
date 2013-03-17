@@ -75,6 +75,8 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
 ###############################################
 
 
+   index <- as.integer(rep(-1L, n))
+
    for (iter in 1:maxiter) {
 
       cat(paste("iteration:", iter, "\r"))
@@ -91,6 +93,8 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
          as.double(alpha),
          as.double(beta),
          as.double(gammas),
+         # index #
+         index,
          # output #
          double(2*n),                    # Probability ratio.
          # extra '.C()' arguments #
@@ -109,7 +113,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
          Q,
          initialProb,
          # output #
-         C_call_1[[8]],                # Forward alphas.
+         C_call_1[[9]],                # Forward alphas.
          matrix(double(2*n), nrow=2),  # Phi for first two states.
          double(3*3),                  # Sum of transitions.
          # extra '.C()' arguments #
@@ -132,8 +136,8 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
       #mean.zj <- t((t(phi[complete,]) %*% z[complete,]) / sumPhi)
       #mean.z <- colSums(mean.zj)
       mean.y <- colSums(normPhi*y0)
-      mean.zj <- round(z0 %*% normPhi, 5)
-      mean.z <- round(colSums(mean.zj), 5)
+      mean.zj <- z0 %*% normPhi
+      mean.z <- colSums(mean.zj)
 
       oldparams <- c(alpha, beta, gammas)
 
@@ -158,13 +162,13 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
          }
       }
 
-      alpha <- round(alpha, 5)
-      beta <- round(ybar / alpha, 5)
-      tTij <- round(t(mean.zj) / (alpha+mean.y+mean.z), 5)
-      gammas <- round(t(tTij*(1+1/beta)*(1+mean.z/(alpha+mean.y))), 5)
+      alpha <- round(alpha, 4)
+      beta <- round(ybar / alpha, 4)
+      tTij <- t(mean.zj) / (alpha+mean.y+mean.z)
+      #gammas <- round(t(tTij*(1+1/beta)*(1+mean.z/(alpha+mean.y))), 4)
+      gammas <- t(tTij*(1+1/beta)*(1+mean.z/(alpha+mean.y)))
       
       if (all(abs(oldparams - c(alpha, beta, gammas)) < tol)) break
-      print(c(alpha, beta, gammas))
 
    } # for (iter in 1:maxiter)
 
@@ -181,6 +185,8 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
       as.double(alpha),
       as.double(beta),
       as.double(gammas),
+      # index #
+      index,
       # output #
       double(2*n),                    # Probability ratio.
       # extra '.C()' arguments #
@@ -190,7 +196,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
    )
 
    initialProb <- steady_state_probs(Q)
-   pem <- cbind(t(matrix(C_call_1[[8]], nrow=2)), rep(1,n))
+   pem <- cbind(t(matrix(C_call_1[[9]], nrow=2)), rep(1,n))
    pem <- pem / rowSums(pem)
    log_p <- log(t(pem))
    log_p[log_p < -320] <- -320

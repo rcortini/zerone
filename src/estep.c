@@ -1,4 +1,5 @@
 #include "estep.h"
+#include "indexts.h"
 
 void
 spcfwdb (
@@ -123,6 +124,8 @@ compute_pratio (
    double *a,
    double *b,
    double *gamma,
+   // index //
+   int *index,
    // output //
    double *pratio
 )
@@ -194,7 +197,19 @@ compute_pratio (
    }
    }
 
+   if (*index == -1) {
+      // Index the time series, assuming that 'index' has been
+      // properly allocated.
+      indexts(n, r, z, index);
+   }
+
    for (k = 0 ; k < n ; k++) {
+      // Caching by indexing.
+      if (index[k] < k) {
+         pratio[2*k] = pratio[2*index[k]];
+         pratio[2*k+1] = pratio[2*index[k]+1];
+         continue;
+      }
       // NAs of type 'int' is a large negative value. Set ratio to
       // 1.0 in case of NA emission (assuming all states have the
       // same probability of producing NAs).
