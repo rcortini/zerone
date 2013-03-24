@@ -2,12 +2,12 @@ vpath %.c ..
 vpath %.h ..
 
 P=test
-OBJECTS= etest.o
+OBJECTS= loglik.o indexts.o sha1.o
 CFLAGS= -I.. `pkg-config --cflags glib-2.0` -g -pg -Wall -std=gnu99 \
 	          -O0 -fprofile-arcs -ftest-coverage
-LDLIBS= `pkg-config --libs glib-2.0`
+LDLIBS= `pkg-config --libs glib-2.0` -lm
 CC=gcc
 $(P): $(OBJECTS)
 
 clean:
-	rm test *.o *.gcda *.gcno *.gcov gmon.out
+	rm -f test *.o *.gcda *.gcno *.gcov gmon.out

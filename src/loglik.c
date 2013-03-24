@@ -1,115 +1,179 @@
-#include <stdlib.h>
-#include <math.h>
+#include "loglik.h"
+
+int
+max3 (
+   double array[3]
+)
+{
+   int argmax = 0;
+   if (array[1] > array[argmax]) argmax = 1;
+   if (array[2] > array[argmax]) argmax = 2;
+   return argmax;
+}
 
 void
-compute_loglik(
-   int *n,
-   int *y,
-   int *z,
+compute_loglik (
+   // input //
+   int *n_obs,
+   int *dim_z,
+   int *yz,
+   // params //
    double *init,
    double *Q,
-   double *alpha,
-   double *beta,
-   double *g,
-   double *l
-){
-
-// With our parametrization, the negative binomial is written        
-//                                                                   
-// Gamma(a+y+z)/(Gamma(a)*b^a) * g^z/(1+1/b+g)^{a+y+z} / y!z!
-//
-// We skip the factorial terms y! and z! because they are constant
-// for every model. The term Gamma(a+y+z)/(Gamma(a)*b^a) is computed
-// last so only g^z/(1+1/b+g)^{a+y+z} is computed inside the loop.
-// The computation is carried out in log space and we cache the terms
-// g^z and (1+1/b+g)^{a+y+z}.
+   double *a,
+   double *b,
+   double *gamma,
+   // index //
+   int *index,
+   int *tabulated,
+   // output //
+   double *loglik
+)
+// SYNOPSIS:                                                             
+//   Compute emission probabilities with a negative multinomial model.   
+//   Since those are up to a multiplicative constant in the forward-     
+//   backward algorithm, we can compute the ratios of the emission       
+//   probabilities relative to a reference state, of which we set the    
+//   emission probability to 1. This saves computation for one state.    
+//                                                                       
+//      Since the negative nultinomial takes discrete values, the time   
+//   series takes a limited number of values. This means that we can     
+//   cache the results for reuse in order to save computation.           
+//                                                                       
+//      My parametrization is of the form                                
+//                                                                       
+//       p_0(i)^alpha * p_1(i)^y * p_2(i)^z_1 * ... * p_r+1(i)^z_r       
+//                                                                       
+//      By taking the ratio relative to state i=3 the terms to compute   
+//   are of the form                                                     
+//                                                                       
+//       q_0(i)^alpha * q_1(i)^y * q_2(i)^z_1 * ... * q_r+1(i)^z_r       
+//                                                                       
+//   where q_0(i) = p_0(i)/p_0(3) etc.                                   
+//                                                                       
+// ARGUMENTS:                                                            
+//   'n_obs': (1) length of the sequence of observations                 
+//   'dim_z': (1) dimension of z (number of profiles).                   
+//   'y': (n_obs) control profile.                                       
+//   'z': (n_obs,dim_z) profiles.                                        
+//   'a': (1) alias 'alpha', model parameter                             
+//   'b': (1) alias 'beta', model parameter                              
+//   'gamma': (dim_z,3) model parameter                                  
+//                                                                       
+// RETURN:                                                               
+//   'void'                                                              
+{
 
    int i;
    int j;
    int k;
+   int n = *n_obs;
+   int r = *dim_z;
+   // The following aliases are to avoid the statement '1/*beta'
+   // which is interpreted as a comment.
+   double alpha = *a;
+   double beta = *b;
 
-   double a = *alpha;
-   double b = *beta;
-
-   int max_y = -1;
-   int max_z = -1;
-   for (k = 0 ; k < *n ; k++) {
-      if (y[k] > max_y) max_y = y[k];
-      if (z[k] > max_z) max_z = z[k];
-   }
-
-   // Caching and counting.
-   double *g0 = malloc ((max_z+1) * sizeof(double));
-   double *g1 = malloc ((max_z+1) * sizeof(double));
-   double *g2 = malloc ((max_z+1) * sizeof(double));
-   double *bg0 = malloc ((max_y+max_z+1) * sizeof(double));
-   double *bg1 = malloc ((max_y+max_z+1) * sizeof(double));
-   double *bg2 = malloc ((max_y+max_z+1) * sizeof(double));
-   int *counter = malloc((max_y+max_z+1) * sizeof(int));
-
-   // Forward alphas.
-   double phi[3] = {init[0], init[1], init[3]};
+   double sum;
    double tmp[3];
+   double phi[3] = {init[0], init[1], init[2]};
 
-   for (k = 0 ; k < max_z+1 ; k++) g0[k] = g1[k] = g2[k] = -1.0;
-   for (k = 0 ; k < max_y+max_z+1 ; k++) {
-      bg0[k] = bg1[k] = bg2[k] = -1.0;
-      counter[k] = 0;
+   // Compute p's.
+   double logp[(r+2)*3];
+   for (i = 0 ; i < 3 ; i++) {
+      double denom = 1 + 1/beta;
+      for (j = 0 ; j < r ; j++) denom += gamma[j+i*r];
+      for (j = 0 ; j < r ; j++) {
+         logp[(j+2)+i*(r+2)] = log(gamma[j+i*r] / denom);
+      }
+      // Fill in p_0 and p_1.
+      logp[0+i*(r+2)] = log(1/beta / denom);
+      logp[1+i*(r+2)] = log(1 / denom);
    }
 
-   *l = 0.0;
+   if (*index == -1) {
+      // Index the time series, assuming that 'index' has been
+      // properly allocated.
+      indexts(n, r+1, yz, index);
+   }
 
-   for (k = 0 ; k < *n ; k++) {
-      // NAs are passed as negative values to 'int'. Set ratio to
+   double *pem = malloc(3*n * sizeof(double));
+   *loglik = 0.0;
+
+   for (k = 0 ; k < n ; k++) {
+      tmp[0] = tmp[1] = tmp[2] = 0.0;
+      for (i = 0 ; i < 3 ; i++) {
+      for (j = 0 ; j < 3 ; j++) {
+         tmp[j] += phi[i] * Q[i+3*j];
+      }
+      }
+
+      // NAs of type 'int' is a large negative value. Set ratio to
       // 1.0 in case of NA emission (assuming all states have the
       // same probability of producing NAs).
-      if (y[k] < 0 || z[k] < 0) {
+      int is_na = 0;
+      for (i = 0 ; i < r+1 ; i++) {
+         if (yz[i+k*(r+1)] < 0) {
+            is_na = 1;
+            break;
+         }
+      }
+      if (is_na) {
+         for (i = 0 ; i < 3 ; i++) phi[i] = tmp[i];
          continue;
       }
 
-      int zk = z[k];
-      int yzk = y[k]+z[k];
-      counter[yzk]++;
+      // Caching by indexing.
+      if (index[k] == k) {
+         // Compute log-ratio.
+         double q0 = alpha * logp[0];
+         double q1 = alpha * logp[0+(r+2)*1];
+         double q2 = alpha * logp[0+(r+2)*2];
+         for (i = 0 ; i < r+1; i++) {
+            q0 += yz[i+k*(r+1)] * logp[i+1];
+            q1 += yz[i+k*(r+1)] * logp[i+1+(r+2)*1];
+            q2 += yz[i+k*(r+1)] * logp[i+1+(r+2)*2];
+         }
 
-      if (g0[zk] < 0) {
-         g0[zk] = zk * log(g[0]);
-         g1[zk] = zk * log(g[1]);
-         g2[zk] = zk * log(g[2]);
+         // Take exponential.
+         pem[3*k  ] = exp(q0);
+         pem[3*k+1] = exp(q1);
+         pem[3*k+2] = exp(q2);
+
+         // NB: In case of numerical underflow, we store the
+         // log probability of emission, which are negative.
+         if (!(pem[3*k]+pem[3*k+1]+pem[3*k+2] > 0)) {
+            pem[3*k  ] = q0;
+            pem[3*k+1] = q1;
+            pem[3*k+2] = q2;
+         }
+
       }
-      if (bg0[yzk] < 0) {
-         bg0[yzk] = (a+yzk) * log(1+1/b+g[0]);
-         bg1[yzk] = (a+yzk) * log(1+1/b+g[1]);
-         bg2[yzk] = (a+yzk) * log(1+1/b+g[2]);
+
+      tmp[0] *= pem[3*index[k]  ];
+      tmp[1] *= pem[3*index[k]+1];
+      tmp[2] *= pem[3*index[k]+2];
+
+      sum = tmp[0] + tmp[1] + tmp[2];
+      if (sum > 0) *loglik += log(sum);
+      else {
+         int argmax = max3(pem+3*index[k]);
+         *loglik += pem[3*index[k]+argmax];
       }
-
-      tmp[0] = tmp[1] = tmp[2] = 0.0;
-      for (i = 0 ; i < 3 ; i++)
-      for (j = 0 ; j < 3 ; j++)
-         tmp[j] += phi[i] * Q[i+3*j];
-
-      tmp[0] *= exp(g0[zk] - bg0[zk]);
-      tmp[1] *= exp(g1[zk] - bg1[zk]);
-      tmp[2] *= exp(g2[zk] - bg2[zk]);
-
-      double sum = tmp[0] + tmp[1] + tmp[2];
+      // Break out if computation is unstable.
+      if (*loglik != *loglik) break;
       for (i = 0 ; i < 3 ; i++) phi[i] = tmp[i] / sum;
-
-      *l += log(sum);
 
    }
 
-   // Finish the computation by adding the Gamma terms.
-   for (i = 0 ; i < max_y+max_z+1 ; i++) *l += counter[i] * lgamma(a+i);
-   *l -= *n * (lgamma(a) + log(b));
+   n = 0;
+   for (i = 0 ; tabulated[i] > -1 ; i++) {
+      *loglik += tabulated[i] * lgamma(alpha+i);
+      n += tabulated[i];
+   }
+   *loglik -= n * lgamma(alpha);
 
-   free(g0);
-   free(g1);
-   free(g2);
-   free(bg0);
-   free(bg1);
-   free(bg2);
-   free(counter);
-
+   free(pem);
    return;
-
 }
+

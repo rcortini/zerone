@@ -70,7 +70,7 @@ indexts
    qsort(addr, n, sizeof(int), stblcmp);
 
    int current = 0;
-   index[0] = 0;
+   index[addr[0]] = addr[0];
    for (i = 1 ; i < n ; i++) {
       if (sha1cmp(sha1[addr[i]], sha1[current]) == 0) {
          index[addr[i]] = current;

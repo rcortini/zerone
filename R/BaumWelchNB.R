@@ -1,5 +1,5 @@
 BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
-   maxiter=1000, tol=1e-4) {
+   maxiter=2000, tol=1e-5) {
 
 ###############################################
 #              OPTION PROCESSING              #
@@ -11,7 +11,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
    n <- nrow(data)
    y <- data[,2]
    z <- data[,3:ncol(data), drop=FALSE]
-   r <- ncol(data)-2
+   r <- ncol(z)
 
    if (!missing(Q)) {
       if (!all.equal(dim(Q), c(m,m)))
@@ -27,7 +27,11 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
    ybar <- mean(y, na.rm=TRUE)
   
    if (missing(beta)) beta <- ybar / alpha
-   if (missing(gammas)) gammas <- rep(c(.2,.5,3), each=r)
+   if (missing(gammas)) {
+      gammas <- matrix(NA, ncol=3, nrow=r)
+      for (i in 1:r) gammas[i,] <- quantile(z[,i],
+         prob=c(.3, .6, .9), na.rm=TRUE) / (alpha * beta)
+   }
 
 
 
@@ -36,7 +40,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
 ###############################################
 
    # Coerce 'z' for C.
-   z_as_matrix <- t(as.matrix(z))
+   yz_as_matrix <- t(as.matrix(data[,-1]))
 
    # Get complete cases (useful for M-step).
    complete <- complete.cases(data.frame(y,z))
@@ -87,8 +91,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
          # input #
          as.integer(n),
          as.integer(r),
-         as.integer(y),
-         as.integer(z_as_matrix),
+         as.integer(yz_as_matrix),
          # params #
          as.double(alpha),
          as.double(beta),
@@ -105,6 +108,15 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
 
       initialProb <- steady_state_probs(Q)
 
+      #if (any(is.infinite(C_call_1[[8]]))) {
+      #   C_call_1[[8]][is.infinite(C_call_1[[8]])] <- .Machine$double.xmax
+      #}
+
+      if (any(is.na(C_call_1[[8]]))) {
+         cat("cannot discretize profile", stderr())
+         return (NULL)
+      }
+
       C_call_2 <- .C("fwdb",
          # input #
          as.integer(length(blockSizes)),
@@ -113,7 +125,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
          Q,
          initialProb,
          # output #
-         C_call_1[[9]],                # Forward alphas.
+         C_call_1[[8]],                # Forward alphas.
          matrix(double(2*n), nrow=2),  # Phi for first two states.
          double(3*3),                  # Sum of transitions.
          # extra '.C()' arguments #
@@ -132,9 +144,6 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
 
       normPhi <- phi
       normPhi <- scale(normPhi, center=FALSE, scale=colSums(normPhi))
-      #mean.y <- colSums(phi[complete,]*y[complete]) / sumPhi
-      #mean.zj <- t((t(phi[complete,]) %*% z[complete,]) / sumPhi)
-      #mean.z <- colSums(mean.zj)
       mean.y <- colSums(normPhi*y0)
       mean.zj <- z0 %*% normPhi
       mean.z <- colSums(mean.zj)
@@ -152,20 +161,16 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
                sum(sumPhi*mean.z/(alpha+mean.y) /
                   (alpha+mean.y+mean.z))/n
          dalpha = -f/df
-         for (j in 1:20) {
-            if (alpha + dalpha > 0) break
-            dalpha = dalpha/2
-         }
-         if (alpha + dalpha < 0) {
-            alpha <- runif(1)
-            dalpha <- 2*tol
+         # In case of numerical instability, keep old alpha.
+         if (is.na(alpha + dalpha) || (alpha + dalpha < 0)) {
+            alpha <- oldparams[1]
+            break
          }
       }
 
       alpha <- round(alpha, 4)
       beta <- round(ybar / alpha, 4)
       tTij <- t(mean.zj) / (alpha+mean.y+mean.z)
-      #gammas <- round(t(tTij*(1+1/beta)*(1+mean.z/(alpha+mean.y))), 4)
       gammas <- t(tTij*(1+1/beta)*(1+mean.z/(alpha+mean.y)))
       
       if (all(abs(oldparams - c(alpha, beta, gammas)) < tol)) break
@@ -174,13 +179,34 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
 
    cat("\n")
 
+   loglik_C <- .C("compute_loglik",
+      # input #
+      as.integer(n),
+      as.integer(r),
+      as.integer(yz_as_matrix),
+      # params #
+      as.double(initialProb),
+      as.double(Q),
+      as.double(alpha),
+      as.double(beta),
+      as.double(gammas),
+      # index #
+      index,
+      as.integer(c(tab.z.y, -1)),
+      # output #
+      double(1),                    # Probability ratio.
+      # extra '.C()' arguments #
+      NAOK = TRUE,
+      DUP = FALSE,
+      PACKAGE = "HummingBee"
+   )
+
    # Viterbi algorithm.
    C_call_1 <- .C("compute_pratio",
       # input #
       as.integer(n),
       as.integer(r),
-      as.integer(y),
-      as.integer(z_as_matrix),
+      as.integer(yz_as_matrix),
       # params #
       as.double(alpha),
       as.double(beta),
@@ -196,7 +222,8 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
    )
 
    initialProb <- steady_state_probs(Q)
-   pem <- cbind(t(matrix(C_call_1[[9]], nrow=2)), rep(1,n))
+   pem <- cbind(t(matrix(C_call_1[[8]], nrow=2)), rep(1,n))
+   pem[is.infinite(pem)] <- .Machine$double.xmax
    pem <- pem / rowSums(pem)
    log_p <- log(t(pem))
    log_p[log_p < -320] <- -320
@@ -215,27 +242,9 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
       integer(n)
    )
 
-   # FIXME
 
-   # Compute model's log-likelihood.
-   #l <- .C("compute_loglik",
-   #   as.integer(n),
-   #   as.integer(y),
-   #   as.integer(z_as_matrix),
-   #   as.double(initialProb),
-   #   as.double(Q),
-   #   as.double(alpha),
-   #   as.double(beta),
-   #   as.double(gammas),
-   #   # output #
-   #   double(1),
-   #   # extra '.C()' arguments #
-   #   NAOK = TRUE,
-   #   DUP = FALSE,
-   #   PACKAGE = "HummingBee"
-   #)[[9]]
-
-   return(list(l=NA, Q=Q, alpha=alpha, beta=beta, gamma=gammas,
-      vPath=vitC[[7]], emissionProb=pem, iterations=iter))
+   return(list(loglik=loglik_C[[11]] / nrow(HMMdata), Q=Q,
+      alpha=alpha, beta=beta, gamma=gammas, vPath=vitC[[7]],
+      emissionProb=pem, iterations=iter))
 
 }

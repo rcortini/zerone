@@ -43,19 +43,18 @@ spcfwdb (
    int k;
    double sum;              // Computational intermediate.
    double tmp[3];           // Computational intermediate.
-   double B[9];             // Diagonal of the reverse kernel.
-   double *alpha = pratio;  // For clarity.
+   double B[9];             // Reverse kernel.
+   double *alpha = pratio;  // For more clarity.
 
    // First iteration of the forward pass.
    sum = init[0]*pratio[0] + init[1]*pratio[1] + init[2];
    alpha[0] = init[0]*pratio[0] / sum;
    alpha[1] = init[1]*pratio[1] / sum;
-   // a[2] = alpha[2] = init[2] / tmp;
 
    // Next iterations of the forward pass.
    for (k = 1 ; k < n ; k++) {
       for (j = 0 ; j < 3 ; j++) {
-         tmp[j] = Q[  3*j] * alpha[2*k-2] + 
+         tmp[j] = Q[0+3*j] * alpha[2*k-2] + 
                   Q[1+3*j] * alpha[2*k-1] +
                   Q[2+3*j] * (1 - alpha[2*k-2] - alpha[2*k-1]);
       }
@@ -79,8 +78,14 @@ spcfwdb (
    for (k = n-2 ; k >= 0 ; k--) {
       // The backward recursion kernel B(j,i) gives the probability of
       // a backward transition from state j to state i.
-      for (j = 0 ; j < 3 ; j++) {
+      
+      // Prevent numerical instability.
+      if ((sum = phi[2*k] + phi[2*k+1]) > 1) {
+         phi[2*k]   /= sum;
+         phi[2*k+1] /= sum;
+      }
 
+      for (j = 0 ; j < 3 ; j++) {
          sum = Q[  3*j] * alpha[2*k] +
                Q[1+3*j] * alpha[2*k+1] +
                Q[2+3*j] * (1 - alpha[2*k] - alpha[2*k+1]);
@@ -94,18 +99,25 @@ spcfwdb (
             B[j] = B[j+3] = B[j+6] = 1.0/3;
          }
 
-         sumtrans[  3*j] = B[j  ] * phi[2*k+2];
-         sumtrans[1+3*j] = B[j+3] * phi[2*k+3];
-         sumtrans[2+3*j] = B[j+6] * (1 - phi[2*k+2] - phi[2*k+3]);
-
       }
 
-      phi[2*k]   = B[0] * phi[2*k+2] +
-                   B[1] * phi[2*k+3] +
-                   B[2] * (1 - phi[2*k+2] - phi[2*k+3]);
-      phi[2*k+1] = B[3] * phi[2*k+2] +
-                   B[4] * phi[2*k+3] +
-                   B[5] * (1 - phi[2*k+2] - phi[2*k+3]);
+      sumtrans[0+3*0] += B[0+3*0] * phi[2*k+2];
+      sumtrans[1+3*0] += B[0+3*1] * phi[2*k+2];
+      sumtrans[2+3*0] += B[0+3*2] * phi[2*k+2];
+      sumtrans[0+3*1] += B[1+3*0] * phi[2*k+3];
+      sumtrans[1+3*1] += B[1+3*1] * phi[2*k+3];
+      sumtrans[2+3*1] += B[1+3*2] * phi[2*k+3];
+      sumtrans[0+3*2] += B[2+3*0] * (1 - phi[2*k+2] - phi[2*k+3]);
+      sumtrans[1+3*2] += B[2+3*1] * (1 - phi[2*k+2] - phi[2*k+3]);
+      sumtrans[2+3*2] += B[2+3*2] * (1 - phi[2*k+2] - phi[2*k+3]);
+
+      phi[2*k]   = B[0+3*0] * phi[2*k+2] +
+                   B[1+3*0] * phi[2*k+3] +
+                   B[2+3*0] * (1 - phi[2*k+2] - phi[2*k+3]);
+      phi[2*k+1] = B[0+3*1] * phi[2*k+2] +
+                   B[1+3*1] * phi[2*k+3] +
+                   B[1+3*2] * (1 - phi[2*k+2] - phi[2*k+3]);
+
 
    }
 
@@ -118,8 +130,7 @@ compute_pratio (
    // input //
    int *n_obs,
    int *dim_z,
-   int *y,
-   int *z,
+   int *yz,
    // params //
    double *a,
    double *b,
@@ -154,8 +165,7 @@ compute_pratio (
 // ARGUMENTS:                                                            
 //   'n_obs': (1) length of the sequence of observations                 
 //   'dim_z': (1) dimension of z (number of profiles).                   
-//   'y': (n_obs) control profile.                                       
-//   'z': (n_obs,dim_z) profiles.                                        
+//   'yz': (n_obs,1+dim_z) profiles.                                     
 //   'a': (1) alias 'alpha', model parameter                             
 //   'b': (1) alias 'beta', model parameter                              
 //   'gamma': (dim_z,3) model parameter                                  
@@ -200,7 +210,7 @@ compute_pratio (
    if (*index == -1) {
       // Index the time series, assuming that 'index' has been
       // properly allocated.
-      indexts(n, r, z, index);
+      indexts(n, r+1, yz, index);
    }
 
    for (k = 0 ; k < n ; k++) {
@@ -213,29 +223,32 @@ compute_pratio (
       // NAs of type 'int' is a large negative value. Set ratio to
       // 1.0 in case of NA emission (assuming all states have the
       // same probability of producing NAs).
-      int isna = 0;
-      for (i = 0 ; i < r ; i++) {
-         if (z[i+k*r] < 0) {
-            isna = 1;
+      int is_na = 0;
+      for (i = 0 ; i < r+1 ; i++) {
+         if (yz[i+k*(r+1)] < 0) {
+            is_na = 1;
             break;
          }
       }
-      if (isna || y[k] < 0) {
+      if (is_na) {
          pratio[2*k] = 1.0;
          pratio[2*k+1] = 1.0;
          continue;
       }
-      // Compute log-ratio (no caching).
-      double p1_p0 = alpha * logq[0] + y[k] * logq[1];
-      double p2_p0 = alpha * logq[r+2] + y[k] * logq[r+3];
+      // Compute log-ratio.
+      double p1_p0 = alpha * logq[0] + yz[k*(r+1)] * logq[1];
+      double p2_p0 = alpha * logq[r+2] + yz[k*(r+1)] * logq[r+3];
       for (i = 0 ; i < r ; i++) {
-         p1_p0 += z[i+k*r] * logq[i+2];
-         p2_p0 += z[i+k*r] * logq[i+2+(r+2)];
+         p1_p0 += yz[1+i+k*(r+1)] * logq[i+2];
+         p2_p0 += yz[1+i+k*(r+1)] * logq[i+2+(r+2)];
       }
 
       // Take exponential.
       pratio[2*k] = exp(p1_p0);
       pratio[2*k+1] = exp(p2_p0);
+
+      if (pratio[2*k] > DBL_MAX/3) pratio[2*k] = DBL_MAX/3;
+      if (pratio[2*k+1] > DBL_MAX/3) pratio[2*k+1] = DBL_MAX/3;
 
    }
 
@@ -261,8 +274,9 @@ fwdb (
 // ARGUMENTS:                                                            
 //   'nblocks': (1) number of blocks of the time series.                 
 //   'lengths': (*nblocks) length of each block of the time series.      
-//   'Q': (3,3) transition probabilities.
+//   'Q': (3,3) transition probabilities.                                
 //   'init': (3) initial probability of the first state                  
+//   'll' (1) log-likelihood of the model                                
 //   'pratio': (2,n) ratio of emission probabilities                     
 //   'phi': (2,n) smoothed probabilities for the first 2 states          
 //   'sumtrans': (3,3) sum of conditional transitions probabilties       
