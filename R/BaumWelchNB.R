@@ -1,12 +1,9 @@
 BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
-   maxiter=2000, tol=1e-5) {
+   maxiter=2000, tol=1e-5, verbose=TRUE) {
 
 ###############################################
 #              OPTION PROCESSING              #
 ###############################################
-
-   # Number of states is hard coded.
-   m = 3
 
    n <- nrow(data)
    y <- data[,2]
@@ -14,16 +11,19 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
    r <- ncol(z)
 
    if (!missing(Q)) {
-      if (!all.equal(dim(Q), c(m,m)))
+      if (!all.equal(dim(Q), c(3,3)))
          stop("Q must be an m by m matrix")
    }
    else {
-      Q <- matrix(c(.99, .005, 0, .01, .99, 0.05, 0, .005, .95), nrow=3)
+      Q <- matrix(c(
+         0.95,  0.025, 0.025,
+         0.025, 0.95,  0.025,
+         0.025, 0.025, 0.95), nrow=3)
    }
 
    # Censor outliers in 'y' (they bear a huge weight on the estimation
    # of the 'alpha' parameter).
-   y[y > quantile(y, .9999, na.rm=TRUE)] <- NA
+   #y[y > quantile(y, .9999, na.rm=TRUE)] <- NA
    ybar <- mean(y, na.rm=TRUE)
   
    if (missing(beta)) beta <- ybar / alpha
@@ -40,7 +40,9 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
 ###############################################
 
    # Coerce 'z' for C.
-   yz_as_matrix <- t(as.matrix(data[,-1]))
+   #yz_as_matrix <- t(as.matrix(data[,-1]))
+   yz_as_matrix <- t(as.matrix(data.frame(y,z)))
+
 
    # Get complete cases (useful for M-step).
    complete <- complete.cases(data.frame(y,z))
@@ -55,23 +57,9 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
    u.z <- 0:(length(tab.z)-1L)
    u.z.y <- 0:(length(tab.z.y)-1L)
 
-   blockSizes <- tapply(X=rep(1,n), INDEX=as.character(data[,1]), FUN=sum)
-   index <- match(unique(data[,1]), names(blockSizes))
-   blockSizes <- blockSizes[index]
-
-
-###############################################
-#           FUNCTION DEFINITIONS              #
-###############################################
-
-   steady_state_probs <- function (Q) {
-      eig <- eigen(t(Q))
-      if (is.complex(eig$values[1])) return(rep(1/m,m))
-      if (eig$values[1] > 0.99)
-         return(eig$vectors[,1] / sum(eig$vectors[,1]))
-      return(rep(1/m,m))
-   }
-
+   blocks <- tapply(X=rep(1,n), INDEX=as.character(data[,1]), FUN=sum)
+   id <- match(unique(data[,1]), names(blocks))
+   blocks <- blocks[id]
 
 
 ###############################################
@@ -83,7 +71,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
 
    for (iter in 1:maxiter) {
 
-      cat(paste("iteration:", iter, "\r"))
+      if (verbose) cat(paste("iteration:", iter, "\r"))
 
       # E-step.
 
@@ -106,21 +94,15 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
          PACKAGE = "HummingBee"
       )
 
-      initialProb <- steady_state_probs(Q)
+      #initialProb <- steady_state_probs(Q)
+      initialProb <- rep(1/3,3)
 
-      #if (any(is.infinite(C_call_1[[8]]))) {
-      #   C_call_1[[8]][is.infinite(C_call_1[[8]])] <- .Machine$double.xmax
-      #}
-
-      if (any(is.na(C_call_1[[8]]))) {
-         cat("cannot discretize profile", stderr())
-         return (NULL)
-      }
+      if (any(is.na(C_call_1[[8]]))) return (list(loglik=NA))
 
       C_call_2 <- .C("fwdb",
          # input #
-         as.integer(length(blockSizes)),
-         as.integer(blockSizes),
+         as.integer(length(blocks)),
+         as.integer(blocks),
          # params #
          Q,
          initialProb,
@@ -130,7 +112,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
          double(3*3),                  # Sum of transitions.
          # extra '.C()' arguments #
          DUP = FALSE,
-         NAOK = FALSE
+         NAOK = TRUE
       )
 
       phi <- cbind(t(C_call_2[[6]]), 1-colSums(C_call_2[[6]]))
@@ -177,7 +159,7 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
 
    } # for (iter in 1:maxiter)
 
-   cat("\n")
+   if (verbose) cat("\n")
 
    loglik_C <- .C("compute_loglik",
       # input #
@@ -185,7 +167,6 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
       as.integer(r),
       as.integer(yz_as_matrix),
       # params #
-      as.double(initialProb),
       as.double(Q),
       as.double(alpha),
       as.double(beta),
@@ -201,50 +182,53 @@ BaumWelch.NB <- function (data, Q, alpha=1, beta, gammas,
       PACKAGE = "HummingBee"
    )
 
-   # Viterbi algorithm.
-   C_call_1 <- .C("compute_pratio",
-      # input #
-      as.integer(n),
-      as.integer(r),
-      as.integer(yz_as_matrix),
-      # params #
-      as.double(alpha),
-      as.double(beta),
-      as.double(gammas),
-      # index #
-      index,
-      # output #
-      double(2*n),                    # Probability ratio.
-      # extra '.C()' arguments #
-      NAOK = TRUE,
-      DUP = FALSE,
-      PACKAGE = "HummingBee"
-   )
-
-   initialProb <- steady_state_probs(Q)
-   pem <- cbind(t(matrix(C_call_1[[8]], nrow=2)), rep(1,n))
-   pem[is.infinite(pem)] <- .Machine$double.xmax
-   pem <- pem / rowSums(pem)
-   log_p <- log(t(pem))
-   log_p[log_p < -320] <- -320
-   log_Q <- log(Q)
-   log_Q[log_Q < -320] <- -320
-
-   vitC <- .C("block_viterbi",
-      # input #
-      as.integer(m),
-      as.integer(length(blockSizes)),
-      as.integer(blockSizes),
-      log(initialProb),
-      log_p,
-      log_Q,
-      # output #
-      integer(n)
-   )
-
-
-   return(list(loglik=loglik_C[[11]] / nrow(HMMdata), Q=Q,
-      alpha=alpha, beta=beta, gamma=gammas, vPath=vitC[[7]],
-      emissionProb=pem, iterations=iter))
+#   # Viterbi algorithm.
+#   C_call_1 <- .C("compute_pratio",
+#      # input #
+#      as.integer(n),
+#      as.integer(r),
+#      as.integer(yz_as_matrix),
+#      # params #
+#      as.double(alpha),
+#      as.double(beta),
+#      as.double(gammas),
+#      # index #
+#      index,
+#      # output #
+#      double(2*n),                    # Probability ratio.
+#      # extra '.C()' arguments #
+#      NAOK = TRUE,
+#      DUP = FALSE,
+#      PACKAGE = "HummingBee"
+#   )
+#
+#   initialProb <- steady_state_probs(Q)
+#   pem <- cbind(t(matrix(C_call_1[[8]], nrow=2)), rep(1,n))
+#   pem[is.infinite(pem)] <- .Machine$double.xmax
+#   pem <- pem / rowSums(pem)
+#   log_p <- log(t(pem))
+#   log_p[log_p < -320] <- -320
+#   log_Q <- log(Q)
+#   log_Q[log_Q < -320] <- -320
+#
+#   vitC <- .C("block_viterbi",
+#      # input #
+#      as.integer(m),
+#      as.integer(length(blocks)),
+#      as.integer(blocks),
+#      log(initialProb),
+#      log_p,
+#      log_Q,
+#      # output #
+#      integer(n)
+#   )
+#
+#
+#   return(list(loglik=loglik_C[[10]] / nrow(HMMdata), Q=Q,
+#      alpha=alpha, beta=beta, gamma=gammas, vPath=vitC[[7]],
+#      emissionProb=pem, iterations=iter))
+   return(list(loglik=loglik_C[[10]] / nrow(HMMdata), Q=Q,
+      alpha=alpha, beta=beta, gammas=gammas, iterations=iter,
+      blocks=blocks, index=index))
 
 }

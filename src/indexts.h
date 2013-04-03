@@ -3,5 +3,5 @@
 
 #ifndef _HMMNB_INDEXTS
 #define _HMMNB_INDEXTS
-int *indexts (int, int, int *,  int *);
+int *indexts (int, int, const int *, int *);
 #endif

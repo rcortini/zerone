@@ -3,7 +3,7 @@ mlNB <- function(x, tol=1e-6) {
    # parameters for sample 'x'.
 
    n <- length(x)
-   m <- mean(x)
+   m <- mean(x, na.rm=TRUE)
    tab <- tabulate(x+1L)
    u <- 0:(length(tab)-1L)
    a <- 1

@@ -51,7 +51,7 @@ indexts
 (
    int n,
    int r,
-   int *ts,
+   const int *ts,
    // output //
    int *index
 )
@@ -63,7 +63,8 @@ indexts
 
    // Compute SHA1 digests.
    for (i = 0 ; i < n ; i++) {
-      compute_sha1(ts+i*r, r*sizeof(int)/sizeof(char), sha1[i].sum);
+      compute_sha1((const int *) ts+i*r, r*sizeof(int)/sizeof(char),
+            sha1[i].sum);
    }
 
    // Stable sort on SHA1 digests.

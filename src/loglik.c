@@ -1,5 +1,23 @@
 #include "loglik.h"
 
+typedef struct {
+   int n;
+   int r;
+   const int *yz;
+   int *index;
+   const int *tabulated;
+   double *globalmax;
+   double range;
+   double (*cool)(int);
+   // control //
+   int remaining_restarts;
+   int signal;
+} worker_arg;
+
+
+// Global lock for mutex.
+pthread_mutex_t lock;
+
 int
 max3 (
    double array[3]
@@ -14,18 +32,17 @@ max3 (
 void
 compute_loglik (
    // input //
-   int *n_obs,
-   int *dim_z,
-   int *yz,
+   const int *n_obs,
+   const int *dim_z,
+   const int *yz,
    // params //
-   double *init,
-   double *Q,
-   double *a,
-   double *b,
-   double *gamma,
+   const double *Q,
+   const double *a,
+   const double *b,
+   const double *gamma,
    // index //
    int *index,
-   int *tabulated,
+   const int *tabulated,
    // output //
    double *loglik
 )
@@ -67,6 +84,7 @@ compute_loglik (
    int i;
    int j;
    int k;
+   int m;
    int n = *n_obs;
    int r = *dim_z;
    // The following aliases are to avoid the statement '1/*beta'
@@ -76,7 +94,7 @@ compute_loglik (
 
    double sum;
    double tmp[3];
-   double phi[3] = {init[0], init[1], init[2]};
+   double phi[3] = {1.0/3, 1.0/3, 1.0/3};
 
    // Compute p's.
    double logp[(r+2)*3];
@@ -97,7 +115,18 @@ compute_loglik (
       indexts(n, r+1, yz, index);
    }
 
+   for (m = 0 ; tabulated[m] > -1 ; m++);
    double *pem = malloc(3*n * sizeof(double));
+   int *sumyz = calloc(n, sizeof(double));
+   double *lgamma_alpha_sumyz = malloc(m * sizeof(double));
+   double lgamma_alpha = lgamma(alpha);
+   for (k = 0 ; k < n ; k++) {
+      for (int i = 0 ; i < r+1 ; i++) sumyz[k] += yz[i+k*(r+1)];
+   }
+   for (i = 0 ; i < m ; i++) {
+      if (tabulated[i]) lgamma_alpha_sumyz[i] = lgamma(alpha + i);
+   }
+
    *loglik = 0.0;
 
    for (k = 0 ; k < n ; k++) {
@@ -142,12 +171,11 @@ compute_loglik (
 
          // NB: In case of numerical underflow, we store the
          // log probability of emission, which are negative.
-         if (!(pem[3*k]+pem[3*k+1]+pem[3*k+2] > 0)) {
+         if (!(pem[3*k]+pem[3*k+1]+pem[3*k+2] > DBL_EPSILON)) {
             pem[3*k  ] = q0;
             pem[3*k+1] = q1;
             pem[3*k+2] = q2;
          }
-
       }
 
       tmp[0] *= pem[3*index[k]  ];
@@ -155,25 +183,445 @@ compute_loglik (
       tmp[2] *= pem[3*index[k]+2];
 
       sum = tmp[0] + tmp[1] + tmp[2];
-      if (sum > 0) *loglik += log(sum);
+      if (sum > 0) {
+         *loglik += log(sum);
+         phi[0] = tmp[0] / sum;
+         phi[1] = tmp[1] / sum;
+         phi[2] = tmp[2] / sum;
+      }
       else {
          int argmax = max3(pem+3*index[k]);
-         *loglik += pem[3*index[k]+argmax];
+         if (phi[argmax] > 0) {
+            *loglik += log(phi[argmax]) + pem[3*index[k]+argmax];
+         }
+         else {
+            *loglik += lgamma_alpha - lgamma_alpha_sumyz[sumyz[k]];
+         }
+         phi[0] = 0.0;
+         phi[1] = 0.0;
+         phi[2] = 0.0;
+         phi[argmax] = 1.0;
       }
+
       // Break out if computation is unstable.
       if (*loglik != *loglik) break;
       for (i = 0 ; i < 3 ; i++) phi[i] = tmp[i] / sum;
 
    }
 
-   n = 0;
+   int n_no_NA = 0;
    for (i = 0 ; tabulated[i] > -1 ; i++) {
-      *loglik += tabulated[i] * lgamma(alpha+i);
-      n += tabulated[i];
+      *loglik += tabulated[i] * lgamma_alpha_sumyz[i];
+      n_no_NA += tabulated[i];
    }
-   *loglik -= n * lgamma(alpha);
+   *loglik -= n_no_NA * lgamma_alpha;
 
    free(pem);
+   free(sumyz);
+   free(lgamma_alpha_sumyz);
    return;
 }
 
+double
+mean
+(
+   const int *yz,
+   int n,
+   int r
+)
+{
+   double value = 0.0;
+   int n_obs_no_NA = 0;
+   for (int k = 0 ; k < n ; k++) {
+      if (yz[(r+1)*k] < 0) continue;
+      value += yz[(r+1)*k];
+      n_obs_no_NA++;
+   }
+   return value / n_obs_no_NA;
+}
+
+int *
+hist
+(
+   const int *yz,
+   int n,
+   int r
+)
+{
+   int size = 1024;
+   int *counts = calloc(size, sizeof(int));
+   if (counts == NULL) {
+      fprintf(stderr, "memory error (hist 1)\n");
+      return NULL;
+   }
+
+   int maxval = 0;
+   for (int k = 0 ; k < n ; k++) {
+      int sum = 0;
+      for (int i = 0 ; i < r+1 ; i++){
+         if (yz[i+k*(r+1)] < 0) {
+            sum = -1;
+            break;
+         }
+         sum += yz[i+k*(r+1)];
+      }
+      if (sum < 0) continue;
+      if (sum > maxval) maxval = sum;
+      if (sum > size-2) {
+         int newsize;
+         for (newsize = size ; sum > newsize-2 ; newsize *= 2);
+         int *newcounts = realloc(counts, newsize * sizeof(int));
+         if (newcounts == NULL) {
+            fprintf(stderr, "memory error (hist 2)\n");
+            return NULL;
+         }
+         else {
+            // Extra memory must be initialized to 0.
+            counts = newcounts;
+            for (int j = size ; j < newsize ; j++) counts[j] = 0;
+            size = newsize;
+         }
+      }
+      counts[sum]++;
+   }
+   // Add the sentinel.
+   counts[maxval+1] = -1;
+
+   return counts;
+
+}
+
+
+
+double
+cool1
+(int iter)
+{
+   //if (drand48() < T/10) return T - 0.2;
+   //if (T < 0.4) return 0.0;
+   //return T;
+   if (iter > 200) return -1.0;
+   if (iter > 150) return 0.0;
+   return (5.0 / (1+iter));
+}
+
+
+double
+cool2
+(int iter)
+{
+   //if (T > 0.01) T = 0.01;
+   //return T - 0.0001;
+   //return 0.0;
+   if (iter > 200) return -1.0;
+   if (iter > 150) return 0.0;
+   return (0.5 / (1+iter));
+}
+
+
+param_set *
+new_params
+(
+   param_set *params,
+   const param_set *old_params,
+   int r,
+   double range
+)
+{
+   int i,j;
+   params->alpha = old_params->alpha * (1+(range*(drand48()-.5)));
+   params->beta = old_params->beta * (1+(range*(drand48()-.5)));
+   for (i = 0 ; i < 3*r ; i++) {
+      params->gammas[i] = old_params->gammas[i] * 
+         (1+(range*(drand48()-.5)));
+   }
+   for (i = 0 ; i < 3 ; i++) {
+      for (j = 0 ; j < 3 ; j++) {
+         params->Q[i+3*j] = old_params->Q[i+3*j] *
+            (1+(range*(drand48()-.5)));
+      }
+      double sum = params->Q[i+0] + params->Q[i+3*1] + params->Q[i+3*2];
+      for (j = 0 ; j < 3 ; j++) {
+         params->Q[i+3*j] /= sum;
+      }
+   }
+
+   return params;
+
+}
+
+void
+destroy_params
+(
+   param_set *p
+)
+{
+   free(p->gammas);
+   free(p);
+}
+
+void
+update_globalmax
+(
+   double *globalmax,
+   double loglik,
+   param_set *params,
+   int r
+)
+{
+   globalmax[0] = loglik;
+   globalmax[10]= params->alpha;
+   globalmax[11] = params->beta;
+   memcpy(globalmax + 1, params->Q, 9*sizeof(double));
+   memcpy(globalmax + 12, params->gammas, 3*r*sizeof(double));
+}
+
+
+void *
+search
+(void *arg)
+{
+   // Unpack arguments.
+   worker_arg *unpack = (worker_arg *) arg;
+   int n = unpack->n;
+   int r = unpack->r;
+   const int *yz = unpack->yz;
+   int *index = unpack->index;
+   const int *tabulated = unpack->tabulated;
+   double *globalmax = unpack->globalmax;
+   double range = unpack->range;
+   double (*cool)(int) = unpack->cool;
+   int *signal = &unpack->signal;
+   int *remaining_restarts = &unpack->remaining_restarts;
+
+   // Allocate extra set of parameters.
+   param_set *params = malloc(sizeof(param_set));
+   params->gammas = malloc(3*r * sizeof(double));
+
+   param_set *old_params = malloc(sizeof(param_set));
+   old_params->gammas = malloc(3*r * sizeof(double));
+   double loglik;
+   double old_loglik = *globalmax;
+
+   // Restart.
+   while (*remaining_restarts > 0)  {
+      pthread_mutex_lock(&lock);
+      (*remaining_restarts)--;
+      pthread_mutex_unlock(&lock);
+
+      // Copy best conditions.
+      memcpy(old_params->Q, globalmax+1, 9 * sizeof(double));
+      memcpy(old_params->gammas, globalmax+12, 3*r * sizeof(double));
+      old_params->alpha = globalmax[10];
+      old_params->beta = globalmax[11];
+
+      // Start simulated annealing.
+      double T = 1;
+      for (int iter = 1 ; T >= 0 ; T = (*cool)(iter++)) {
+
+         if (*signal > 0) {
+            // Copy best conditions.
+            memcpy(old_params->Q, globalmax+1, 9 * sizeof(double));
+            memcpy(old_params->gammas, globalmax+12, 3*r * sizeof(double));
+            old_params->alpha = globalmax[10];
+            old_params->beta = globalmax[11];
+            pthread_mutex_lock(&lock);
+            (*signal)--;
+            pthread_mutex_unlock(&lock);
+         }
+         else {
+            new_params(params, old_params, r, range);
+         }
+         compute_loglik(&n, &r, yz, params->Q, &params->alpha,
+               &params->beta, params->gammas, index, tabulated,
+               &loglik);
+         loglik /= n;
+
+         if (loglik != loglik) continue;
+
+         // Keep the global best hit. 
+         if (loglik > *globalmax) {
+            fprintf(stderr, "%f (T=%.3f)\n", loglik, T);
+            pthread_mutex_lock(&lock);
+            *signal = 25;
+            update_globalmax(globalmax, loglik, params, r);
+            pthread_mutex_unlock(&lock);
+         }
+
+         int loglik_increased = (loglik > old_loglik);
+         int change_anyway = (drand48() < exp(20*(loglik-old_loglik)/T));
+
+         if (loglik_increased || change_anyway) {
+            param_set *tmp = old_params;
+            old_params = params;
+            params = tmp;
+            old_loglik = loglik;
+         }
+      }
+   }
+
+   destroy_params(params);
+   destroy_params(old_params);
+
+   return NULL;
+
+}
+
+void
+simAnneal
+(
+   // input //
+   const int *n_obs,
+   const int *dim_z,
+   const int *yz,
+   // output //
+   double *globalmax
+)
+{
+
+/*
+#ifdef _SC_NPROCESSORS_ONLN
+   int n_threads = (int) sysconf(_SC_NPROCESSORS_ONLN) - 1;
+   if (n_threads < 1) n_threads = 1;
+#else
+   int n_threads = 1;
+#endif
+*/
+
+   int n_threads = 50;
+
+   int i;
+   int n = *n_obs;
+   int r = *dim_z;
+
+   // Index time series.
+   int *tabulated = hist(yz, n, r);
+   int *index = malloc(n * sizeof(int));
+   indexts(n, r+1, yz, index);
+
+   // Initial parameters.
+   param_set *init_params = malloc(sizeof(param_set));
+   init_params->gammas = malloc(3*r * sizeof(double));
+
+   for (i = 0 ; i < 9 ; i++) init_params->Q[i] = .025;
+   init_params->Q[0] = init_params->Q[4] = init_params->Q[8] = .95;
+   init_params->alpha = 1.0;
+   init_params->beta = mean(yz, n, r);
+   for (i = 0 ; i < r ; i++) {
+      double meanz_by_beta = mean(yz+i+1, n, r) / init_params->beta;
+      init_params->gammas[i+0*r] = meanz_by_beta / 2;
+      init_params->gammas[i+1*r] = meanz_by_beta;
+      init_params->gammas[i+2*r] = meanz_by_beta * 8;
+   }
+
+   // Initialize random generator.
+   srand48(time(NULL));
+   compute_loglik(&n, &r, yz, init_params->Q, &init_params->alpha,
+         &init_params->beta, init_params->gammas, index, tabulated,
+         globalmax);
+   *globalmax /= n;
+   update_globalmax(globalmax, *globalmax, init_params, r);
+   if (*globalmax != *globalmax) *globalmax = -INFINITY;
+
+   // Initialize mutex.
+   int err = pthread_mutex_init(&lock, NULL);
+   if (err) {
+      fprintf(stderr, "error initializing mutex (%d)\n", err);
+      return;
+   }
+
+   // Initialize arguments.
+   worker_arg arg = {
+      .n = n,
+      .r = r,
+      .yz = yz,
+      .index = index,
+      .tabulated = (const int *) tabulated,
+      .globalmax = globalmax,
+      .range = .4,
+      .cool = &cool1,
+   };
+
+   fprintf(stderr, "starting threads\n");
+   // Allocate 'tid'.
+   pthread_t *tid = (pthread_t *) malloc(n_threads * sizeof(pthread_t));
+
+   do {
+      // Set number of restarts.
+      arg.remaining_restarts = 50;
+      arg.signal = 0;
+      for (i = 0 ; i < n_threads ; i++) {
+         err = pthread_create(&(tid[i]), NULL, &search, &arg);
+         if (err) {
+            fprintf(stderr, "error creating thread (%d)\n", err);
+            return;
+         }
+      }
+
+      // Wait for threads to return.
+      for (i = 0 ; i < n_threads ; i++) {
+         pthread_join(tid[i], NULL);
+      }
+   }
+   while (*globalmax != *globalmax);
+
+   fprintf(stderr, "starting second round of optimization\n");
+
+   // Second round optimization.
+   memcpy(init_params->Q, globalmax+1, 9 * sizeof(double));
+   memcpy(init_params->gammas, globalmax+12, 3*r * sizeof(double));
+   init_params->alpha = globalmax[10];
+   init_params->beta = globalmax[11];
+   arg.range = .05;
+   arg.cool = &cool1;
+   arg.signal = 0;
+   arg.remaining_restarts = 50;
+
+   // Start search again with new conditions.
+   for (i = 0 ; i < n_threads ; i++) {
+      err = pthread_create(&(tid[i]), NULL, &search, &arg);
+      if (err) {
+         fprintf(stderr, "error creating thread (%d)\n", err);
+         return;
+      }
+   }
+
+   // Wait for threads to return.
+   for (i = 0 ; i < n_threads ; i++) {
+      pthread_join(tid[i], NULL);
+   }
+
+   fprintf(stderr, "starting final optimization\n");
+
+   // Final optimization.
+   memcpy(init_params->Q, globalmax+1, 9 * sizeof(double));
+   memcpy(init_params->gammas, globalmax+12, 3*r * sizeof(double));
+   init_params->alpha = globalmax[10];
+   init_params->beta = globalmax[11];
+   arg.range = .01;
+   arg.cool = &cool2;
+   arg.signal = 0;
+   arg.remaining_restarts = 50;
+
+   // Start search again with fine conditions.
+   for (i = 0 ; i < n_threads ; i++) {
+      err = pthread_create(&(tid[i]), NULL, &search, &arg);
+      if (err) {
+         fprintf(stderr, "error creating thread (%d)\n", err);
+         return;
+      }
+   }
+
+   // Wait for threads to return.
+   for (i = 0 ; i < n_threads ; i++) {
+      pthread_join(tid[i], NULL);
+   }
+
+   pthread_mutex_destroy(&lock);
+   destroy_params(init_params);
+   free(index);
+   free(tabulated);
+
+   free(tid);
+
+}

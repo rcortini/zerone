@@ -266,9 +266,9 @@ void sha1_finish( sha1_context *ctx, uint8 digest[20] )
 unsigned char *
 compute_sha1
 (
-   int *input,
+   const int *input,
    int length,
-   char *output
+   unsigned char *output
 )
 {
    sha1_context ctx;

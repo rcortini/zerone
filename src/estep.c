@@ -48,8 +48,23 @@ spcfwdb (
 
    // First iteration of the forward pass.
    sum = init[0]*pratio[0] + init[1]*pratio[1] + init[2];
-   alpha[0] = init[0]*pratio[0] / sum;
-   alpha[1] = init[1]*pratio[1] / sum;
+   if (sum > 0) {
+      alpha[0] = init[0]*pratio[0] / sum;
+      alpha[1] = init[1]*pratio[1] / sum;
+      if (sum == INFINITY) {
+         // Sum is infinite, '-nan' produced.
+//         if (alpha[0] != alpha[0]) alpha[0] = 1.0;
+//         if (alpha[1] != alpha[1]) alpha[1] = 1.0;
+//         if (alpha[0] == alpha[1]) alpha[0] = alpha[1] = 0.5;
+         alpha[0] = 0.0;
+         alpha[1] = 1.0;
+      }
+   }
+   else {
+      // Sum is null or NA.
+      alpha[0] = alpha[1] = 1.0/3;
+   }
+
 
    // Next iterations of the forward pass.
    for (k = 1 ; k < n ; k++) {
@@ -59,12 +74,22 @@ spcfwdb (
                   Q[2+3*j] * (1 - alpha[2*k-2] - alpha[2*k-1]);
       }
       sum = tmp[0]*pratio[2*k] + tmp[1]*pratio[2*k+1] + tmp[2];
+
       if (sum > 0) {
          alpha[2*k  ] = tmp[0]*pratio[2*k  ] / sum;
          alpha[2*k+1] = tmp[1]*pratio[2*k+1] / sum;
+         if (sum == INFINITY) {
+            // Sum is infinite, '-nan' produced.
+//            if (alpha[2*k  ] != alpha[2*k  ]) alpha[2*k  ] = 1.0;
+//            if (alpha[2*k+1] != alpha[2*k+1]) alpha[2*k+1] = 1.0;
+//            if (alpha[2*k] == alpha[2*k+1]) alpha[2*k] = alpha[2*k+1] = 0.5;
+            alpha[2*k] = 0.0;
+            alpha[2*k+1] = 1.0;
+         }
       }
       else {
-         alpha[2*k+1] = alpha[2*k] = 1.0/3;
+         // Sum is null or NA.
+         alpha[2*k] = alpha[2*k+1] = 1.0/3;
       }
    }
 
@@ -78,46 +103,46 @@ spcfwdb (
    for (k = n-2 ; k >= 0 ; k--) {
       // The backward recursion kernel B(j,i) gives the probability of
       // a backward transition from state j to state i.
-      
+      double third_term = 1 - alpha[2*k] - alpha[2*k+1]; 
       // Prevent numerical instability.
-      if ((sum = phi[2*k] + phi[2*k+1]) > 1) {
-         phi[2*k]   /= sum;
-         phi[2*k+1] /= sum;
-      }
-
+      if (third_term < EPSILON) third_term = 0.0;
       for (j = 0 ; j < 3 ; j++) {
          sum = Q[  3*j] * alpha[2*k] +
                Q[1+3*j] * alpha[2*k+1] +
-               Q[2+3*j] * (1 - alpha[2*k] - alpha[2*k+1]);
-
+               Q[2+3*j] * third_term;
+               //Q[2+3*j] * (1 - alpha[2*k] - alpha[2*k+1]);
          if (sum > 0) {
             B[j  ] = Q[  3*j] * alpha[2*k] / sum;
             B[j+3] = Q[1+3*j] * alpha[2*k+1] / sum;
-            B[j+6] = Q[2+3*j] * (1 - alpha[2*k] - alpha[2*k+1]) / sum;
+            B[j+6] = Q[2+3*j] * third_term;
+            //B[j+6] = Q[2+3*j] * (1 - alpha[2*k] - alpha[2*k+1]) / sum;
          }
          else {
             B[j] = B[j+3] = B[j+6] = 1.0/3;
          }
-
       }
 
       sumtrans[0+3*0] += B[0+3*0] * phi[2*k+2];
       sumtrans[1+3*0] += B[0+3*1] * phi[2*k+2];
-      sumtrans[2+3*0] += B[0+3*2] * phi[2*k+2];
+      // sumtrans[2+3*0] += B[0+3*2] * phi[2*k+2];
       sumtrans[0+3*1] += B[1+3*0] * phi[2*k+3];
       sumtrans[1+3*1] += B[1+3*1] * phi[2*k+3];
       sumtrans[2+3*1] += B[1+3*2] * phi[2*k+3];
-      sumtrans[0+3*2] += B[2+3*0] * (1 - phi[2*k+2] - phi[2*k+3]);
-      sumtrans[1+3*2] += B[2+3*1] * (1 - phi[2*k+2] - phi[2*k+3]);
-      sumtrans[2+3*2] += B[2+3*2] * (1 - phi[2*k+2] - phi[2*k+3]);
+      // sumtrans[0+3*2] += B[2+3*0] * (1 - phi[2*k+2] - phi[2*k+3]);
+      //sumtrans[1+3*2] += B[2+3*1] * (1 - phi[2*k+2] - phi[2*k+3]);
+      sumtrans[1+3*2] += B[2+3*1] * third_term;
+      //sumtrans[2+3*2] += B[2+3*2] * (1 - phi[2*k+2] - phi[2*k+3]);
+      sumtrans[2+3*2] += B[2+3*2] * third_term;
 
       phi[2*k]   = B[0+3*0] * phi[2*k+2] +
                    B[1+3*0] * phi[2*k+3] +
-                   B[2+3*0] * (1 - phi[2*k+2] - phi[2*k+3]);
+                   //B[2+3*0] * (1 - phi[2*k+2] - phi[2*k+3]);
+                   B[2+3*0] * third_term;
+
       phi[2*k+1] = B[0+3*1] * phi[2*k+2] +
                    B[1+3*1] * phi[2*k+3] +
-                   B[1+3*2] * (1 - phi[2*k+2] - phi[2*k+3]);
-
+                   //B[1+3*2] * (1 - phi[2*k+2] - phi[2*k+3]);
+                   B[1+3*2] * third_term;
 
    }
 
@@ -236,19 +261,19 @@ compute_pratio (
          continue;
       }
       // Compute log-ratio.
-      double p1_p0 = alpha * logq[0] + yz[k*(r+1)] * logq[1];
-      double p2_p0 = alpha * logq[r+2] + yz[k*(r+1)] * logq[r+3];
+      double p1_p3 = alpha * logq[0] + yz[k*(r+1)] * logq[1];
+      double p2_p3 = alpha * logq[r+2] + yz[k*(r+1)] * logq[r+3];
       for (i = 0 ; i < r ; i++) {
-         p1_p0 += yz[1+i+k*(r+1)] * logq[i+2];
-         p2_p0 += yz[1+i+k*(r+1)] * logq[i+2+(r+2)];
+         p1_p3 += yz[1+i+k*(r+1)] * logq[i+2];
+         p2_p3 += yz[1+i+k*(r+1)] * logq[i+2+(r+2)];
       }
 
       // Take exponential.
-      pratio[2*k] = exp(p1_p0);
-      pratio[2*k+1] = exp(p2_p0);
+      pratio[2*k] = exp(p1_p3);
+      pratio[2*k+1] = exp(p2_p3);
 
-      if (pratio[2*k] > DBL_MAX/3) pratio[2*k] = DBL_MAX/3;
-      if (pratio[2*k+1] > DBL_MAX/3) pratio[2*k+1] = DBL_MAX/3;
+      //if (pratio[2*k] > DBL_MAX/3) pratio[2*k] = DBL_MAX/3;
+      //if (pratio[2*k+1] > DBL_MAX/3) pratio[2*k+1] = DBL_MAX/3;
 
    }
 
