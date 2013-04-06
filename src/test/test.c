@@ -313,12 +313,12 @@ main(
 {
    g_test_init(&argc, &argv, NULL);
    g_test_add_func("/indexts/test", test_indexts);
-   g_test_add("/loglik/test_1", loglik_fixture, NULL, setup_1,
-         test_1, NULL);
-   g_test_add("/loglik/test_underflow", loglik_fixture, NULL,
-         setup_underflow, test_underflow, teardown_underflow);
-   g_test_add("/loglik/test_NA", loglik_fixture, NULL, setup_NA,
-         test_NA, NULL);
+   //g_test_add("/loglik/test_1", loglik_fixture, NULL, setup_1,
+   //      test_1, NULL);
+   //g_test_add("/loglik/test_underflow", loglik_fixture, NULL,
+   //      setup_underflow, test_underflow, teardown_underflow);
+   //g_test_add("/loglik/test_NA", loglik_fixture, NULL, setup_NA,
+   //      test_NA, NULL);
    g_test_add_func("/simAnneal/run", test_simAnneal);
    return g_test_run();
 }

@@ -10,7 +10,7 @@ HummingBee <- function (data, ...) {
       as.integer(r),
       as.integer(yz_as_matrix),
       # output #
-      double(12+3*r),
+      double(7+2*r),
       NAOK = TRUE,
       DUP = FALSE,
       PACKAGE = "HummingBee"
@@ -19,10 +19,10 @@ HummingBee <- function (data, ...) {
    # First fit with simulated annealing.
    SAfit <- simAnneal_call[[4]]
    loglik <- SAfit[1]
-   Q <- matrix(SAfit[2:10], nrow=3, ncol=3)
-   alpha <- SAfit[11]
-   beta <- SAfit[12]
-   gammas <- matrix(SAfit[13:(12+3*r)], ncol=3)
+   Q <- matrix(SAfit[2:5], nrow=2, ncol=2)
+   alpha <- SAfit[6]
+   beta <- SAfit[7]
+   gammas <- matrix(SAfit[8:(7+2*r)], ncol=2)
 
    # Compute emission probabilities (needed for Viterbi algorithm).
    compute_pratio_call <- .C("compute_pratio",
@@ -37,7 +37,7 @@ HummingBee <- function (data, ...) {
       # index #
       as.integer(rep(-1L, n)),
       # output #
-      double(2*n),                    # Probability ratio.
+      double(n),                    # Probability ratio.
       # extra '.C()' arguments #
       NAOK = TRUE,
       DUP = FALSE,
@@ -46,10 +46,10 @@ HummingBee <- function (data, ...) {
 
    # Precompute the log of emission and transition probabilities
    # for input of the Viterbi algorithm.
-   pem <- cbind(t(matrix(compute_pratio_call[[8]], nrow=2)), rep(1,n))
+   pem <- cbind(compute_pratio_call[[8]], rep(1,n))
    pem[is.infinite(pem)] <- .Machine$double.xmax
    pem <- pem / rowSums(pem)
-   log_init <- log(rep(1/3,3))
+   log_init <- log(rep(1/2,2))
    log_Q <- log(Q)
    log_p <- log(t(pem))
 
@@ -65,7 +65,7 @@ HummingBee <- function (data, ...) {
    # Viterbi algorithm.
    block_viterbi_call <- .C("block_viterbi",
       # input #
-      as.integer(3),
+      as.integer(2),
       as.integer(length(blocks)),
       as.integer(blocks),
       log_init,

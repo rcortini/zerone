@@ -194,7 +194,7 @@ compute_pratio (
 //   'a': (1) alias 'alpha', model parameter                             
 //   'b': (1) alias 'beta', model parameter                              
 //   'gamma': (dim_z,3) model parameter                                  
-//   'pratio': (n_obs,2) emission probability ratio                      
+//   'pratio': (n_obs) emission probability ratio                        
 //                                                                       
 // RETURN:                                                               
 //   'void'                                                              
@@ -214,8 +214,8 @@ compute_pratio (
    double beta = *b;
 
    // Compute p's.
-   double p[(r+2)*3];
-   for (i = 0 ; i < 3 ; i++) {
+   double p[(r+2)*2];
+   for (i = 0 ; i < 2 ; i++) {
       double denom = 1 + 1/beta;
       for (j = 0 ; j < r ; j++) denom += gamma[j+i*r];
       for (j = 0 ; j < r ; j++) p[(j+2)+i*(r+2)] = gamma[j+i*r] / denom;
@@ -225,11 +225,9 @@ compute_pratio (
    }
 
    // Compute q's in log space.
-   double logq[(r+2)*2];
-   for (i = 0 ; i < 2 ; i++) {
+   double logq[(r+2)];
    for (j = 0 ; j < r+2 ; j++) {
-      logq[j+i*(r+2)] = log(p[j+i*(r+2)]) - log(p[j+2*(r+2)]);
-   }
+      logq[j] = log(p[j+0*(r+2)]) - log(p[j+1*(r+2)]);
    }
 
    if (*index == -1) {
@@ -241,8 +239,7 @@ compute_pratio (
    for (k = 0 ; k < n ; k++) {
       // Caching by indexing.
       if (index[k] < k) {
-         pratio[2*k] = pratio[2*index[k]];
-         pratio[2*k+1] = pratio[2*index[k]+1];
+         pratio[k] = pratio[index[k]];
          continue;
       }
       // NAs of type 'int' is a large negative value. Set ratio to
@@ -256,24 +253,17 @@ compute_pratio (
          }
       }
       if (is_na) {
-         pratio[2*k] = 1.0;
-         pratio[2*k+1] = 1.0;
+         pratio[k] = 1.0;
          continue;
       }
       // Compute log-ratio.
-      double p1_p3 = alpha * logq[0] + yz[k*(r+1)] * logq[1];
-      double p2_p3 = alpha * logq[r+2] + yz[k*(r+1)] * logq[r+3];
+      double p1_p2 = alpha * logq[0] + yz[k*(r+1)] * logq[1];
       for (i = 0 ; i < r ; i++) {
-         p1_p3 += yz[1+i+k*(r+1)] * logq[i+2];
-         p2_p3 += yz[1+i+k*(r+1)] * logq[i+2+(r+2)];
+         p1_p2 += yz[1+i+k*(r+1)] * logq[i+2];
       }
 
       // Take exponential.
-      pratio[2*k] = exp(p1_p3);
-      pratio[2*k+1] = exp(p2_p3);
-
-      //if (pratio[2*k] > DBL_MAX/3) pratio[2*k] = DBL_MAX/3;
-      //if (pratio[2*k+1] > DBL_MAX/3) pratio[2*k+1] = DBL_MAX/3;
+      pratio[k] = exp(p1_p2);
 
    }
 
