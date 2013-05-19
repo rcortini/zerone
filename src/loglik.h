@@ -4,7 +4,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <float.h>
-#include "indexts.h"
+#include "utils.h"
 
 #ifndef _HMMNB_LOGLIK
 #define _HMMNB_LOGLIK

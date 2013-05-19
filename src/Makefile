@@ -1,25 +1,12 @@
-OBJECTS= estep.o viterbi.o indexts.o sha1.o loglik.o HummingBee.so 
+OBJECTS= pso.o mnmultinom.o hmm.o utils.o sha1.o
+CC= gcc
+CFLAGS= -std=gnu99 -fPIC -g -O3 -Wall
 
-all: HummingBee.so
+all: yahmm.so
 
 clean:
-	rm -f $(OBJECTS)
+	rm -f $(OBJECTS) yahmm.so
 
-HummingBee.so: $(OBJECTS)
-	R CMD SHLIB estep.o viterbi.o indexts.o	loglik.o \
-	sha1.o -o HummingBee.so -lpthread -lm
-
-loglik.o: loglik.c loglik.h
-	gcc -std=gnu99 -fPIC -g -O3 -c loglik.c -Wall
-
-estep.o: estep.c estep.h
-	gcc -std=gnu99 -fPIC -g -O3 -c estep.c -Wall
-
-viterbi.o: viterbi.c
-	gcc -std=gnu99 -fPIC -g -O3 -c viterbi.c -Wall
-
-indexts.o: indexts.c indexts.h
-	gcc -std=gnu99 -fPIC -g -O3 -c indexts.c -Wall
-
-sha1.o: sha1.c sha1.h
-	gcc -std=gnu99 -fPIC -g -O3 -c sha1.c -Wall
+yahmm.so: $(OBJECTS)
+	R CMD SHLIB pso.o mnmultinom.o hmm.o utils.o sha1.o \
+	-o yahmm.so -lpthread -lm

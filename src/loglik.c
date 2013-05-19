@@ -1,5 +1,6 @@
 #include "loglik.h"
 
+// Arguments for `social_search`.
 typedef struct {
    int n;
    int r;
@@ -10,13 +11,13 @@ typedef struct {
    double range;
    double (*cool)(int);
    // control //
-   int remaining_restarts;
    int signal;
 } worker_arg;
 
 
 // Global lock for mutex.
 pthread_mutex_t lock;
+//FILE *outf;
 
 void
 compute_loglik (
@@ -68,7 +69,7 @@ compute_loglik (
    int m;
    int n = *n_obs;
    int r = *dim_z;
-   // The following aliases are to avoid the statement '1/*beta'
+   // The following aliases are to avoid the statement '1/*a'
    // which is interpreted as a comment.
    double alpha = *a;
    double beta = *b;
@@ -149,6 +150,7 @@ compute_loglik (
 
          // NB: In case of numerical underflow, we store the
          // log probability of emission, which are negative.
+         // FIXME make 'pem' a long double??
          if (!(pem[2*k]+pem[2*k+1] > DBL_EPSILON)) {
             pem[2*k  ] = q0;
             pem[2*k+1] = q1;
@@ -196,96 +198,14 @@ compute_loglik (
    return;
 }
 
-double
-mean
-(
-   const int *yz,
-   int n,
-   int r
-)
-{
-   double value = 0.0;
-   int n_obs_no_NA = 0;
-   for (int k = 0 ; k < n ; k++) {
-      if (yz[(r+1)*k] < 0) continue;
-      value += yz[(r+1)*k];
-      n_obs_no_NA++;
-   }
-   return value / n_obs_no_NA;
-}
-
-int *
-hist
-(
-   const int *yz,
-   int n,
-   int r
-)
-{
-   int size = 1024;
-   int *counts = calloc(size, sizeof(int));
-   if (counts == NULL) {
-      fprintf(stderr, "memory error (hist 1)\n");
-      return NULL;
-   }
-
-   int maxval = 0;
-   for (int k = 0 ; k < n ; k++) {
-      int sum = 0;
-      for (int i = 0 ; i < r+1 ; i++){
-         if (yz[i+k*(r+1)] < 0) {
-            sum = -1;
-            break;
-         }
-         sum += yz[i+k*(r+1)];
-      }
-      if (sum < 0) continue;
-      if (sum > maxval) maxval = sum;
-      if (sum > size-2) {
-         int newsize;
-         for (newsize = size ; sum > newsize-2 ; newsize *= 2);
-         int *newcounts = realloc(counts, newsize * sizeof(int));
-         if (newcounts == NULL) {
-            fprintf(stderr, "memory error (hist 2)\n");
-            return NULL;
-         }
-         else {
-            // Extra memory must be initialized to 0.
-            counts = newcounts;
-            for (int j = size ; j < newsize ; j++) counts[j] = 0;
-            size = newsize;
-         }
-      }
-      counts[sum]++;
-   }
-   // Add the sentinel.
-   counts[maxval+1] = -1;
-
-   return counts;
-
-}
-
-
 
 double
-cool1
+cool
 (int iter)
 {
-   if (iter > 100) return -1.0;
-   return (3.0 / (1+iter));
+   if (iter > 150) return -1.0;
+   return (.15 / (1+iter));
 }
-
-/*
-double
-cool2
-(int iter)
-{
-   if (iter > 200) return -1.0;
-   if (iter > 150) return 0.0;
-   return (0.5 / (1+iter));
-}
-*/
-
 
 param_set *
 new_params
@@ -344,7 +264,7 @@ update_globalmax
 
 
 void *
-search
+social_search
 (void *arg)
 {
    // Unpack arguments.
@@ -358,7 +278,6 @@ search
    double range = unpack->range;
    double (*cool)(int) = unpack->cool;
    int *signal = &unpack->signal;
-   int *remaining_restarts = &unpack->remaining_restarts;
 
    // Allocate extra set of parameters.
    param_set *params = malloc(sizeof(param_set));
@@ -369,65 +288,69 @@ search
    double loglik;
    double old_loglik = *globalmax;
 
-   // Restart.
-   while (*remaining_restarts > 0)  {
-      pthread_mutex_lock(&lock);
-      (*remaining_restarts)--;
-      pthread_mutex_unlock(&lock);
+   // Copy best conditions.
+   memcpy(old_params->Q, globalmax+1, 4 * sizeof(double));
+   memcpy(old_params->gammas, globalmax+7, 2*r * sizeof(double));
+   old_params->alpha = globalmax[5];
+   old_params->beta = globalmax[6];
 
-      // Copy best conditions.
-      memcpy(old_params->Q, globalmax+1, 4 * sizeof(double));
-      memcpy(old_params->gammas, globalmax+7, 2*r * sizeof(double));
-      old_params->alpha = globalmax[5];
-      old_params->beta = globalmax[6];
+   // Start simulated annealing.
+   double T = .15;
+   for (int iter = 1 ; T >= 0 ; T = (*cool)(iter++)) {
 
-      // Start simulated annealing.
-      double T = 1;
-      for (int iter = 1 ; T >= 0 ; T = (*cool)(iter++)) {
-
-         if (*signal > 0) {
-            // Copy best conditions.
-            memcpy(old_params->Q, globalmax+1, 4 * sizeof(double));
-            memcpy(old_params->gammas, globalmax+7, 2*r * sizeof(double));
-            old_params->alpha = globalmax[5];
-            old_params->beta = globalmax[6];
-            pthread_mutex_lock(&lock);
-            (*signal)--;
-            pthread_mutex_unlock(&lock);
-         }
-         else {
-            new_params(params, old_params, r, range);
-         }
-         compute_loglik(&n, &r, yz, params->Q, &params->alpha,
-               &params->beta, params->gammas, index, tabulated,
-               &loglik);
-         loglik /= n;
-
-         if (loglik != loglik) continue;
-
-         // Keep the global best hit. 
-         if (loglik > *globalmax) {
-            fprintf(stderr, "%f (T=%.3f)\n", loglik, T);
-            pthread_mutex_lock(&lock);
-            *signal = 25;
-            update_globalmax(globalmax, loglik, params, r);
-            pthread_mutex_unlock(&lock);
-         }
-
-         int loglik_increased = (loglik > old_loglik);
-         int change_anyway = (drand48() < exp(20*(loglik-old_loglik)/T));
-
-         if (loglik_increased || change_anyway) {
-            param_set *tmp = old_params;
-            old_params = params;
-            params = tmp;
-            old_loglik = loglik;
-         }
-         // TODO: Save trace in file.
-         //pthread_mutex_lock(&lock);
-         //fprintf(outf, "%s\n", pthread_self());
-         //pthread_mutex_unlock(&lock);
+      if (*signal > 0) {
+         // Copy best conditions.
+         memcpy(old_params->Q, globalmax+1, 4 * sizeof(double));
+         memcpy(old_params->gammas, globalmax+7, 2*r * sizeof(double));
+         old_params->alpha = globalmax[5];
+         old_params->beta = globalmax[6];
+         pthread_mutex_lock(&lock);
+         (*signal)--;
+         pthread_mutex_unlock(&lock);
       }
+      new_params(params, old_params, r, range);
+      compute_loglik(&n, &r, yz, params->Q, &params->alpha,
+            &params->beta, params->gammas, index, tabulated,
+            &loglik);
+      loglik /= n;
+
+      // Re-iterate if 'loglik' is NA.
+      if (loglik != loglik) {
+         iter--;
+         continue;
+      }
+
+      // Keep the global best hit. 
+      if (loglik > *globalmax) {
+         fprintf(stderr, "%f (T=%.3f)\n", loglik, T);
+         pthread_mutex_lock(&lock);
+         *signal = 12;
+         update_globalmax(globalmax, loglik, params, r);
+         pthread_mutex_unlock(&lock);
+      }
+
+      int loglik_increased = (loglik > old_loglik);
+      int change_anyway = drand48() < exp((loglik-old_loglik)/T);
+
+      if (loglik_increased || change_anyway) {
+         param_set *tmp = old_params;
+         old_params = params;
+         params = tmp;
+         old_loglik = loglik;
+      }
+      // Save trace in file.
+      //pthread_mutex_lock(&lock);
+      //fprintf(outf, "%d\t%f\t%f", (int)pthread_self(), old_params->alpha,
+      //      old_params->beta);
+      //fprintf(outf, "\t%d\n", loglik == *globalmax);
+      //for (int j = 0 ; j < 4 ; j++) {
+      //   fprintf(outf, "\t%f", old_params->Q[j]);
+      //}
+      //for (int j = 0 ; j < 2*r ; j++) {
+      //   fprintf(outf, "\t%f", old_params->gammas[j]);
+      //}
+      //fprintf(outf, "\n");
+      //pthread_mutex_unlock(&lock);
    }
 
    destroy_params(params);
@@ -448,15 +371,15 @@ simAnneal
    double *globalmax
 )
 {
-
-   int n_threads = 50;
+   //outf = fopen("tracks.txt", "w");
+   int n_threads = 25;
 
    int i;
    int n = *n_obs;
    int r = *dim_z;
 
    // Index time series.
-   int *tabulated = hist(yz, n, r);
+   int *tabulated = histsum(yz, n, r+1);
    int *index = malloc(n * sizeof(int));
    indexts(n, r+1, yz, index);
 
@@ -467,9 +390,9 @@ simAnneal
    for (i = 0 ; i < 4 ; i++) init_params->Q[i] = .01;
    init_params->Q[0] = init_params->Q[2] = .99;
    init_params->alpha = 1.0;
-   init_params->beta = mean(yz, n, r);
+   init_params->beta = mean(yz, n, r+1);
    for (i = 0 ; i < r ; i++) {
-      double meanz_by_beta = mean(yz+i+1, n, r) / init_params->beta;
+      double meanz_by_beta = mean(yz+i+1, n, r+1) / init_params->beta;
       init_params->gammas[i+0*r] = meanz_by_beta;
       init_params->gammas[i+1*r] = meanz_by_beta * 8;
    }
@@ -499,19 +422,42 @@ simAnneal
       .tabulated = (const int *) tabulated,
       .globalmax = globalmax,
       .range = .4,
-      .cool = &cool1,
+      .cool = &cool,
    };
 
-   fprintf(stderr, "starting threads\n");
    // Allocate 'tid'.
    pthread_t *tid = (pthread_t *) malloc(n_threads * sizeof(pthread_t));
 
-   do {
-      // Set number of restarts.
-      arg.remaining_restarts = 50;
+   fprintf(stderr, "starting threads\n");
+   arg.signal = 0;
+   for (i = 0 ; i < n_threads ; i++) {
+      err = pthread_create(&(tid[i]), NULL, &social_search, &arg);
+      if (err) {
+         fprintf(stderr, "error creating thread (%d)\n", err);
+         return;
+      }
+   }
+
+   // Wait for threads to return.
+   for (i = 0 ; i < n_threads ; i++) {
+      pthread_join(tid[i], NULL);
+   }
+
+   fprintf(stderr, "starting second round of optimization\n");
+
+   // Second round optimization.
+   for (int j = 0 ; j < 5 ; j++) {
+      memcpy(init_params->Q, globalmax+1, 4 * sizeof(double));
+      memcpy(init_params->gammas, globalmax+7, 2*r * sizeof(double));
+      init_params->alpha = globalmax[5];
+      init_params->beta = globalmax[6];
+      arg.range = .05;
+      arg.cool = &cool;
       arg.signal = 0;
+
+      // Start search again with new conditions.
       for (i = 0 ; i < n_threads ; i++) {
-         err = pthread_create(&(tid[i]), NULL, &search, &arg);
+         err = pthread_create(&(tid[i]), NULL, &social_search, &arg);
          if (err) {
             fprintf(stderr, "error creating thread (%d)\n", err);
             return;
@@ -523,34 +469,7 @@ simAnneal
          pthread_join(tid[i], NULL);
       }
    }
-   while (*globalmax != *globalmax);
 
-   fprintf(stderr, "starting second round of optimization\n");
-
-   // Second round optimization.
-   memcpy(init_params->Q, globalmax+1, 4 * sizeof(double));
-   memcpy(init_params->gammas, globalmax+7, 2*r * sizeof(double));
-   init_params->alpha = globalmax[5];
-   init_params->beta = globalmax[6];
-   arg.range = .05;
-   arg.cool = &cool1;
-   arg.signal = 0;
-   arg.remaining_restarts = 50;
-
-   // Start search again with new conditions.
-   for (i = 0 ; i < n_threads ; i++) {
-      err = pthread_create(&(tid[i]), NULL, &search, &arg);
-      if (err) {
-         fprintf(stderr, "error creating thread (%d)\n", err);
-         return;
-      }
-   }
-
-   // Wait for threads to return.
-   for (i = 0 ; i < n_threads ; i++) {
-      pthread_join(tid[i], NULL);
-   }
-/*
    fprintf(stderr, "starting final optimization\n");
 
    // Final optimization.
@@ -559,13 +478,12 @@ simAnneal
    init_params->alpha = globalmax[5];
    init_params->beta = globalmax[6];
    arg.range = .01;
-   arg.cool = &cool1;
+   arg.cool = &cool;
    arg.signal = 0;
-   arg.remaining_restarts = 50;
 
    // Start search again with fine conditions.
    for (i = 0 ; i < n_threads ; i++) {
-      err = pthread_create(&(tid[i]), NULL, &search, &arg);
+      err = pthread_create(&(tid[i]), NULL, &social_search, &arg);
       if (err) {
          fprintf(stderr, "error creating thread (%d)\n", err);
          return;
@@ -576,7 +494,6 @@ simAnneal
    for (i = 0 ; i < n_threads ; i++) {
       pthread_join(tid[i], NULL);
    }
-*/
 
    pthread_mutex_destroy(&lock);
    destroy_params(init_params);
@@ -584,5 +501,5 @@ simAnneal
    free(tabulated);
 
    free(tid);
-
+   //fclose(outf);
 }
