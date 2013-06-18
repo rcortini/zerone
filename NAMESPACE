@@ -1,2 +1,2 @@
-useDynLib(yahmm, mnmultinom_prob, block_fwdb, block_viterbi, pso)
-export(yahmm)
+useDynLib(jahmm, mnmultinom_prob, block_fwdb, block_viterbi, pso)
+export(jahmm)

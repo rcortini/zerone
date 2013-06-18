@@ -1,98 +1,19 @@
-yahmm <- function (data, PSO=TRUE,
-   maxiter=500, tol=1e-5, verbose=TRUE) {
+BaumWelch <- function(m, yz, theta, alpha, Q, p, q,
+   blocks, index, verbose=TRUE, maxiter=1000, tol=1e-6) {
 
-###############################################
-#              OPTION PROCESSING              #
-###############################################
-
-   m <- 3
-   n <- nrow(data)
-
-   Q <- matrix(.05/(m-1), nrow=m, ncol=m)
-   diag(Q) <- .95
-
-   # EM for mixture distribution of the baseline.:
-   baseline_params <- EM.mnmultinom(data[,2])
-
-   theta <- baseline_params[2]
-   alpha <- baseline_params[3]
-   C1 <- baseline_params[4]/(1-baseline_params[4])
-   C2 <- baseline_params[5]/(1-baseline_params[5])
-
-   p <- matrix(NA, ncol=m, nrow=ncol(data))
-   q <- matrix(NA, ncol=m, nrow=ncol(data))
-   medy <- median(data[,2], na.rm=TRUE)
-   # Fill in p row-wise.
-   p[1,] <- medy * C1
-   q[1,] <- medy * C2
-   q[2,] <- p[2,] <- medy
-   for (i in 3:ncol(data)) {
-      if (m == 2) {
-         q[i,] <- p[i,] <- quantile(data[,i],
-            prob=c(.5, .9), na.rm=TRUE)
-      }
-      else if (m == 3) {
-         q[i,] <- p[i,] <- quantile(data[,i],
-            prob=c(.3, .6, .9), na.rm=TRUE)
-      }
-   }
-   p <- scale(p, center=FALSE, scale=colSums(p))
-   q <- scale(q, center=FALSE, scale=colSums(q))
-
-
-   # Coerce input data to matrix for C calls.
-   yz <- t(as.matrix(data[,-1]))
    nas <- is.na(colSums(yz, na.rm=FALSE))
+
+   r <- nrow(yz)
+   n <- ncol(yz)
+
    n_na.rm <- sum(!nas)
    yz_na.rm <- yz[,!nas]
 
+   index <- rep(-1L, n)
+   index_na.rm <- rep(-1L, n_na.rm)
 
-###############################################
-#                 MAIN LOOP                   #
-###############################################
-
-
-   blocks <- tapply(X=rep(1,n), INDEX=as.character(data[,1]), FUN=sum)
-   sorted <- match(unique(data[,1]), names(blocks))
-   blocks <- blocks[sorted]
-
-   index <- as.integer(rep(-1L, n))
-   index_na.rm <- as.integer(rep(-1L, n_na.rm))
-
-   # Particle Swarm Optimization.
-   if (PSO) {
-      if (verbose) cat("running PSO\n", file=stderr())
-      pso_call <- .C(
-         pso,
-         # input #
-         as.integer(m),
-         as.integer(n),
-         as.integer(ncol(data)-1),
-         as.integer(yz),
-         # fixed params #
-         as.double(theta),
-         as.double(alpha),
-         # params #
-         as.double(Q),
-         as.double(p),
-         as.double(q),
-         # index #
-         as.integer(index),
-         # output #
-         double(1),
-         # extra '.C()' arguments #
-         NAOK = TRUE,
-         DUP = FALSE
-      )
-      Q <- array(pso_call[[7]], dim=dim(Q))
-      p <- array(pso_call[[8]], dim=dim(p))
-      q <- array(pso_call[[9]], dim=dim(q))
-
-      # PSO can scramble the order of the states.
-      permute <- order(p[1,], decreasing=TRUE)
-      p <- p[,permute]
-      q <- q[,permute]
-   }
+   C1 <- p[2]/p[1]
+   C2 <- q[2]/q[1]
 
    for (iter in 1:maxiter) {
 
@@ -107,7 +28,7 @@ yahmm <- function (data, PSO=TRUE,
          # input #
          as.integer(m),
          as.integer(n),
-         as.integer(ncol(data)-1),
+         as.integer(r),
          as.integer(yz),
          # params #
          as.double(theta),
@@ -117,7 +38,7 @@ yahmm <- function (data, PSO=TRUE,
          # index #
          as.integer(index),
          # control #
-         as.integer(0),
+         as.integer(0),   # Linear space, except if underflow.
          # output #
          double(m*n),     # Emission probabilities.
          # extra '.C()' arguments #
@@ -143,8 +64,8 @@ yahmm <- function (data, PSO=TRUE,
          double(m*m),     # Sum of transitions.
          double(1),       # Log-likelihood.
          # extra '.C()' arguments #
-         DUP = FALSE,
-         NAOK = TRUE
+         NAOK = TRUE,
+         DUP = FALSE
       )
 
       # M-step.
@@ -165,7 +86,7 @@ yahmm <- function (data, PSO=TRUE,
             # input #
             as.integer(m),
             as.integer(n_na.rm),
-            as.integer(ncol(data)-1),
+            as.integer(r),
             as.integer(yz_na.rm),
             # params #
             as.double(theta),
@@ -175,7 +96,7 @@ yahmm <- function (data, PSO=TRUE,
             # index #
             as.integer(index_na.rm),
             # control #
-            as.integer(2),
+            as.integer(2),       # Ratio of mixture states.
             # output #
             double(m*n_na.rm),   # Emission probabilities.
             # extra '.C()' arguments #
@@ -208,9 +129,107 @@ yahmm <- function (data, PSO=TRUE,
 
       if (all(abs(oldparams - c(p,q)) < tol)) break
 
-   } # for (iter in 1:maxiter)
+   }
 
    if (verbose) cat("\n", file=stderr())
+
+   return (list(loglik=C_call_2[[9]]/n,
+      Q=Q, p=new.p, q=new.q, index=index))
+
+}
+
+
+jahmm <- function (data, PSO=TRUE, verbose=TRUE, ...) {
+
+###############################################
+#              OPTION PROCESSING              #
+###############################################
+
+   m <- 3
+   n <- nrow(data)
+
+   Q <- matrix(.05/(m-1), nrow=m, ncol=m)
+   diag(Q) <- ifelse(m > 1, .95, 1.0)
+
+   # EM for mixture distribution of the baseline.
+   baseline_params <- EM.mnmultinom(data[,2])
+
+   theta <- baseline_params[2]
+   alpha <- baseline_params[3]
+   C1 <- baseline_params[4]/(1-baseline_params[4])
+   C2 <- baseline_params[5]/(1-baseline_params[5])
+
+   p <- matrix(NA, ncol=m, nrow=ncol(data))
+   q <- matrix(NA, ncol=m, nrow=ncol(data))
+   med <- median(data[,2], na.rm=TRUE)
+   # Fill in p row-wise.
+   p[1,] <- med * C1
+   q[1,] <- med * C2
+   q[2,] <- p[2,] <- med
+   p_ <- p[,1,drop=FALSE]
+   q_ <- q[,1,drop=FALSE]
+   for (i in 3:ncol(data)) {
+      q[i,] <- p[i,] <- quantile(data[,i],
+         prob=c(.3, .6, .9), na.rm=TRUE)
+      q_[i,] <- p_[i,] <- mean(data[,i], na.rm=TRUE)
+   }
+   p <- scale(p, center=FALSE, scale=colSums(p))
+   q <- scale(q, center=FALSE, scale=colSums(q))
+   p_ <- scale(p_, center=FALSE, scale=colSums(p_))
+   q_ <- scale(q_, center=FALSE, scale=colSums(q_))
+
+
+   # Coerce input data to matrix for C calls.
+   yz <- t(as.matrix(data[,-1]))
+
+
+###############################################
+#                 MAIN LOOP                   #
+###############################################
+
+
+   blocks <- tapply(X=rep(1,n), INDEX=as.character(data[,1]), FUN=sum)
+   sorted <- match(unique(data[,1]), names(blocks))
+   blocks <- blocks[sorted]
+
+   BW <- BaumWelch(m, yz, theta, alpha, Q, p, q, blocks, verbose=verbose, ...)
+
+   Q <- BW$Q
+   p <- BW$p
+   q <- BW$q
+
+   loglik <- BW$loglik
+   index <- BW$index
+
+   if (PSO) {
+      if (verbose) cat("running PSO\n", file=stderr())
+      pso_call <- .C(
+         pso,
+         # input #
+         as.integer(m),
+         as.integer(n),
+         as.integer(ncol(data)-1),
+         as.integer(yz),
+         # fixed params #
+         as.double(theta),
+         as.double(alpha),
+         # params #
+         as.double(Q),
+         as.double(p),
+         as.double(q),
+         # index #
+         as.integer(index),
+         # output #
+         double(1),
+         # extra '.C()' arguments #
+         NAOK = TRUE,
+         DUP = FALSE
+      )
+      Q <- array(pso_call[[7]], dim=dim(Q))
+      p <- array(pso_call[[8]], dim=dim(p))
+      q <- array(pso_call[[9]], dim=dim(q))
+      loglik <- pso_call[[11]]
+   }
 
    C_call_1 <- .C(
       mnmultinom_prob,
@@ -227,7 +246,7 @@ yahmm <- function (data, PSO=TRUE,
       # index #
       as.integer(index),
       # control #
-      as.integer(1),
+      as.integer(1),   # Log space.
       # output #
       double(m*n),     # Emission probabilities.
       # extra '.C()' arguments #
@@ -254,8 +273,15 @@ yahmm <- function (data, PSO=TRUE,
       DUP = FALSE
    )
 
-   return(list(vPath=vitC[[8]], loglik=C_call_2[[9]]/n, Q=Q,
-      alpha=alpha, theta=theta, p=p, q=q,
-      iterations=iter, blocks=blocks, index=index))
+   notarget <- BaumWelch(1, yz, theta, alpha, matrix(1), p_, q_,
+      blocks, index, verbose=FALSE)
+   # TODO: compute this in a more rational way.
+   eps <- mean(lgamma(alpha+colSums(yz))-colSums(lgamma(yz+1)),na.rm=TRUE)-lgamma(alpha)
+   QC <- (notarget$loglik - loglik) / (notarget$loglik+eps)
+   OK <- QC > 0.01
+
+   return(list(OK=OK, QC=QC, vPath=vitC[[8]], loglik=loglik,
+      Q=Q, alpha=alpha, theta=theta, p=p, q=q,
+      blocks=blocks, index=index))
 
 }

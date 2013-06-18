@@ -1,6 +1,6 @@
 #include "pso.h"
 
-#define ITER 50
+#define ITER 250
 #define RAND (1+(0.5*(drand48()-.5)))
 
 // Global lock for mutex.
