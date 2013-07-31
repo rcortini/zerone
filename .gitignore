@@ -4,6 +4,6 @@
 *~
 *.gcda
 *.gcno
-gmon.out
-analysis.txt
-test
+src/test/gmon.out
+srt/test/analysis.txt
+src/test/test
