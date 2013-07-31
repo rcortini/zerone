@@ -1,4 +1,4 @@
-EM.mnmultinom <- function(x, a, p, q, theta, tol=1e-6, maxiter=100) {
+EM.mnb <- function(x, a, theta, p, q, tol=1e-6, maxiter=100) {
    # Does maximum likelihood estimation of negative binomial
    # parameters for sample 'x'.
 
@@ -7,29 +7,43 @@ EM.mnmultinom <- function(x, a, p, q, theta, tol=1e-6, maxiter=100) {
    m <- mean(x, na.rm=TRUE)
    tab <- tabulate(x+1L)
    u <- 0:(length(tab)-1L)
+   u <- u[tab > 0]
+   tab <- tab[tab > 0]
 
    if (missing(a)) {
       a <- 1
-      new.a <- a + 2*tol
-
-      while (abs(new.a - a) > tol) {
-         a <- new.a
-         num <- sum(tab*digamma(a+u)) - n*digamma(a) + n*log(a/(m+a))
-         denom <- sum(tab*trigamma(a+u)) - n*trigamma(a) + n*m/(a*(m+a))
-         new.a <- a - num/denom
-      }
    }
+   if (missing(theta)) {
+      #H <- rep(0, length(u)-1)
+      totalvar <- rep(0, length(u)-1)
+      weighted.var <- function(x, w) {
+         m <- weighted.mean(x, w)
+         return (weighted.mean((x-m)^2, w))
+      }
+      for (i in 1:(length(u)-1)) {
+         usplit <- split(u, u <= u[i])
+         tsplit <- split(tab, u <= u[i])
+         totalvar[i] <- sum(mapply(weighted.var, usplit, tsplit))
+      }
+      split <- which.min(totalvar)
+      theta <- 1 - sum(tab[1:split]) / n
+   }
+   if ((missing(p) || missing(q)) && !exists("split")) {
+      idx <- min(min(which(cumsum(tab) >= n*theta)), length(u)-1)
+      split <- u[idx]
+      
+   }
+   if (missing(p)) {
+      R <- sum(u[u > split]*tab[u > split]) / sum(tab[u > split])
+      p <- a/(a+R)
+   }
+   if (missing(q)) {
+      L <- sum(u[u <= split]*tab[u <= split]) / sum(tab[u <= split])
+      q <- a/(a+L)
+   }
+      
 
-   # We have the initial value for a. Now give initial values to
-   # the other parameters. The values of 'p' and 'q' are arbitrary.
-   # Hands on experience shows that the algorithm may converge to
-   # a local optimum if initial values are taken too close to each
-   # other.
-   if (missing(theta)) theta <- 0.5
-   if (missing(p)) p <- .1
-   if (missing(q)) q <- .5
-
-   old_params <- c(theta, a, p, q)
+   old_params <- c(a, theta, p, q)
 
    # Start the EM cycles.
    for (iter in 1:maxiter) {
@@ -63,8 +77,8 @@ EM.mnmultinom <- function(x, a, p, q, theta, tol=1e-6, maxiter=100) {
       p <- a / (x1+a)
       q <- a / (x2+a)
 
-      if (all(abs(c(theta, a, p, q) - old_params) < tol)) break
-      old_params <- c(theta, a, p, q)
+      if (all(abs(c(a, theta, p, q) - old_params) < tol)) break
+      old_params <- c(a, theta, p, q)
 
    }
 
@@ -88,6 +102,6 @@ EM.mnmultinom <- function(x, a, p, q, theta, tol=1e-6, maxiter=100) {
    loglik <- sum(tab*lgamma(a+u))/n - lgamma(a) -
       sum(tab*lgamma(u+1))/n + sum(tab*(logL1L2))/n
 
-   return(c(loglik=loglik, theta=theta, a=a, p=p, q=q))
+   return(c(loglik=loglik, a=a, theta=theta, p=p, q=q))
 
 }

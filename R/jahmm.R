@@ -152,10 +152,10 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, ...) {
    diag(Q) <- ifelse(m > 1, .95, 1.0)
 
    # EM for mixture distribution of the baseline.
-   baseline_params <- EM.mnmultinom(data[,2])
+   baseline_params <- EM.mnb(data[,2])
 
-   theta <- baseline_params[2]
-   alpha <- baseline_params[3]
+   theta <- baseline_params[3]
+   alpha <- baseline_params[2]
    C1 <- baseline_params[4]/(1-baseline_params[4])
    C2 <- baseline_params[5]/(1-baseline_params[5])
 
@@ -169,9 +169,15 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, ...) {
    p_ <- p[,1,drop=FALSE]
    q_ <- q[,1,drop=FALSE]
    for (i in 3:ncol(data)) {
-      q[i,] <- p[i,] <- quantile(data[,i],
-         prob=c(.3, .6, .9), na.rm=TRUE)
-      q_[i,] <- p_[i,] <- mean(data[,i], na.rm=TRUE)
+      zbar <- mean(data[,i], na.rm=TRUE)
+      q[i,] <- p[i,] <- zbar * c(.5, 1, 2)
+      q_[i,] <- p_[i,] <- zbar
+   }
+   # Assert that values are well-defined.
+   # Note that by definition if 'p' and 'q' are well defined, then
+   # 'p_' and 'q_' also are, so there is no need to check them.
+   if (any(p < .Machine$double.eps) || any(q < .Machine$double.eps)) {
+      stop('p or q undefined: check input to jahmm')
    }
    p <- scale(p, center=FALSE, scale=colSums(p))
    q <- scale(q, center=FALSE, scale=colSums(q))
@@ -192,7 +198,8 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, ...) {
    sorted <- match(unique(data[,1]), names(blocks))
    blocks <- blocks[sorted]
 
-   BW <- BaumWelch(m, yz, theta, alpha, Q, p, q, blocks, verbose=verbose, ...)
+   BW <- BaumWelch(m, yz, theta, alpha, Q, p, q, blocks,
+      verbose=verbose, ...)
 
    Q <- BW$Q
    p <- BW$p
@@ -273,11 +280,22 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, ...) {
       DUP = FALSE
    )
 
-   notarget <- BaumWelch(1, yz, theta, alpha, matrix(1), p_, q_,
+   H0 <- BaumWelch(1, yz, theta, alpha, matrix(1), p_, q_,
       blocks, index, verbose=FALSE)
-   # TODO: compute this in a more rational way.
-   eps <- mean(lgamma(alpha+colSums(yz))-colSums(lgamma(yz+1)),na.rm=TRUE)-lgamma(alpha)
-   QC <- (notarget$loglik - loglik) / (notarget$loglik+eps)
+
+   # For the sake of speed, log-likelihood is computed without
+   # the constant terms (the ones that do not depend on the
+   # parameters). For QC score the absolute value of the
+   # log-likielihood is needed so we need to add the correction.
+   i_unique <- unique(index+1)
+   i_table <- table(index+1)
+   u_yz <- yz[,i_unique]
+   # Use the index of the time series to save a lot of time.
+   n_na.rm <- sum(!is.na(colSums(yz, na.rm=FALSE)))
+   lg_terms <- lgamma(alpha+colSums(u_yz))-colSums(lgamma(u_yz+1))
+   eps <- sum(i_table*(lg_terms), na.rm=TRUE)/n_na.rm - lgamma(alpha)
+
+   QC <- (H0$loglik - loglik) / (H0$loglik+eps)
    OK <- QC > 0.01
 
    return(list(OK=OK, QC=QC, vPath=vitC[[8]], loglik=loglik,

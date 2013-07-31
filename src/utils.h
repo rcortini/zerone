@@ -1,6 +1,7 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include "sha1.h"
+#include "xxhash.h"
 
 #ifndef _HMMNB_UTILS
 #define _HMMNB_UTILS

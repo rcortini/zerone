@@ -161,50 +161,50 @@ params_change
    int m = new->m;
 
    switch (which) {
-      case 0:
-         for (int i = 0 ; i < m ; i++) {
-            double sumQ = 0.0;
-            for (int j = 0 ; j < m ; j++) {
-               sumQ += new->Q[i+j*m] = old->Q[i+j*m] * RAND;
-            }
-            for (int j = 0 ; j < m ; j++) new->Q[i+j*m] /= sumQ;
+   case 0:
+      for (int i = 0 ; i < m ; i++) {
+         double sumQ = 0.0;
+         for (int j = 0 ; j < m ; j++) {
+            sumQ += new->Q[i+j*m] = old->Q[i+j*m] * RAND;
          }
-         break;
-      case 1:
-         for (int i = 0 ; i < m ; i++) {
-            double sump = 0.0;
-            for (int j = 1 ; j < r+1 ; j++) {
-               sump += new->p[j+i*(r+1)] = old->p[j+i*(r+1)] * RAND;
-            }
-            sump += new->p[0+i*(r+1)] = old->p[0+i*(r+1)] *
-               new->p[1+i*(r+1)] / old->p[1+i*(r+1)];
-            for (int k = 0 ; fabs(sump-1.0) > DBL_EPSILON && k < 5; k++) {
-               double newsump = 0.0;
-               for (int j = 0 ; j < r+1 ; j++) {
-                  newsump += new->p[j+i*(r+1)] /= sump;
-               }
-               sump = newsump;
-            }
+         for (int j = 0 ; j < m ; j++) new->Q[i+j*m] /= sumQ;
+      }
+      break;
+   case 1:
+      for (int i = 0 ; i < m ; i++) {
+         double sump = 0.0;
+         for (int j = 1 ; j < r+1 ; j++) {
+            sump += new->p[j+i*(r+1)] = old->p[j+i*(r+1)] * RAND;
          }
-         break;
-      case 2:
-         for (int i = 0 ; i < m ; i++) {
-            double sumq = 0.0;
-            for (int j = 1 ; j < r+1 ; j++) {
-               sumq += new->q[j+i*(r+1)] = old->q[j+i*(r+1)] * RAND;
+         sump += new->p[0+i*(r+1)] = old->p[0+i*(r+1)] *
+            new->p[1+i*(r+1)] / old->p[1+i*(r+1)];
+         for (int k = 0 ; fabs(sump-1.0) > DBL_EPSILON && k < 5; k++) {
+            double newsump = 0.0;
+            for (int j = 0 ; j < r+1 ; j++) {
+               newsump += new->p[j+i*(r+1)] /= sump;
             }
-            sumq += new->q[0+i*(r+1)] = old->q[0+i*(r+1)] *
-               new->q[1+i*(r+1)] / old->q[1+i*(r+1)];
-            for (int j = 0 ; j < r+1 ; j++) new->q[j+i*(r+1)] /= sumq;
-            for (int k = 0 ; fabs(sumq-1.0) > DBL_EPSILON && k < 5; k++) {
-               double newsumq = 0.0;
-               for (int j = 0 ; j < r+1 ; j++) {
-                  newsumq += new->q[j+i*(r+1)] /= sumq;
-               }
-               sumq = newsumq;
-            }
+            sump = newsump;
          }
-         break;
+      }
+      break;
+   case 2:
+      for (int i = 0 ; i < m ; i++) {
+         double sumq = 0.0;
+         for (int j = 1 ; j < r+1 ; j++) {
+            sumq += new->q[j+i*(r+1)] = old->q[j+i*(r+1)] * RAND;
+         }
+         sumq += new->q[0+i*(r+1)] = old->q[0+i*(r+1)] *
+            new->q[1+i*(r+1)] / old->q[1+i*(r+1)];
+         for (int j = 0 ; j < r+1 ; j++) new->q[j+i*(r+1)] /= sumq;
+         for (int k = 0 ; fabs(sumq-1.0) > DBL_EPSILON && k < 5; k++) {
+            double newsumq = 0.0;
+            for (int j = 0 ; j < r+1 ; j++) {
+               newsumq += new->q[j+i*(r+1)] /= sumq;
+            }
+            sumq = newsumq;
+         }
+      }
+      break;
    }
 
    return new;

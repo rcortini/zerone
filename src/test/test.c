@@ -153,7 +153,7 @@ test_indexts
    };
 
    int expected_1[8] = {0,1,2,3,1,1,2,0};
-   int expected_2[8] = {0,1,2,3,0,2,6,6};
+   int expected_2[8] = {0,1,2,1,0,2,6,6};
 
    indexts(8, 3, ts_1, index);
    for (int i = 0 ; i < 8 ; i++) g_assert(index[i] == expected_1[i]);
@@ -1200,8 +1200,8 @@ main(
 
    g_test_init(&argc, &argv, NULL);
    // utils.c //
-   g_test_add_func("/utils/histsum", test_histsum);
    g_test_add_func("/utils/indexts", test_indexts);
+   g_test_add_func("/utils/histsum", test_histsum);
    g_test_add_func("/utils/mean", test_mean);
    // mnmultinom.c //
    g_test_add_func("/mnmultinom_prob", test_mnmultinom_prob);
