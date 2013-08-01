@@ -77,7 +77,9 @@ mnmultinom_prob
 //   The output type for 'pem' can be the emission probability in        
 //   linear space (1), the same emission probability in log space (2),   
 //   the ratio of probabilities of the mixture model (3), or in linear   
-//   by default and in log space in case of underflow (0).               
+//   by default and in log space in case of underflow (0). 'output'      
+//   also controls the verbosity. If the third bit is set, i.e. the      
+//   value is set to 4, 5 or 6, the function will suppress warnings.     
 {
 
 
@@ -90,9 +92,12 @@ mnmultinom_prob
    double logp[(r+1)*m];
    double logq[(r+1)*m];
 
+   // If the third bit of 'output' is set, suppress warnings
+   // by setting 'warned' to 1.
+   int warned = (*output >> 2) & 1;
+
    // Make sure that 'p' and 'q' define probabilities.
    // If not, renormalize them.
-   int warned = 0;
    for (int i = 0 ; i < m ; i++) {
       double renorm_p = 0.0;
       double renorm_q = 0.0;

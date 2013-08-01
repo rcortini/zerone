@@ -317,6 +317,7 @@ pso
    // output //
    double *loglikmax
 )
+// SYNOPSIS:
 {
 
    //outf = fopen("tracks.txt", "w");

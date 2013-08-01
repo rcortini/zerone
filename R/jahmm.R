@@ -38,7 +38,7 @@ BaumWelch <- function(m, yz, theta, alpha, Q, p, q,
          # index #
          as.integer(index),
          # control #
-         as.integer(0),   # Linear space, except if underflow.
+         as.integer(4),   # No warning, linear space unless underflow.
          # output #
          double(m*n),     # Emission probabilities.
          # extra '.C()' arguments #
@@ -96,7 +96,7 @@ BaumWelch <- function(m, yz, theta, alpha, Q, p, q,
             # index #
             as.integer(index_na.rm),
             # control #
-            as.integer(2),       # Ratio of mixture states.
+            as.integer(6),       # No warning, ratio of mixture states.
             # output #
             double(m*n_na.rm),   # Emission probabilities.
             # extra '.C()' arguments #
@@ -253,7 +253,7 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, ...) {
       # index #
       as.integer(index),
       # control #
-      as.integer(1),   # Log space.
+      as.integer(5),   # No warning, log space.
       # output #
       double(m*n),     # Emission probabilities.
       # extra '.C()' arguments #

@@ -5,5 +5,7 @@
 *.gcda
 *.gcno
 src/test/gmon.out
-srt/test/analysis.txt
+src/test/analysis.txt
 src/test/test
+srt/test/H3K9ac.txt
+srt/test/RXRA.txt
