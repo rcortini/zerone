@@ -4,8 +4,9 @@
 *~
 *.gcda
 *.gcno
+*.gcov
 src/test/gmon.out
 src/test/analysis.txt
 src/test/test
-srt/test/H3K9ac.txt
-srt/test/RXRA.txt
+src/test/H3K9ac.txt
+src/test/RXRA.txt

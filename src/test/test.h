@@ -58,3 +58,14 @@ params_cpy
 );
 
 void params_destroy (params *p);
+
+double
+loglik
+(
+   const int n,
+         params *par,
+   const int *yz, 
+         int *index,
+         double *pem 
+);
+

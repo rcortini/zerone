@@ -24,18 +24,18 @@ mnmultinom_prob
    const int *n_states,
    const int *n_obs,
    const int *dim_yz,
-   const int *yz,
+   const int * restrict yz,
    // params //
-   const double *t,
-   const double *a,
-   const double *p,
-   const double *q,
+   const double * restrict t,
+   const double * restrict a,
+   const double * restrict p,
+   const double * restrict q,
    // index //
-         int *index,
+         int * restrict index,
    // control //
-   const int *output,
+   const int * restrict output,
    // output //
-   double *pem
+   double * restrict pem
 )
 // SYNOPSIS:                                                             
 //   Compute emission probabilities with a mixture negative multinomial  
@@ -80,8 +80,19 @@ mnmultinom_prob
 //   by default and in log space in case of underflow (0). 'output'      
 //   also controls the verbosity. If the third bit is set, i.e. the      
 //   value is set to 4, 5 or 6, the function will suppress warnings.     
+//   Setting the third bit of 'output' (ie 4, 5, 6 or 7) turns off the   
+//   verbosity. Setting the fourth bit of 'output' forces to compute     
+//   the constant leading terms in emission probabilities.               
 {
 
+   char *depends   = "compute in lin space, log space if underflow",
+        *log_space = "always compute in log space",
+        *ratio     = "compute the probability ratio of the subtypes",
+        *lin_space = "always compute in linear space";
+   char *cases[4] = {depends, log_space, ratio, lin_space};
+   char *output_type = cases[*output & 3];
+
+   int compute_constant_terms = (*output >> 3) & 1;
 
    int n = *n_obs;
    int m = *n_states;
@@ -146,7 +157,6 @@ mnmultinom_prob
          continue;
       }
       
-      // Compute log probabilities.
       for (int i = 0 ; i < m ; i++) {
          double p_term = log_theta + *a * logp[0+i*(r+1)];
          double q_term = log_one_minus_theta + *a * logq[0+i*(r+1)];
@@ -155,39 +165,47 @@ mnmultinom_prob
             q_term += yz[j+k*r] * logq[j+1+i*(r+1)];
          }
 
-         // Testing every iteration should not be slow because of
-         // branch prediction (the pattern is constant here)
-         // and because this part of the loop is actually run a very
-         // minor fraction of the time for most inputs.
-         double small;
-         double big;
-         switch (*output) {
-            case 3:
-               // Compute in linear space. If terms underflow, this
-               // will be equal to 0.0.
-               pem[i+k*m] = exp(p_term) + exp(q_term);
-               break;
-            case 2:
-               // The following expression is robust to underflow, it
-               // should always be between 0.0 and 1.0 included.
-               pem[i+k*m] = 1 / (1+exp(q_term-p_term));
-               break;
-            default:
-               // Compute in log space. The following way of computing
-               // the probability prevents underflow.
-               small = (q_term < p_term) ? q_term : p_term;
-               big = (q_term >= p_term) ? q_term : p_term;
-               pem[i+k*m] = big + log(1+exp(small-big));
+         if (output_type == ratio) {
+            // The following expression is robust to underflow, it
+            // should always be between 0.0 and 1.0 included.
+            pem[i+k*m] = 1 / (1+exp(q_term-p_term));
+         }
+         else {
+            // This expression looks odd, but it is more numerically
+            // stable than the naive computation.
+            double small = q_term;
+            double big = p_term;
+            if (small > big) {
+               small = p_term;
+               big = q_term;
+            }
+            pem[i+k*m] = big + log(1+exp(small-big));
          }
       }
 
-      // When output is set to 0, the emission probabilities are
-      // computed in log space if and only if they all underflow.
-      if (*output == 0) {
-         double sum = 0.0;
-         double lin[m];
-         for (int i = 0 ; i < m ; i++) sum += lin[i] = exp(pem[i+k*m]);
-         if (sum > 0) memcpy(pem+k*m, lin, m * sizeof(double));
+      if (output_type == ratio) continue;
+
+      if (compute_constant_terms) {
+         double c_term = -lgamma(*a);
+         double sum = *a;
+         for (int j = 0 ; j < r ; j++) {
+            int term = yz[j+k*r];
+            sum += term;
+            c_term -= lgamma(term+1);
+         }
+         c_term += lgamma(sum);
+         for (int i = 0 ; i < m ; i++) {
+            pem[i+k*m] += c_term;
+         }
+      }
+
+      if (output_type == log_space) continue;
+
+      double sum = 0.0;
+      double lin[m];
+      for (int i = 0 ; i < m ; i++) sum += lin[i] = exp(pem[i+k*m]);
+      if (sum > 0 || output_type == lin_space) {
+         memcpy(pem+k*m, lin, m * sizeof(double));
       }
 
    }

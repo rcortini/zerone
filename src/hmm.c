@@ -5,10 +5,10 @@ fwd(
    // input //
          int    m,
          int    n,
-   const double *Q,
-   const double *init,
+   const double * restrict Q,
+   const double * restrict init,
    // output //
-         double *prob
+         double * restrict prob
 )
 // SYNOPSIS:                                                             
 //   Forward algorithm.                                                  
@@ -38,14 +38,15 @@ fwd(
    int i;               // State index.
    int j;               // State index.
    int k;               // Position of the time series.
-   double tmp[m];       // Computation intermediates.
-   double a[m];         // Current value of normalized alpha.
+   double tmp[m] __attribute__((aligned));   // Intermediates.
+   double a[m] __attribute__((aligned));     // Current normalized alpha.
 
    // Normalization constant, also used to return log-likelihood.
    double c;
    double loglik = 0.0;
 
    for (k = 0 ; k < n ; k++) {
+      // This is an easy pattern for the branch predictor.
       if (k == 0) {
          memcpy(tmp, init, m * sizeof(double));
       }
@@ -62,7 +63,8 @@ fwd(
       int na_found = 0;
       for (j = 0 ; j < m ; j++) {
          if (prob[j+k*m] != prob[j+k*m]) {
-            // NA found. Ignore emissions.
+            // NA found. Ignore emissions, and update 'prob'
+            // with the value of 'a'.
             memcpy(a, tmp, m * sizeof(double));
             memcpy(prob + k*m, tmp, m * sizeof(double));
             na_found = 1;
@@ -78,8 +80,11 @@ fwd(
       // probabilies underflow, their log is returned instead. If the
       // first one is negative, they are all computed in log space.
       if (prob[0+k*m] < 0) {
-         // Use alternative computation to obviate underflow.
-         // The is is much slower because of the call to 'exp'.
+         // Use an alternative computation to obviate underflow.
+         // The is is slower because of the call to the function `exp`.
+         // First I find the max emission probability, then I divide 'c' by
+         // the exp of that value and compensate by adding the value to
+         // 'loglik' directly.
          int w = 0;
          for (j = 1 ; j < m ; j++) if (prob[j+k*m] > prob[w+k*m]) w = j;
          for (j = 0 ; j < m ; j++) {
@@ -90,8 +95,7 @@ fwd(
          loglik += prob[w+k*m];
       }
       else {
-         // No emission probabilities and no underflow. Continue
-         // the forward algorithm the usual way.
+         // No underflow. Continue the forward algorithm the usual way.
          for (j = 0 ; j < m ; j++) {
             c += a[j] = tmp[j] * prob[j+k*m];
          }
@@ -109,6 +113,7 @@ fwd(
          memcpy(prob +k*m, a, m * sizeof(double));
          loglik += log(c);
       }
+
    }
 
    return loglik;
@@ -121,11 +126,11 @@ bwd(
    // input //
          int    m,
          int    n,
-   const double *Q,
+   const double * restrict Q,
    // output //
-         double *alpha,
-         double *phi,
-         double *T
+         double * restrict alpha,
+         double * restrict phi,
+         double * restrict T
 )
 // SYNOPSIS:                                                             
 //   Backward algorithm with Markovian backward smoothing.               
@@ -150,7 +155,7 @@ bwd(
    int j;               // State index.
    int k;               // Position of the time series.
    double x;            // Sum used for computation intermediates.
-   double R[m*m];       // Current value of reverse kernel.
+   double R[m*m] __attribute__((aligned));       // Reverse kernel.
 
    // 'T[i+j*m]' is the sum of transition probabilities from state 'i'
    // to state 'j' (congruent with 'Q') conditional on the observations.
@@ -205,12 +210,12 @@ fwdb(
    // input //
          int    m,
          int    n,
-   const double *Q,
-   const double *init,
+   const double * restrict Q,
+   const double * restrict init,
    // output //
-         double *prob,
-         double *phi,
-         double *T
+         double * restrict prob,
+         double * restrict phi,
+         double * restrict T
 )
 // SYNOPSIS:                                                             
 //   Forward-backward algorithm with Markovian backward smoothing.       
@@ -247,11 +252,11 @@ viterbi(
    // input //
    int m,
    int n,
-   const double *log_Q,
-   const double *log_i,
-   const double *log_p,
+   const double * restrict log_Q,
+   const double * restrict log_i,
+   const double * restrict log_p,
    // output //
-   int *path
+   int * restrict path
 )
 // SYNOPSIS:                                                             
 //   Log-space implementation of the Viterbi algorithm.                  
@@ -282,7 +287,7 @@ viterbi(
    double thismax;
    double tmp;
 
-   long double array[2*m];
+   long double array[2*m] __attribute__((aligned));
    long double *oldmax = array;
    long double *newmax = array + m;
    int *argmax = malloc(m*n * sizeof(int));
@@ -332,13 +337,13 @@ void block_fwdb(
    int *nblocks,
    int *size,
    // params //
-   double *Q,
-   double *init,
+   double * restrict Q,
+   double * restrict init,
    // output //
-   double *prob,
-   double *phi,
-   double *sumtrans,
-   double *loglik
+   double * restrict prob,
+   double * restrict phi,
+   double * restrict sumtrans,
+   double * restrict loglik
 )
 // SYNOPSIS:                                                             
 //   Wrapper for 'fwdb' which separates independent fragments of a       
@@ -370,7 +375,7 @@ void block_fwdb(
 
    // Cycle over fragments of the time series.
    offset = 0;
-   double T[m*m];
+   double T[m*m] __attribute__((aligned));
    for (int i = 0 ; i < *nblocks ; i++) {
       // NOTE: the call to `fwdb` replaces the values of 'prob' by
       // the normalized alphas.
@@ -387,7 +392,7 @@ void block_fwdb(
 
 int
 is_undefined(
-   double *slice,
+   const double *slice,
    int m
 )
 // SYNOPSIS:                                                             
@@ -407,13 +412,13 @@ block_viterbi(
    const int *nstates,
    const int *nblocks,
    const int *size,
-   const double *Q,
-   const double *init,
-   const double *prob,
+   const double * restrict Q,
+   const double * restrict init,
+   const double * restrict prob,
    // control //
-   const int *arglog,
+   const int * restrict arglog,
    // output //
-   int *path
+   int * restrict path
 )
 // SYNOPSIS:                                                             
 //   Viterbi algorithm for fragmented time series. The arguments can be  
@@ -455,13 +460,13 @@ block_viterbi(
 
    //double *log_Q;
    //double *log_i;
-   double log_Q[m*m];
-   double log_i[m];
+   double log_Q[m*m] __attribute__((aligned));
+   double log_i[m] __attribute__((aligned));
 
    // Either way we make a copy of the emission probabilities
    // because we will replace undefined emissions by 0.0. Copying
    // 'init' and 'Q' is simpler for consistency.
-   double *log_p = malloc(n*m *sizeof(double));
+   double *log_p __attribute__((aligned)) = malloc(n*m *sizeof(double));
    if (log_p == NULL) {
       fprintf(stderr, "memory error: cannot allocate 'log_p'");
       return 1;

@@ -62,9 +62,9 @@ params_set
    params *par,
    double t,
    double a,
-   double *Q,
-   double *p,
-   double *q
+   double * restrict Q,
+   double * restrict p,
+   double * restrict q
 )
 {
 
@@ -118,32 +118,35 @@ double
 loglik
 (
    const int n,
-         params *par,
-   const int *yz,
-         int *index,
-         double *pem
+         params * restrict par,
+   const int * restrict yz,
+         int * restrict index,
+         // output //
+         double * restrict pem
 )
 {
 
    int m = par->m;
    int r = par->r;
-   int o = 0;
+   // Turn off verbosity of `mnmultinom_prob`. Otherwise irrelevant
+   // messages about the normalization of 'p' and 'q' may appear.
+   int o = 4;
    mnmultinom_prob(
-         &m,
-         &n,
-         &r,
-         yz,
-         &par->t,
-         &par->a,
-         par->p,
-         par->q,
-         index,
-         &o,
-         pem
+      &m,
+      &n,
+      &r,
+      yz,
+      &par->t,
+      &par->a,
+      par->p,
+      par->q,
+      index,
+      &o,
+      pem
    );
 
    double init[m]; for (int i = 0 ; i < m ; i++) init[i] = 1.0/m;
-   return par->l = fwd(m, n, par->Q, init, pem) / n;
+   return par->l = fwd(m, n, par->Q, init, pem);
 
 }
 
@@ -151,8 +154,8 @@ loglik
 params *
 params_change
 (
-   params *new,
-   params *old,
+   params * restrict new,
+   params * restrict old,
    int which
 )
 {
@@ -304,18 +307,18 @@ pso
    const int *n_states,
    const int *n_obs,
    const int *dim_yz,
-   const int *yz,
+   const int * restrict yz,
    // fixed params //
-   const double *t,
-   const double *a,
+   const double * restrict t,
+   const double * restrict a,
    // start conditions //
-         double *Q,
-         double *p,
-         double *q,
+         double * restrict Q,
+         double * restrict p,
+         double * restrict q,
    // index //
-         int *index,
+         int * restrict index,
    // output //
-   double *loglikmax
+   double * restrict loglikmax
 )
 // SYNOPSIS:
 {

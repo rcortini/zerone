@@ -50,8 +50,8 @@ test_mean
       7, 8,
    };
 
-   g_assert(mean(yz_1, 4, 2) == 4.0);
-   g_assert(mean(yz_1+1, 4, 2) == 5.0);
+   g_assert_cmpfloat(mean(yz_1, 4, 2), ==, 4.0);
+   g_assert_cmpfloat(mean(yz_1+1, 4, 2), ==, 5.0);
 
    // -- Second test case -- //
    int NA = (int) log(-1);
@@ -62,8 +62,8 @@ test_mean
        8, NA,
    };
 
-   g_assert(mean(yz_2, 4, 2) == 4.0);
-   g_assert(mean(yz_2+1, 4, 2) != mean(yz_2+1, 4, 2));
+   g_assert_cmpfloat(mean(yz_2, 4, 2), ==, 4.0);
+   g_assert_cmpfloat(mean(yz_2+1, 4, 2), !=, mean(yz_2+1, 4, 2));
 
 }
 
@@ -84,7 +84,7 @@ test_histsum
    int *hist_1 = histsum(yz_1, 4, 2);
 
    for (int i = 0 ; i < 5 ; i++) {
-      g_assert(hist_1[i] == expected_hist_1[i]);
+      g_assert_cmpint(hist_1[i], ==, expected_hist_1[i]);
    }
 
    free(hist_1);
@@ -101,7 +101,7 @@ test_histsum
    int *hist_2 = histsum(yz_2, 4, 2);
 
    for (int i = 0 ; i < 5 ; i++) {
-      g_assert(hist_2[i] == expected_hist_2[i]);
+      g_assert_cmpint(hist_2[i], ==, expected_hist_2[i]);
    }
 
    free(hist_2);
@@ -115,9 +115,9 @@ test_histsum
    };
    int *hist_3 = histsum(yz_3, 4, 2);
 
-   g_assert(hist_3[1024] == 1);
+   g_assert_cmpint(hist_3[1024], ==, 1);
    for (int i = 0 ; i < 1024 ; i++) {
-      g_assert(hist_3[i] == 0);
+      g_assert_cmpint(hist_3[i], ==, 0);
    }
 
    free(hist_3);
@@ -156,10 +156,14 @@ test_indexts
    int expected_2[8] = {0,1,2,1,0,2,6,6};
 
    indexts(8, 3, ts_1, index);
-   for (int i = 0 ; i < 8 ; i++) g_assert(index[i] == expected_1[i]);
+   for (int i = 0 ; i < 8 ; i++) {
+      g_assert_cmpint(index[i], ==, expected_1[i]);
+   }
 
    indexts(8, 3, ts_2, index);
-   for (int i = 0 ; i < 8 ; i++) g_assert(index[i] == expected_2[i]);
+   for (int i = 0 ; i < 8 ; i++) {
+      g_assert_cmpint(index[i], ==, expected_2[i]);
+   }
 
 }
 
@@ -226,13 +230,13 @@ test_mnmultinom_prob
    char expected_warning[] = "warning: renormalizing 'p' and/or 'q'\n";
 
    for (int i = 0 ; i < 15 ; i++) {
-      g_assert(fabs(expected_pem_1[i] - pem[i]) < 1e-8);
+      g_assert_cmpfloat(fabs(expected_pem_1[i] - pem[i]), <, 1e-8);
    }
    for (int i = 15 ; i < 18 ; i++) {
       g_assert(pem[i] != pem[i]);
    }
    // Test the warning message.
-   g_assert(strcmp(error_buffer, expected_warning) == 0);
+   g_assert_cmpstr(error_buffer, ==, expected_warning);
 
    //--               Test output type 1               --//
    out = 1;
@@ -251,13 +255,13 @@ test_mnmultinom_prob
    };
 
    for (int i = 0 ; i < 15 ; i++) {
-      g_assert(fabs(expected_pem_2[i] - pem[i]) < 1e-6);
+      g_assert_cmpfloat(fabs(expected_pem_2[i] - pem[i]), <, 1e-6);
    }
    for (int i = 15 ; i < 18 ; i++) {
       g_assert(pem[i] != pem[i]);
    }
    // Test the warning message.
-   g_assert(strcmp(error_buffer, expected_warning) == 0);
+   g_assert_cmpstr(error_buffer, ==, expected_warning);
 
    //--               Test output type 2               --//
    out = 2;
@@ -276,13 +280,13 @@ test_mnmultinom_prob
    };
 
    for (int i = 0 ; i < 15 ; i++) {
-      g_assert(fabs(expected_ratio[i] - pem[i]) < 1e-7);
+      g_assert_cmpfloat(fabs(expected_ratio[i] - pem[i]), <, 1e-7);
    }
    for (int i = 15 ; i < 18 ; i++) {
       g_assert(pem[i] != pem[i]);
    }
    // Test the warning message.
-   g_assert(strcmp(error_buffer, expected_warning) == 0);
+   g_assert_cmpstr(error_buffer, ==, expected_warning);
 
    //--               Test output type 3               --//
    out = 3;
@@ -301,16 +305,79 @@ test_mnmultinom_prob
    };
 
    for (int i = 0 ; i < 12 ; i++) {
-      g_assert(fabs(expected_pem_3[i] - pem[i]) < 1e-8);
+      g_assert_cmpfloat(fabs(expected_pem_3[i] - pem[i]), <, 1e-8);
    }
    for (int i = 12 ; i < 15 ; i++) {
-      g_assert(pem[i] == 0);
+      g_assert_cmpfloat(pem[i], ==, 0.0);
    }
    for (int i = 15 ; i < 18 ; i++) {
       g_assert(pem[i] != pem[i]);
    }
    // Test the warning message.
-   g_assert(strcmp(error_buffer, expected_warning) == 0);
+   g_assert_cmpstr(error_buffer, ==, expected_warning);
+
+
+   //--         Test output type 1 with constant terms         --//
+   out = 1 + 8;
+   redirect_stderr_to(error_buffer);
+   mnmultinom_prob(&m, &n, &r, yz, &t, &a, p, q, index, &out, pem);
+   unredirect_sderr();
+
+   double expected_pem_4[18] = {
+      // Checked manually.
+      log(0.0001715956) + 3.83137851672, log(0.0001671296) + 3.83137851672,
+            log(2.633868e-06) + 3.83137851672,
+      log(4.423732e-05) + 3.17102115898, log(0.0001352811) + 3.17102115898,
+            log(5.037707e-08) + 3.17102115898,
+      log(0.0001715956) + 3.83137851672, log(0.0001671296) + 3.83137851672,
+            log(2.633868e-06) + 3.83137851672,
+      log(0.002685386) + 1.4407825464,  log(0.004228712) + 1.4407825464,
+            log(0.001189803) + 1.4407825464,
+      -1996.41726182421 + 22.799008469, -2349.68356163581 + 22.799008469,
+            -1100.57214790818 + 22.799008469,
+      NAN,          NAN,          NAN,
+   };
+
+   for (int i = 0 ; i < 15 ; i++) {
+      g_assert_cmpfloat(fabs(expected_pem_4[i] - pem[i]), <, 1e-6);
+   }
+   for (int i = 15 ; i < 18 ; i++) {
+      g_assert(pem[i] != pem[i]);
+   }
+   // Test the warning message.
+   g_assert_cmpstr(error_buffer, ==, expected_warning);
+
+   //--         Test output type 3 with constant terms         --//
+   out = 3 + 8;
+   redirect_stderr_to(error_buffer);
+   mnmultinom_prob(&m, &n, &r, yz, &t, &a, p, q, index, &out, pem);
+   unredirect_sderr();
+
+   double expected_pem_5[18] = {
+      // Checked manually.
+      0.0001715956 * 46.12608,  0.0001671296 * 46.12608,
+            2.633868e-06 * 46.12608,
+      4.423732e-05 * 23.831808, 0.0001352811 * 23.831808,
+            5.037707e-08 * 23.831808, 
+      0.0001715956 * 46.12608,  0.0001671296 * 46.12608,
+            2.633868e-06 * 46.12608,
+      0.002685386 * 4.224,      0.004228712 * 4.224,
+            0.001189803 * 4.224,
+      0.000000,     0.000000,     0.000000,
+      NAN,          NAN,          NAN,
+   };
+
+   for (int i = 0 ; i < 12 ; i++) {
+      g_assert_cmpfloat(fabs(expected_pem_5[i] - pem[i]), <, 1e-6);
+   }
+   for (int i = 12 ; i < 15 ; i++) {
+      g_assert_cmpfloat(pem[i], ==, 0);
+   }
+   for (int i = 15 ; i < 18 ; i++) {
+      g_assert(pem[i] != pem[i]);
+   }
+   // Test the warning message.
+   g_assert_cmpstr(error_buffer, ==, expected_warning);
 
    return;
 
@@ -340,7 +407,7 @@ test_fwdb
    double *phi = malloc(m*n * sizeof(double));
    double *trans = malloc(m*m * sizeof(double));
 
-   double loglik = fwdb(m, n, Q, init, prob, phi, trans);
+   double ll = fwdb(m, n, Q, init, prob, phi, trans);
 
    double expected_loglik = -3.105547;
    double expected_alpha[6] = {
@@ -359,13 +426,13 @@ test_fwdb
       0.2732143, 1.4142857,
    };
 
-   g_assert(fabs(expected_loglik - loglik) < 1e-6);
+   g_assert_cmpfloat(fabs(expected_loglik - ll), <, 1e-6);
    for (int i = 0 ; i < m*n ; i++) {
-      g_assert(fabs(expected_alpha[i] - prob[i]) < 1e-6);
-      g_assert(fabs(expected_phi[i] - phi[i]) < 1e-6);
+      g_assert_cmpfloat(fabs(expected_alpha[i] - prob[i]), <, 1e-6);
+      g_assert_cmpfloat(fabs(expected_phi[i] - phi[i]), <, 1e-6);
    }
    for (int i = 0 ; i < m*m ; i++) {
-      g_assert(fabs(expected_trans[i] - trans[i]) < 1e-6);
+      g_assert_cmpfloat(fabs(expected_trans[i] - trans[i]), <, 1e-6);
    }
 
    free(phi);
@@ -403,7 +470,7 @@ test_fwdb_NA
    // Make sure we catch stderr.
    redirect_stderr_to(error_buffer);
 
-   double loglik = fwdb(m, n, Q, init, prob, phi, trans);
+   double ll = fwdb(m, n, Q, init, prob, phi, trans);
 
    unredirect_sderr();
 
@@ -424,13 +491,13 @@ test_fwdb_NA
       0.4693750, 1.0350000,
    };
 
-   g_assert(fabs(expected_loglik - loglik) < 1e-6);
+   g_assert_cmpfloat(fabs(expected_loglik - ll), <, 1e-6);
    for (int i = 0 ; i < m*n ; i++) {
-      g_assert(fabs(expected_alpha[i] - prob[i]) < 1e-6);
-      g_assert(fabs(expected_phi[i] - phi[i]) < 1e-6);
+      g_assert_cmpfloat(fabs(expected_alpha[i] - prob[i]), <, 1e-6);
+      g_assert_cmpfloat(fabs(expected_phi[i] - phi[i]), <, 1e-6);
    }
    for (int i = 0 ; i < m*m ; i++) {
-      g_assert(fabs(expected_trans[i] - trans[i]) < 1e-6);
+      g_assert_cmpfloat(fabs(expected_trans[i] - trans[i]), <, 1e-6);
    }
 
    free(phi);
@@ -464,7 +531,7 @@ test_underflow
    double *phi = malloc(m*n * sizeof(double));
    double *trans = malloc(m*m * sizeof(double));
 
-   double loglik_1 = fwdb(m, n, Q, init, prob_1, phi, trans);
+   double ll_1 = fwdb(m, n, Q, init, prob_1, phi, trans);
 
    double expected_loglik_1 = -1.362578;
    double expected_alpha_1[6] = {
@@ -483,13 +550,13 @@ test_underflow
       0.4693750, 1.0350000,
    };
 
-   g_assert(fabs(expected_loglik_1 - loglik_1) < 1e-6);
+   g_assert_cmpfloat(fabs(expected_loglik_1 - ll_1), <, 1e-6);
    for (int i = 0 ; i < m*n ; i++) {
-      g_assert(fabs(expected_alpha_1[i] - prob_1[i]) < 1e-6);
-      g_assert(fabs(expected_phi_1[i] - phi[i]) < 1e-6);
+      g_assert_cmpfloat(fabs(expected_alpha_1[i] - prob_1[i]), <, 1e-6);
+      g_assert_cmpfloat(fabs(expected_phi_1[i] - phi[i]), <, 1e-6);
    }
    for (int i = 0 ; i < m*m ; i++) {
-      g_assert(fabs(expected_trans_1[i] - trans[i]) < 1e-6);
+      g_assert_cmpfloat(fabs(expected_trans_1[i] - trans[i]), <, 1e-6);
    }
 
    // Create the underflow at step 2.
@@ -500,7 +567,7 @@ test_underflow
       log(0.2), log(0.7),
    };
 
-   double loglik_2 = fwdb(m, n, Q, init, prob_2, phi, trans);
+   double ll_2 = fwdb(m, n, Q, init, prob_2, phi, trans);
 
    double expected_loglik_2 = -2.710553;
    double expected_alpha_2[6] = {
@@ -519,13 +586,13 @@ test_underflow
       0.3037594, 1.1909774,
    };
 
-   g_assert(fabs(expected_loglik_2 - loglik_2) < 1e-6);
+   g_assert_cmpfloat(fabs(expected_loglik_2 - ll_2), <, 1e-6);
    for (int i = 0 ; i < m*n ; i++) {
-      g_assert(fabs(expected_alpha_2[i] - prob_2[i]) < 1e-6);
-      g_assert(fabs(expected_phi_2[i] - phi[i]) < 1e-6);
+      g_assert_cmpfloat(fabs(expected_alpha_2[i] - prob_2[i]), <, 1e-6);
+      g_assert_cmpfloat(fabs(expected_phi_2[i] - phi[i]), <, 1e-6);
    }
    for (int i = 0 ; i < m*m ; i++) {
-      g_assert(fabs(expected_trans_2[i] - trans[i]) < 1e-6);
+      g_assert_cmpfloat(fabs(expected_trans_2[i] - trans[i]), <, 1e-6);
    }
 
    free(phi);
@@ -566,8 +633,8 @@ test_block_fwdb
    int nblocks = 2;
    int size[2] = {3,3};
 
-   double loglik;
-   block_fwdb(&m, &nblocks, size, Q, init, prob, phi, trans, &loglik);
+   double ll;
+   block_fwdb(&m, &nblocks, size, Q, init, prob, phi, trans, &ll);
 
    double expected_loglik = 2 * -3.105547;
    double expected_phi[12] = {
@@ -584,12 +651,12 @@ test_block_fwdb
       2 * 0.2732143, 2 * 1.4142857,
    };
 
-   g_assert(fabs(expected_loglik - loglik) < 1e-6);
+   g_assert_cmpfloat(fabs(expected_loglik - ll), <, 1e-6);
    for (int i = 0 ; i < m*n ; i++) {
-      g_assert(fabs(expected_phi[i] - phi[i]) < 1e-6);
+      g_assert_cmpfloat(fabs(expected_phi[i] - phi[i]), <, 1e-6);
    }
    for (int i = 0 ; i < m*m ; i++) {
-      g_assert(fabs(expected_trans[i] - trans[i]) < 1e-6);
+      g_assert_cmpfloat(fabs(expected_trans[i] - trans[i]), <, 1e-6);
    }
 
    free(phi);
@@ -630,8 +697,8 @@ test_block_fwdb_NA
    int nblocks = 2;
    int size[2] = {3,3};
 
-   double loglik;
-   block_fwdb(&m, &nblocks, size, Q, init, prob, phi, trans, &loglik);
+   double ll;
+   block_fwdb(&m, &nblocks, size, Q, init, prob, phi, trans, &ll);
 
    double expected_loglik = -1.362578 -2.710553;
    double expected_alpha[12] = {
@@ -656,13 +723,13 @@ test_block_fwdb_NA
       0.4693750+0.3037594, 1.0350000+1.1909774,
    };
 
-   g_assert(fabs(expected_loglik - loglik) < 1e-6);
+   g_assert_cmpfloat(fabs(expected_loglik - ll), <, 1e-6);
    for (int i = 0 ; i < m*n ; i++) {
-      g_assert(fabs(expected_alpha[i] - prob[i]) < 1e-6);
-      g_assert(fabs(expected_phi[i] - phi[i]) < 1e-6);
+      g_assert_cmpfloat(fabs(expected_alpha[i] - prob[i]), <, 1e-6);
+      g_assert_cmpfloat(fabs(expected_phi[i] - phi[i]), <, 1e-6);
    }
    for (int i = 0 ; i < m*m ; i++) {
-      g_assert(fabs(expected_trans[i] - trans[i]) < 1e-6);
+      g_assert_cmpfloat(fabs(expected_trans[i] - trans[i]), <, 1e-6);
    }
 
    free(phi);
@@ -720,7 +787,7 @@ test_viterbi
    };
 
    for (int i = 0 ; i < n ; i++) {
-      g_assert(expected_path_1[i] == path[i]);
+      g_assert_cmpint(expected_path_1[i], ==, path[i]);
    }
 
    free(path);
@@ -778,7 +845,7 @@ test_viterbi
    };
 
    for (int i = 0 ; i < n ; i++) {
-      g_assert(expected_path_2[i] == path[i]);
+      g_assert_cmpint(expected_path_2[i], ==, path[i]);
    }
 
    free(path);
@@ -879,7 +946,7 @@ test_block_viterbi
    );
 
    for (int i = 0 ; i < n ; i++) {
-      g_assert(expected_path[i] == path[i]);
+      g_assert_cmpint(expected_path[i], ==, path[i]);
    }
 
    return;
@@ -938,7 +1005,7 @@ test_block_viterbi_NA
    };
 
    for (int i = 0 ; i < n ; i++) {
-      g_assert(expected_path[i] == path[i]);
+      g_assert_cmpint(expected_path[i], ==, path[i]);
    }
 
    // Set invalid initial probabilities.
@@ -963,10 +1030,10 @@ test_block_viterbi_NA
    char expected_warning_2[] =
       "invalid 'init' parameter in 'block_viterbi'\n";
 
-   g_assert(exit_status == -1);
+   g_assert_cmpint(exit_status, ==, -1);
 
    // Check the error message.
-   g_assert(strcmp(error_buffer, expected_warning_2) == 0);
+   g_assert_cmpstr(error_buffer, ==, expected_warning_2);
 
    // Set invalid transition probabilities.
    static double invalid_Q[16] = {
@@ -996,10 +1063,10 @@ test_block_viterbi_NA
    char expected_warning_3[] =
       "invalid 'Q' parameter in 'block_viterbi'\n";
 
-   g_assert(exit_status == -1);
+   g_assert_cmpint(exit_status, ==, -1);
 
    // Check the error message.
-   g_assert(strcmp(error_buffer, expected_warning_3) == 0);
+   g_assert_cmpstr(error_buffer, ==, expected_warning_3);
 
    free(path);
 
@@ -1070,7 +1137,7 @@ test_perf_mnmultinom_prob
    indexts(n, r, (const int *) yz, index);
 
    int out = 0;
-   double loglik;
+   double ll;
    int nblocks = 24;
    int size[24] = {
       83083, 45178, 45002, 44617, 38389, 35783, 34177,
@@ -1080,7 +1147,7 @@ test_perf_mnmultinom_prob
    };
    redirect_stderr_to(error_buffer);
    mnmultinom_prob(&m, &n, &r, yz, &t, &a, p, q, index, &out, pem);
-   block_fwdb(&m, &nblocks, size, Q, init, pem, phi, trans, &loglik);
+   block_fwdb(&m, &nblocks, size, Q, init, pem, phi, trans, &ll);
    unredirect_sderr();
 
    free(yz);
@@ -1119,29 +1186,31 @@ test_params
    params *try = params_new(m, r);
    g_assert(par != NULL);
    g_assert(try != NULL);
-   g_assert(par->m == m);
-   g_assert(par->r == r);
-   g_assert(try->m == m);
-   g_assert(try->r == r);
+   g_assert_cmpint(par->m, ==, m);
+   g_assert_cmpint(par->r, ==, r);
+   g_assert_cmpint(try->m, ==, m);
+   g_assert_cmpint(try->r, ==, r);
 
    // Test `params_set`.
    params_set(par, 0.9172, 2.8440, Q, p, q);
-   g_assert(par->t == 0.9172);
-   g_assert(par->a == 2.8440);
+   g_assert_cmpfloat(par->t, ==, 0.9172);
+   g_assert_cmpfloat(par->a, ==, 2.8440);
    for (int i = 0 ; i < m*m ; i++) g_assert(par->Q[i] == Q[i]);
    for (int i = 0 ; i < m*(r+1) ; i++) {
-      g_assert(par->p[i] == p[i]);
-      g_assert(par->q[i] == q[i]);
+      g_assert_cmpfloat(par->p[i], ==, p[i]);
+      g_assert_cmpfloat(par->q[i], ==, q[i]);
    }
 
    // Test `params_cpy`.
    params_cpy(try, par);
-   g_assert(try->t == 0.9172);
-   g_assert(try->a == 2.8440);
-   for (int i = 0 ; i < m*m ; i++) g_assert(try->Q[i] == Q[i]);
+   g_assert_cmpfloat(try->t, ==, 0.9172);
+   g_assert_cmpfloat(try->a, ==, 2.8440);
+   for (int i = 0 ; i < m*m ; i++) {
+      g_assert_cmpfloat(try->Q[i], ==, Q[i]);
+   }
    for (int i = 0 ; i < m*(r+1) ; i++) {
-      g_assert(try->p[i] == p[i]);
-      g_assert(try->q[i] == q[i]);
+      g_assert_cmpfloat(try->p[i], ==, p[i]);
+      g_assert_cmpfloat(try->q[i], ==, q[i]);
    }
    
    // Test `params_change`.
@@ -1151,19 +1220,22 @@ test_params
          double sumQ = 0.0;
          for (int k = 0 ; k < m ; k++) {
             sumQ += try->Q[j+k*m];
-            g_assert(try->Q[j+k*m] < 1 && try->Q[j+k*m] > 0);
+            g_assert_cmpfloat(try->Q[j+k*m], <, 1);
+            g_assert_cmpfloat(try->Q[j+k*m], >, 0);
          }
-         g_assert(fabs(sumQ - 1.0) < 1e-6);
+         g_assert_cmpfloat(fabs(sumQ - 1.0), <, 1e-6);
          double sump = 0.0;
          double sumq = 0.0;
          for (int k = 0 ; k < r+1 ; k++) {
             sump += try->p[k+j*(r+1)];
             sumq += try->q[k+j*(r+1)];
-            g_assert(try->p[k+j*(r+1)] < 1 && try->p[k+j*(r+1)] > 0);
-            g_assert(try->q[k+j*(r+1)] < 1 && try->q[k+j*(r+1)] > 0);
+            g_assert_cmpfloat(try->p[k+j*(r+1)], <, 1);
+            g_assert_cmpfloat(try->p[k+j*(r+1)], >, 0);
+            g_assert_cmpfloat(try->q[k+j*(r+1)], <, 1);
+            g_assert_cmpfloat(try->q[k+j*(r+1)], >, 0);
          }
-         g_assert(fabs(sump - 1.0) < 1e-6);
-         g_assert(fabs(sumq - 1.0) < 1e-6);
+         g_assert_cmpfloat(fabs(sump - 1.0), <, 1e-6);
+         g_assert_cmpfloat(fabs(sumq - 1.0), <, 1e-6);
       }
    }
 
@@ -1174,6 +1246,90 @@ test_params
 
 }
 
+void
+test_loglik
+(void)
+{
+
+   int m = 3;
+   int n = 6;
+   int r = 3;
+
+   double t = 0.8;
+   double a = 1.2;
+
+   double Q[9] = {
+      // transpose //
+      0.7, 0.1, 0.9,
+      0.2, 0.5, 0.1,
+      0.1, 0.4, 0.0,
+   };
+
+   // 'C1' and 'C2' simplify the definition of 'p' and 'q'.
+   double C1 = 0.7692308;
+   double C2 = 2.5000000;
+   double p[12] = {
+      C1/(C1+3.0), 1.0/(C1+3.0), 1.0/(C1+3.0), 1.0/(C1+3.0), 
+      C1/(C1+4.0), 1.0/(C1+4.0), 2.0/(C1+4.0), 1.0/(C1+4.0),
+      C1/(C1+1.3), 1.0/(C1+1.3), 0.2/(C1+1.3), 0.1/(C1+1.3),
+   };
+   double q[12] = {
+      C2/(C2+3.0),   1.0/(C2+3.0),   1.0/(C2+3.0),   1.0/(C2+3.0), 
+      C2/(C2+4.0),   1.0/(C2+4.0),   2.0/(C2+4.0),   1.0/(C2+4.0),
+      // This line is not properly normalized. It should
+      // trigger a warning but not cause failure.
+      C2/(C2+1.3)*2, 1.0/(C2+1.3)*2, 0.2/(C2+1.3)*2, 0.1/(C2+1.3)*2,
+   };
+
+   params *par = params_new(m, r);
+   params_set(par, t, a, Q, p, q);
+
+   int yz[18] = {
+         1, 2, 2,
+         0, 4, 2,
+         1, 2, 2,
+         1, 2, 0,
+         // Underflow (should give 0.0).
+      1500, 1, 2,
+         // Negative values (should give NA).
+        -1, 4, 2,
+   };
+
+   int index[6] = {-1,-1,-1,-1,-1,-1};
+   double pem[18];
+   indexts(n, r, (const int *) yz, index);
+
+   redirect_stderr_to(error_buffer);
+   double ll = loglik(n, par, yz, index, pem);
+   unredirect_sderr();
+
+   double expected_ll = -1135.57472829;
+   double expected_alpha[18] = {
+      // Checked manually.
+          0.502683584781,  0.489600586793,  0.007715828424,
+          0.278067313112,  0.721741573153,  0.000191113733,
+          0.394077474900,  0.598752057680,  0.007170467419,
+          0.322075687622,  0.561610874783,  0.116313437595,
+          0.000000000000,  0.000000000000,  1.000000000000,
+          0.900000000000,  0.100000000000,  0.000000000000,
+   };   
+
+   char expected_warning[] = "fill the buffer";
+
+   g_assert_cmpfloat(abs(ll - expected_ll), <, 1e-6);
+
+   for (int i = 0 ; i < 18 ; i++) {
+      g_assert_cmpfloat(fabs(expected_alpha[i] - pem[i]), <, 1e-6);
+   }
+
+   // Test the warning message.
+   g_assert_cmpstr(error_buffer, ==, expected_warning);
+
+   params_destroy(par);
+
+   return;
+}
+
 
 int
 main(
@@ -1181,19 +1337,6 @@ main(
    char **argv
 )
 {
-
-   char c;
-   int pflag = 0;
-   // Parse test options.
-   while ((c = getopt (argc, argv, "p")) != -1) {
-      switch (c) {
-        case 'p':
-          pflag = 1;
-          break;
-        default:
-          abort();
-      }
-   }
 
    // Store 'stderr', file descriptor.
    backup = dup(STDERR_FILENO);
@@ -1216,12 +1359,16 @@ main(
    g_test_add_func("/viterbi/block_viterbi_NA", test_block_viterbi_NA);
    // pso.c //
    g_test_add_func("/pso/params_change", test_params);
-   // profiling //
-   if (pflag) {
+   g_test_add_func("/pso/loglik", test_loglik);
+
+   // performance profiling //
+   if (g_test_perf()) {
       g_test_add_func("/prof/e_step", test_perf_mnmultinom_prob);
    }
-   return g_test_run();
 
+   int g_test_result = g_test_run();
    close(backup);
+
+   return g_test_result;
 
 }
