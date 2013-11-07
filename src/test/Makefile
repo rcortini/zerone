@@ -13,10 +13,10 @@ clean:
 	rm -f testset *.o *.gcda *.gcno *.gcov gmon.out analysis.txt \
 		callgrind.out.* cache.txt
 
-test:
+test: testset
 	gtester --verbose --keep-going testset
 
-testperf:
+perftest: testset
 	gtester --verbose --keep-going -m=perf testset
 	gprof -F mnmultinom_prob -F block_fwdb testset \
 		gmon.out > analysis.txt

@@ -3,11 +3,6 @@
 char error_buffer[1024];
 int backup;
 
-// ---------------------------------------------------------------------
-// Copying initialized variables to the fixture improves the readabili- 
-// ty of the setup for arrays.                                          
-// ---------------------------------------------------------------------
-
 
 void
 redirect_stderr_to
@@ -1093,8 +1088,8 @@ test_perf_mnmultinom_prob
    char *line = NULL;
    size_t len = 0;
    ssize_t read;
-   // Discard header.
-   getline(&line, &len, f);
+   // Discard header (the 'if' turns off unused variable warnings).
+   if (getline(&line, &len, f));
    while ((read = getline(&line, &len, f)) != -1) {
       sscanf(line, "%s\t%d\t%d\t%d\n", seqname, 
          yz+i, yz+i+1, yz+i+2);
