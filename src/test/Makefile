@@ -16,7 +16,7 @@ clean:
 test: testset
 	gtester --verbose --keep-going testset
 
-perftest: testset
+testperf: testset
 	gtester --verbose --keep-going -m=perf testset
 	gprof -F mnmultinom_prob -F block_fwdb testset \
 		gmon.out > analysis.txt

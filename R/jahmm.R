@@ -142,6 +142,13 @@ BaumWelch <- function(m, yz, theta, alpha, C1, C2, blocks, index,
          new.p <- rbind(C1*new.p[1,], new.p)
          new.q <- rbind(C2*new.q[1,], new.q)
 
+         if (any(is.na(c(new.p,new.q,old.p,old.q)))) {
+            if (verbose) {
+               cat("Baum-Welch algorithm failed\n", file=stderr())
+            }
+            return (list(Q=Q, p=old.p, q=old.q, index=index,
+                         iter=iter, failed=TRUE))
+         }
          if (all(abs(c(new.p,new.q)-c(old.p,old.q))< 1e-3)) break
 
       }
@@ -155,7 +162,8 @@ BaumWelch <- function(m, yz, theta, alpha, C1, C2, blocks, index,
 
    if (verbose) cat("\n", file=stderr())
 
-   return (list(Q=Q, p=new.p, q=new.q, index=index, iter=iter))
+   return (list(Q=Q, p=new.p, q=new.q, index=index,
+                iter=iter, failed=FALSE))
 
 }
 
@@ -186,20 +194,13 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, threshold=0.07, ...) {
 ###############################################
 
 
-   # Keep only the profiles that pass quality control.
-   #KLpq <- KL(yz, c(theta, alpha, C1, C2))
-   #QC_scores <- KLpq$KLa - KLpq$KLb
-   #if (all(QC_scores < QC)) return(list(QC=QC_scores>QC))
-   #yz <- yz[c(TRUE, QC_scores > QC),]
-   #p0 <- KLpq$p[c(TRUE, TRUE, QC_scores > QC)]
-   #q0 <- KLpq$q[c(TRUE, TRUE, QC_scores > QC)]
-
    blocks <- tapply(X=rep(1,n), INDEX=as.character(data[,1]), FUN=sum)
    sorted <- match(unique(data[,1]), names(blocks))
    blocks <- blocks[sorted]
 
    loglik <- rep(NA, 3)
-   for (m in c(1,3)) {
+#   for (m in c(1,3)) {
+   for (m in 3) {
       BW <- BaumWelch(m, yz, theta, alpha, C1, C2, blocks,
          verbose=verbose, ...)
 
@@ -209,33 +210,37 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, threshold=0.07, ...) {
 
       index <- BW$index
 
-      if (PSO && m > 1) {
+      if ((PSO || BW$failed) && m > 1) {
          if (verbose) cat("running PSO\n", file=stderr())
-         pso_call <- .C(
-            pso,
-            # input #
-            as.integer(m),
-            as.integer(n),
-            as.integer(nrow(yz)),
-            as.integer(yz),
-            # fixed params #
-            as.double(theta),
-            as.double(alpha),
-            # params #
-            as.double(Q),
-            as.double(p),
-            as.double(q),
-            # index #
-            as.integer(index),
-            # output #
-            double(1),
-            # extra '.C()' arguments #
-            NAOK = TRUE,
-            DUP = FALSE
-         )
-         Q <- array(pso_call[[7]], dim=dim(Q))
-         p <- array(pso_call[[8]], dim=dim(p))
-         q <- array(pso_call[[9]], dim=dim(q))
+         # Run PSO 5 times in case the Baum-Welch algorithm failed.
+         ncycles <- ifelse(BW$failed, 5, 1)
+         for (cycle in 1:ncycles) {
+            pso_call <- .C(
+               pso,
+               # input #
+               as.integer(m),
+               as.integer(n),
+               as.integer(nrow(yz)),
+               as.integer(yz),
+               # fixed params #
+               as.double(theta),
+               as.double(alpha),
+               # params #
+               as.double(Q),
+               as.double(p),
+               as.double(q),
+               # index #
+               as.integer(index),
+               # output #
+               double(1),
+               # extra '.C()' arguments #
+               NAOK = TRUE,
+               DUP = FALSE
+            )
+            Q <- array(pso_call[[7]], dim=dim(Q))
+            p <- array(pso_call[[8]], dim=dim(p))
+            q <- array(pso_call[[9]], dim=dim(q))
+         }
       }
 
       C_call_1 <- .C(
@@ -311,7 +316,8 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, threshold=0.07, ...) {
    }
 
    # Quality control.
-   score <- (loglik[1]-loglik[3]) / loglik[1]
+   score <- mean(phi[vPath==2,3], na.rm=TRUE)
+
    return(list(
       success = score > threshold,
       vPath = vPath,
@@ -320,6 +326,7 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, threshold=0.07, ...) {
       Q = Q,
       p = p,
       q = q,
+      phi = phi,
       score = score,
       loglik = loglik[3]
    ))

@@ -5,6 +5,7 @@
 *.gcda
 *.gcno
 *.gcov
+*.log
 src/test/gmon.out
 src/test/analysis.txt
 src/test/test

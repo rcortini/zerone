@@ -17,30 +17,7 @@ EM.mnb <- function(x, a, theta, p, q, tol=1e-6, maxiter=100) {
       # Empty bins are usually over-represented. Get an initial
       # value of theta as the probability that a bin is not empty.
       theta <- 1 - tab[1] / n
-      ###################    QUARANTINE    #######################
-      # The following code to determine the initial conditions is 
-      # too complex and often crashes because it produces NA      
-      # at subsequent steps.                                      
-      ############################################################
-      #H <- rep(0, length(u)-1)
-      #totalvar <- rep(0, length(u)-1)
-      #weighted.var <- function(x, w) {
-      #   m <- weighted.mean(x, w)
-      #   return (weighted.mean((x-m)^2, w))
-      #}
-      #for (i in 1:(length(u)-1)) {
-      #   usplit <- split(u, u <= u[i])
-      #   tsplit <- split(tab, u <= u[i])
-      #   totalvar[i] <- sum(mapply(weighted.var, usplit, tsplit))
-      #}
-      #split <- which.min(totalvar)
-      #theta <- 1 - sum(tab[1:split]) / n
-      ############################################################
    }
-   #if (missing(p) || missing(q)) {
-   #   idx <- min(min(which(cumsum(tab) >= n*theta)), length(u)-1)
-   #   usplit <- u[idx]
-   #}
    usplit <- 1
    if (missing(p)) {
       R <- sum(u[u > usplit]*tab[u > usplit]) / sum(tab[u > usplit])

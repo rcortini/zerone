@@ -16,12 +16,12 @@ typedef struct {
    double *q;
    int m;
    int r;
-} params;
+} params_t;
 
 // Arguments of `particle`.
 typedef struct {
          int n;
-         params *opt;
+         params_t *opt;
    const int *yz;
          int *index;
          int *signal;
@@ -30,14 +30,14 @@ typedef struct {
 
 // --                  memory functions                  -- //
 
-params *
+params_t *
 params_new
 (
    int m,
    int r
 )
 {
-   params *par = malloc(sizeof(params));
+   params_t *par = malloc(sizeof(params_t));
    if (par == NULL) return NULL;
    // Allocate a single array for 'Q', 'p' and 'q'.
    double *array = malloc((m*(m+2*(r+1))) * sizeof(double));
@@ -56,10 +56,10 @@ params_new
 }
 
 
-params *
+params_t *
 params_set
 (
-   params *par,
+   params_t *par,
    double t,
    double a,
    double * restrict Q,
@@ -81,11 +81,11 @@ params_set
 }
 
 
-params *
+params_t *
 params_cpy
 (
-   params *dest,
-   params *par
+   params_t *dest,
+   params_t *par
 )
 {
 
@@ -103,7 +103,7 @@ params_cpy
 
 void
 params_destroy
-(params *p)
+(params_t *p)
 {
    // 'Q', 'p' and 'q' are allocated together and 'Q'
    // points to the beginning of the array.
@@ -118,7 +118,7 @@ double
 loglik
 (
    const int n,
-         params * restrict par,
+         params_t * restrict par,
    const int * restrict yz,
          int * restrict index,
          // output //
@@ -151,11 +151,11 @@ loglik
 }
 
 
-params *
+params_t *
 params_change
 (
-   params * restrict new,
-   params * restrict old,
+   params_t * restrict new,
+   params_t * restrict old,
    int which
 )
 {
@@ -222,7 +222,7 @@ particle
    // Unpack arguments.
    parg *unpack = (parg *) arg;
          int n = unpack->n;
-         params *opt = unpack->opt;
+         params_t *opt = unpack->opt;
    const int *yz = unpack->yz;
          int *index = unpack->index;
          int *signal = unpack->signal;
@@ -233,8 +233,8 @@ particle
       fprintf(stderr, "memory error: cannot allocate 'pem'");
       return NULL;
    }
-   params *par = params_new(opt->m, opt->r);
-   params *try = params_new(opt->m, opt->r);
+   params_t *par = params_new(opt->m, opt->r);
+   params_t *try = params_new(opt->m, opt->r);
    
    if ((par == NULL) || (try == NULL)) {
       fprintf(stderr, "memory error: cannot allocate 'par' or 'try'");
@@ -336,7 +336,7 @@ pso
       fprintf(stderr, "memory error: cannot allocate 'pem'");
       return;
    }
-   params *opt = params_new(m, r);
+   params_t *opt = params_new(m, r);
    if (opt == NULL) {
       fprintf(stderr, "memory error: cannot allocate 'opt'");
       return;
