@@ -168,7 +168,7 @@ BaumWelch <- function(m, yz, theta, alpha, C1, C2, blocks, index,
 }
 
 
-jahmm <- function (data, PSO=TRUE, verbose=TRUE, threshold=0.07, ...) {
+jahmm <- function (data, PSO=TRUE, verbose=TRUE, threshold=0.09, ...) {
 
 ###############################################
 #              OPTION PROCESSING              #
@@ -316,17 +316,17 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, threshold=0.07, ...) {
    }
 
    # Quality control.
-   score <- mean(phi[vPath==2,3], na.rm=TRUE)
+   phi <- matrix(C_call_2[[7]], ncol=m, byrow=TRUE)
+   score <- 1 - mean(phi[vPath==2,3], na.rm=TRUE)
 
    return(list(
-      success = score > threshold,
+      success = score <= threshold,
       vPath = vPath,
       alpha = alpha,
       theta = theta,
       Q = Q,
       p = p,
       q = q,
-      phi = phi,
       score = score,
       loglik = loglik[3]
    ))
