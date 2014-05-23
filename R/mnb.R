@@ -28,6 +28,14 @@ EM.mnb <- function(x, a, theta, p, q, tol=1e-6, maxiter=100) {
       q <- a/(a+L)
    }
       
+   f <- function(a) {
+      return(-n*digamma(a) + 
+         sum(tab*(digamma(a+u) - w*log(1+x1/a)-(1-w)*log(1+x2/a))))
+   }   
+   df <- function(a) {
+      return(-n*trigamma(a) +
+         sum(tab*(trigamma(a+u) + w*x1/(a*(x1+a))+(1-w)*x2/(a*(x2+a)))))
+   }   
 
    old_params <- c(a, theta, p, q)
 
@@ -38,24 +46,44 @@ EM.mnb <- function(x, a, theta, p, q, tol=1e-6, maxiter=100) {
       #    L1 = theta * p^a * (1-p)^u and
       #    L2 = (1-theta) * q^a * (1-q)^u,
       # avoiding the undefined case 0/0.
-      logterm <- log(1-theta)-log(theta) + a*(log(q)-log(p)) +
+      logterms <- log(1-theta)-log(theta) + a*(log(q)-log(p)) +
          u*(log(1-q)-log(1-p))
-      w <- 1 / (1 + exp(logterm))
+      w <- 1 / (1 + exp(logterms))
+
+      # If 'q' or 'p' approaches 1 the weights will be
+      # undetermined for u = 0.
+      if (is.na(w[1])) w[1] = 0
 
       x1 <- sum(w*u*tab) / sum(w*tab)
       x2 <- sum((1-w)*u*tab) / sum((1-w)*tab)
+
+      if (f(a) < 0) {
+         a <- a / 2
+         while(f(a) < 0) { a <- a / 2 }
+         a. <- a
+         .a <- a * 2
+      }
+      else {
+         a <- a * 2
+         while(f(a) >= 0) { a <- a * 2 }
+         a. <- a / 2
+         .a <- a
+      }
+
+      # Failed...
+      if (a. > 128) { return(c(loglik=-Inf, a=Inf, theta=0, p=0, q=0)) }
 
       new.a <- a + 2*tol
 
       # Solve equation in alpha (a) numerically with
       # Newton-Raphson method.
-      while (abs(new.a - a) > tol) {
-         a <- new.a
-         num <- -n*digamma(a) + 
-            sum(tab*(digamma(a+u) - w*log(1+x1/a)-(1-w)*log(1+x2/a)))
-         denom <- -n*trigamma(a) +
-            sum(tab*(trigamma(a+u) + w*x1/(a*(x1+a))+(1-w)*x2/(a*(x2+a))))
-         new.a <- a - num/denom
+      for (whileiter in 1:maxiter) {
+         a <- ifelse(new.a < a. || new.a > .a, (a. + .a) / 2, new.a)
+         fa <- f(a)
+         if (fa < 0) { .a <- a }
+         else { a. <- a }
+         new.a <- a - fa / df(a)
+         if (abs(new.a - a) < tol) break
       }
 
       a <- new.a
