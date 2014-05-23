@@ -4,5 +4,6 @@ Version: 0.1-1
 Date: 2012-10-31
 Author: Guillaume Filion
 Maintainer: Guillaume Filion <guillaume.filion@gmail.com>
+LazyData: true
 Description: Provides HMM for mixture model negative binomial emissions.
 License: GPL (>=2)
