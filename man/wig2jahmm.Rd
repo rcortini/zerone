@@ -23,5 +23,5 @@ fit <- wig2jahmm("./exampleDirectory")
   \code{\link{jahmm}}
 }
 \details{
-  The ChIP-seq profiles to discretize must be in the same directory. They consist in one or more Input profiles that will be used as baseline, and one or more Target profiles (these must have been obtained from the same DNA-binding protein and, ideally, they should be experimental replicates).
+  The ChIP-seq profiles to discretize must be in the same directory. They consist in one or more Input profiles that will be used as baseline, and one or more Target profiles (these must have been obtained from the same DNA-binding protein and, ideally, they should be experimental replicates). Only \code{fixedStep} formatted wig files are supported.
 }
