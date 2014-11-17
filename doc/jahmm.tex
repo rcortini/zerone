@@ -639,16 +639,19 @@ noted $\psi'(\alpha)$ is the derivative of the digamma function.
     Mixture distributions are commonly fitted by the EM algorithm.
     We suppose that an unobserved variable $Z$ takes value 1 with
     probability $\theta$ and value 0 with probability $1-\theta$.
-    Obivously, $Z$ indicates which of the two distributions the
+    $Z$ indicates which of the two distributions the
     observation is drawn from. The full likelihood is 
 
     \begin{equation*}
     P(y, z) = \frac{\Gamma(a+y)}{\Gamma(\alpha)y!}
-      \left(\theta^z p^{\alpha}(1-p)^y + (1-\theta)^{1-z}
-      q^{\alpha}(1-q)^y\right).
+    \left(\theta p^{\alpha}(1-p)^y \delta_1(z) + (1-\theta)
+    q^{\alpha}(1-q)^y \delta_0(z)\right),
     \end{equation*}
 
-    This immediately leads to the observation that
+    \noindent
+    where $\delta_0(z) = 1$ if and only if $z = 0$, and
+    $\delta_1(z) = 1$ if and only if $z = 1$. This leads to the
+    observation that
 
     \begin{equation}
     P(Z=1 | Y=y) = \frac{\theta p^{\alpha}(1-p)^y}
@@ -670,7 +673,8 @@ noted $\psi'(\alpha)$ is the derivative of the digamma function.
 \label{sub}
     \end{align}
 
-    The M-step is to maximize (\ref{sub}), which is done by
+    The M-step is to maximize (\ref{sub}) with respect to
+    $\alpha$, $p$ and $\theta$, which is done by
     differentiation. Introducing
     $\bar{y}_1 = \sum_{k=1}^n \theta_k y_k / \sum_{k=1}^n \theta_k$
     and $\bar{y}_0 = \sum_{k=1}^n (1-\theta_k) y_k /
@@ -759,6 +763,89 @@ noted $\psi'(\alpha)$ is the derivative of the digamma function.
       \item If the values of $\alpha$, $\theta$, $p$ and $q$ are
       stable stop the algorithm, otherwise start another cycle.
     \end{enumerate}
+
+    \section{Zero-Inflated Negative Multinomial}
+
+    The Zero-Inflated Negative Binomial (ZINB) is a mixture model
+    with a negative binomial and a constant equal to 0. This will
+    inflate the term $P(Y=0)$, whence the name of the distribution.
+    By definition, the numbers are drawn from a negative binomial
+    distribution with parameters $(\alpha, p)$ with probability
+    $\theta$ and from the constant equal to 0 with probability
+    $1-\theta$. The distribtion is thus
+
+    \begin{equation*}
+    P(Y = y) = \frac{\Gamma(\alpha+y)}{\Gamma(\alpha)y!}
+    \theta p^{\alpha}(1-p)^y + (1-\theta)\delta_0(y).
+    \end{equation*}
+
+    Using the same strategy as above, we introduce a variable $Z$,
+    which is equal to 1 if the numbers are drawn from the first
+    distribution and 0 otherwise. The full likelihood distribution
+    is
+
+    \begin{equation*}
+    P(y,z) = \frac{\Gamma(\alpha+y)}{\Gamma(\alpha)y!}
+    \theta p^{\alpha}(1-p)^y\delta_1(z) +
+    (1-\theta)\delta_0(y)\delta_0(z).
+    \end{equation*}
+
+    From this, we obtain
+    \begin{equation*}
+    P(Z=1|Y=y) =\frac{\frac{\Gamma(\alpha+y)}{\Gamma(\alpha)y!}
+    \theta p^{\alpha}(1-p)^y}{
+    \frac{\Gamma(\alpha+y)}{\Gamma(\alpha)y!}
+    \theta p^{\alpha}(1-p)^y + (1-\theta)\delta_0(y)}.
+    \end{equation*}
+
+    In reality, we can substantially simplify this formula because
+    it takes only two distinct values.
+
+    \begin{equation*}
+    P(Z=1|Y=y) = \left\{
+      \begin{array}{ll}
+        w = \frac{\theta p^{\alpha}}{\theta p^{\alpha}+1-\theta}
+        & \mbox{if } y = 0\\
+        1 & \mbox{otherwise.}
+      \end{array}
+    \right.
+    \end{equation*}
+
+    To compute the expected value of the full log-likelihood with
+    respect to the conditional distribution of $Z$, we label the
+    observations such that $y_1, \ldots, y_n$ are all positive, and
+    that the remaining $n_0$ observations are 0.
+
+    \begin{eqnarray*}
+      \ell = &-&n \log \Gamma(\alpha) + n\log (\theta) +
+      n \alpha \log(p) +
+      \sum_{k=1}^n \log \Gamma(\alpha + y_k) + y_k \log (1-p) \\
+      &+& n_0 \left( w \log(\theta p^{\alpha}) +
+    (1-w) \log(1-\theta) \right).
+    \end{eqnarray*}
+
+    Differentiating with respect to $\theta$ and $p$, we obtain
+
+    \begin{eqnarray*}
+      \theta &=& \frac{n+n_0w}{n+n_0} \\
+      p &=& \frac{\alpha}{\alpha + y^*}, 
+    \end{eqnarray*}
+
+    \noindent
+    where $y^* = \sum_{k=1}^ny_k/(n+n_0w)$.
+    Differentiating with respect to $\alpha$ and using the second
+    equality above, we obtain the following equation, which is solved
+    numerically with the method of Newton-Raphson.
+
+    \begin{equation}
+      f(\alpha) = -n \psi(\alpha) + (n+n_0w) \log \left(\frac{\alpha}{y^*
+      + \alpha} \right) + \sum_{k=1}^n \psi(\alpha + y_k)
+    \end{equation}
+
+    \begin{equation}
+      f'(\alpha) = -n \psi'(\alpha) + (n+n_0w)
+      \frac{y^*}{\alpha(y^*+\alpha)} + \sum_{k=1}^n \psi'(\alpha + y_k)
+    \end{equation}
 
     \section{Negative multinomial mixture emissions}
 
