@@ -1,13 +1,13 @@
-BaumWelch <- function(m, yz, theta, alpha, C1, C2, blocks, index,
+BaumWelch <- function(m, y, pi_, alpha, C, blocks, index,
       verbose=TRUE, maxiter=1000, tol=1e-6) {
 
    nas <- is.na(colSums(yz, na.rm=FALSE))
 
-   r <- nrow(yz)
-   n <- ncol(yz)
+   r <- nrow(y)
+   n <- ncol(y)
 
    n_na.rm <- sum(!nas)
-   yz_na.rm <- yz[,!nas]
+   y_na.rm <- y[,!nas]
 
    index <- rep(-1L, n)
    index_na.rm <- rep(-1L, n_na.rm)
@@ -16,49 +16,43 @@ BaumWelch <- function(m, yz, theta, alpha, C1, C2, blocks, index,
    diag(Q) <- ifelse(m > 1, .95, 1.0)
 
    p <- matrix(NA, ncol=m, nrow=r+1)
-   q <- matrix(NA, ncol=m, nrow=r+1)
-   ybar <- mean(yz[1,], na.rm=TRUE)
+   ybar <- mean(y[1,], na.rm=TRUE)
    # Fill in p row-wise.
-   p[1,] <- ybar * C1
-   q[1,] <- ybar * C2
-   q[2,] <- p[2,] <- ybar
+   p[1,] <- ybar * C
    if (m == 1) mult <- 1
    if (m == 2) mult <- c(1,2)
    if (m == 3) mult <- c(.5,1,2)
    for (i in 2:r) {
-      zbar <- mean(yz[i,], na.rm=TRUE)
-      q[i+1,] <- p[i+1,] <- zbar * mult
+      zbar <- mean(y[i,], na.rm=TRUE)
+      p[i+1,] <- zbar * mult
    }
    # Assert that values are well-defined.
-   if (any(p < .Machine$double.eps) || any(q < .Machine$double.eps)) {
-      stop('p or q undefined: check input to jahmm')
+   if (any(p < .Machine$double.eps)) {
+      stop('p undefined: check input to jahmm')
    }
    p <- scale(p, center=FALSE, scale=colSums(p))
-   q <- scale(q, center=FALSE, scale=colSums(q))
 
    new.p <- p
-   new.q <- q
 
    for (iter in 1:maxiter) {
 
       if (verbose) cat(paste("iteration:", iter, "\r"), file=stderr())
-      oldparams <- c(p,q)
+      oldparams <- p
 
       # E-step.
 
       # Compute (unnormalized) emission probabilities.
       C_call_1 <- .C(
-         mnmultinom_prob,
+         zinm_prob,
          # input #
          as.integer(m),
          as.integer(n),
          as.integer(r),
-         as.integer(yz),
+         as.integer(y),
          # params #
-         as.double(theta),
+         as.double(pi_),
          as.double(alpha),
          as.double(p),
-         as.double(q),
          # index #
          as.integer(index),
          # control #
@@ -98,33 +92,33 @@ BaumWelch <- function(m, yz, theta, alpha, C1, C2, blocks, index,
 
       phi <- matrix(C_call_2[[7]], ncol=m, byrow=TRUE)[!nas,]
 
+      # TODO: Update this part. # 
       for (j in 1:10) {
 
          old.p <- new.p
          old.q <- new.q
 
-         C_call_1 <- .C(
-            mnmultinom_prob,
-            # input #
-            as.integer(m),
-            as.integer(n_na.rm),
-            as.integer(r),
-            as.integer(yz_na.rm),
-            # params #
-            as.double(theta),
-            as.double(alpha),
-            as.double(old.p),
-            as.double(old.q),
-            # index #
-            as.integer(index_na.rm),
-            # control #
-            as.integer(2+4),     # No warning, ratio of mixture states.
-            # output #
-            double(m*n_na.rm),   # Probability ratios.
-            # extra '.C()' arguments #
-            NAOK = FALSE,
-            DUP = FALSE
-         )
+#         C_call_1 <- .C(
+#            zinm_prob,
+#            # input #
+#            as.integer(m),
+#            as.integer(n_na.rm),
+#            as.integer(r),
+#            as.integer(yz_na.rm),
+#            # params #
+#            as.double(p_),
+#            as.double(alpha),
+#            as.double(old.p),
+#            # index #
+#            as.integer(index_na.rm),
+#            # control #
+#            as.integer(2+4),     # No warning, ratio of mixture states.
+#            # output #
+#            double(m*n_na.rm),   # Probability ratios.
+#            # extra '.C()' arguments #
+#            NAOK = FALSE,
+#            DUP = FALSE
+#         )
 
          theta_i <- matrix(C_call_1[[11]], byrow=TRUE, ncol=m)
          zi1 <- scale(yz_na.rm %*% (phi * theta_i), center=FALSE,
@@ -168,7 +162,7 @@ BaumWelch <- function(m, yz, theta, alpha, C1, C2, blocks, index,
 }
 
 
-jahmm <- function (data, PSO=TRUE, verbose=TRUE, threshold=0.09, ...) {
+jahmm <- function (data, PSO=FALSE, verbose=TRUE, threshold=0.08, ...) {
 
 ###############################################
 #              OPTION PROCESSING              #
@@ -177,16 +171,14 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, threshold=0.09, ...) {
    n <- nrow(data)
 
    # EM for mixture distribution of the baseline.
-   baseline_params <- EM.mnb(data[,2])
+   baseline_params <- zinb(data[,2])
 
-   theta <- baseline_params[3]
+   pi_ <- baseline_params[1]
    alpha <- baseline_params[2]
-   C1 <- baseline_params[4]/(1-baseline_params[4])
-   C2 <- baseline_params[5]/(1-baseline_params[5])
+   C <- baseline_params[3] / (1-baseline_params[3])
 
    # Coerce input data to matrix for C calls.
-   yz <- t(as.matrix(data[,-1]))
-
+   y <- t(as.matrix(data[,-1]))
 
 
 ###############################################
@@ -201,12 +193,10 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, threshold=0.09, ...) {
    loglik <- rep(NA, 3)
 #   for (m in c(1,3)) {
    for (m in 3) {
-      BW <- BaumWelch(m, yz, theta, alpha, C1, C2, blocks,
-         verbose=verbose, ...)
+      BW <- BaumWelch(m, y, pi_, alpha, C, blocks, verbose=verbose, ...)
 
       Q <- BW$Q
       p <- BW$p
-      q <- BW$q
 
       index <- BW$index
 
@@ -220,15 +210,14 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, threshold=0.09, ...) {
                # input #
                as.integer(m),
                as.integer(n),
-               as.integer(nrow(yz)),
-               as.integer(yz),
+               as.integer(nrow(y)),
+               as.integer(y),
                # fixed params #
-               as.double(theta),
+               as.double(pi_),
                as.double(alpha),
                # params #
                as.double(Q),
                as.double(p),
-               as.double(q),
                # index #
                as.integer(index),
                # output #
@@ -239,33 +228,30 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, threshold=0.09, ...) {
             )
             Q <- array(pso_call[[7]], dim=dim(Q))
             p <- array(pso_call[[8]], dim=dim(p))
-            q <- array(pso_call[[9]], dim=dim(q))
          }
       }
 
       C_call_1 <- .C(
-         mnmultinom_prob,
+         zinm_prob,
          # input #
          as.integer(m),
          as.integer(n),
-         as.integer(nrow(yz)),
-         as.integer(yz),
+         as.integer(nrow(y)),
+         as.integer(y),
          # params #
-         as.double(theta),
+         as.double(pi_),
          as.double(alpha),
          as.double(p),
-         as.double(q),
          # index #
          as.integer(index),
          # control #
-         as.integer(1+4+8),   # No warning, log space, constant terms.
+         as.integer(1+4),     # No warning, log space.
          # output #
          double(m*n),         # Emission probabilities.
          # extra '.C()' arguments #
          NAOK = TRUE,
          DUP = FALSE
       )
-
 
       initialProb <- steady_state_probs(Q)
 
@@ -315,20 +301,18 @@ jahmm <- function (data, PSO=TRUE, verbose=TRUE, threshold=0.09, ...) {
 
    }
 
-   # Quality control.
    phi <- matrix(C_call_2[[7]], ncol=m, byrow=TRUE)
-   score <- 1 - mean(phi[vPath==2,3], na.rm=TRUE)
 
    return(list(
-      success = score <= threshold,
       vPath = vPath,
       alpha = alpha,
-      theta = theta,
+      pi_ = pi_,
       Q = Q,
       p = p,
-      q = q,
       score = score,
-      loglik = loglik[3]
+      loglik = loglik[3],
+      phi = phi,
+      iter = BW$iter
    ))
 
 }

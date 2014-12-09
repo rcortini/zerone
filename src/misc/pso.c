@@ -10,10 +10,9 @@ pthread_mutex_t lock;
 typedef struct {
    double l;      // log-likelihood
    double a;      // alpha
-   double t;      // theta
+   double pi;     // pi
    double *Q;
    double *p;
-   double *q;
    int m;
    int r;
 } params_t;
@@ -22,7 +21,7 @@ typedef struct {
 typedef struct {
          int n;
          params_t *opt;
-   const int *yz;
+   const int *y;
          int *index;
          int *signal;
 } parg;
@@ -40,14 +39,13 @@ params_new
    params_t *par = malloc(sizeof(params_t));
    if (par == NULL) return NULL;
    // Allocate a single array for 'Q', 'p' and 'q'.
-   double *array = malloc((m*(m+2*(r+1))) * sizeof(double));
+   double *array = malloc((m*(m+(r+1))) * sizeof(double));
    if (array == NULL) {
       free(par);
       return NULL;
    }
    par->Q = array;
    par->p = array + m*m;
-   par->q = array + m*(m+r+1);
    par->m = m;
    par->r = r;
 
@@ -60,21 +58,19 @@ params_t *
 params_set
 (
    params_t *par,
-   double t,
+   double pi,
    double a,
    double * restrict Q,
-   double * restrict p,
-   double * restrict q
+   double * restrict p
 )
 {
 
    int m = par->m;
    int r = par->r;
    par->a = a;
-   par->t = t;
+   par->pi = pi;
    memcpy(par->Q, Q, m*m * sizeof(double));
    memcpy(par->p, p, m*(r+1) * sizeof(double));
-   memcpy(par->q, q, m*(r+1) * sizeof(double));
 
    return par;
 
@@ -93,8 +89,8 @@ params_cpy
    int r = dest->r;
    dest->l = par->l;
    dest->a = par->a;
-   dest->t = par->t;
-   memcpy(dest->Q, par->Q, m*(m+2*(r+1)) * sizeof(double));
+   dest->pi = par->pi;
+   memcpy(dest->Q, par->Q, m*(m+(r+1)) * sizeof(double));
 
    return dest;
 
@@ -119,7 +115,7 @@ loglik
 (
    const int n,
          params_t * restrict par,
-   const int * restrict yz,
+   const int * restrict y,
          int * restrict index,
          // output //
          double * restrict pem
@@ -131,15 +127,14 @@ loglik
    // Turn off verbosity of `mnmultinom_prob`. Otherwise irrelevant
    // messages about the normalization of 'p' and 'q' may appear.
    int o = 4;
-   mnmultinom_prob(
+   zinm_prob(
       &m,
       &n,
       &r,
-      yz,
-      &par->t,
+      y,
+      &par->pi,
       &par->a,
       par->p,
-      par->q,
       index,
       &o,
       pem
@@ -181,33 +176,8 @@ params_change
          }
          sump += new->p[0+i*(r+1)] = old->p[0+i*(r+1)] *
             new->p[1+i*(r+1)] / old->p[1+i*(r+1)];
-         for (int k = 0 ; fabs(sump-1.0) > DBL_EPSILON && k < 5; k++) {
-            double newsump = 0.0;
-            for (int j = 0 ; j < r+1 ; j++) {
-               newsump += new->p[j+i*(r+1)] /= sump;
-            }
-            sump = newsump;
-         }
+         for (int j = 0 ; j < r+1 ; j++) new->p[j+i*(r+1)] /= sump;
       }
-      break;
-   case 2:
-      for (int i = 0 ; i < m ; i++) {
-         double sumq = 0.0;
-         for (int j = 1 ; j < r+1 ; j++) {
-            sumq += new->q[j+i*(r+1)] = old->q[j+i*(r+1)] * RAND;
-         }
-         sumq += new->q[0+i*(r+1)] = old->q[0+i*(r+1)] *
-            new->q[1+i*(r+1)] / old->q[1+i*(r+1)];
-         for (int j = 0 ; j < r+1 ; j++) new->q[j+i*(r+1)] /= sumq;
-         for (int k = 0 ; fabs(sumq-1.0) > DBL_EPSILON && k < 5; k++) {
-            double newsumq = 0.0;
-            for (int j = 0 ; j < r+1 ; j++) {
-               newsumq += new->q[j+i*(r+1)] /= sumq;
-            }
-            sumq = newsumq;
-         }
-      }
-      break;
    }
 
    return new;
@@ -223,7 +193,7 @@ particle
    parg *unpack = (parg *) arg;
          int n = unpack->n;
          params_t *opt = unpack->opt;
-   const int *yz = unpack->yz;
+   const int *y = unpack->y;
          int *index = unpack->index;
          int *signal = unpack->signal;
 
@@ -263,7 +233,7 @@ particle
       params_change(try, par, iter % 3);
 
       // Keep the global best hit. 
-      new = loglik(n, try, yz, index, pem);
+      new = loglik(n, try, y, index, pem);
       total += abs(new-old);
       if (new > opt->l) {
          if (!(new < 0)) continue;
@@ -306,15 +276,14 @@ pso
    // input //
    const int *n_states,
    const int *n_obs,
-   const int *dim_yz,
-   const int * restrict yz,
+   const int *dim_y,
+   const int * restrict y,
    // fixed params //
-   const double * restrict t,
+   const double * restrict pi,
    const double * restrict a,
    // start conditions //
          double * restrict Q,
          double * restrict p,
-         double * restrict q,
    // index //
          int * restrict index,
    // output //
@@ -328,7 +297,7 @@ pso
 
    int m = *n_states;
    int n = *n_obs;
-   int r = *dim_yz;
+   int r = *dim_y;
 
    // Initial parameters.
    double *pem = malloc(n*m * sizeof(double));
@@ -342,11 +311,11 @@ pso
       return;
    }
 
-   params_set(opt, *t, *a, Q, p, q);
+   params_set(opt, *pi, *a, Q, p);
 
    // Initialize random generator.
    srand48(time(NULL));
-   loglik(n, opt, yz, index, pem);
+   loglik(n, opt, y, index, pem);
    free(pem);
 
    // Initialize mutex.
@@ -361,7 +330,7 @@ pso
    parg arg = {
       .n = n,
       .opt = opt,
-      .yz = yz,
+      .y = y,
       .index = index,
       .signal = &signal,
    };
@@ -383,7 +352,6 @@ pso
 
    memcpy(Q, opt->Q, m*m * sizeof(double));
    memcpy(p, opt->p, m*(r+1) * sizeof(double));
-   memcpy(q, opt->q, m*(r+1) * sizeof(double));
    *loglikmax = opt->l;
 
    pthread_mutex_destroy(&lock);

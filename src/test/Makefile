@@ -1,23 +1,32 @@
 vpath %.c ..
+vpath %.c lib
 vpath %.h ..
+vpath %.h lib
 
-P= testset
-OBJECTS= pso.o mnmultinom.o hmm.o utils.o xxhash.o
-CFLAGS= -I.. `pkg-config --cflags glib-2.0` -g -pg -Wall -std=gnu99 \
-	          -O3 -fstrict-aliasing -fprofile-arcs -ftest-coverage
-LDLIBS= `pkg-config --libs glib-2.0` -lpthread -lm
+P= runtests
+OBJECTS= zinm.o hmm.o utils.o xxhash.o tests.o libunittest.so
+
 CC= gcc
+INCLUDES= -I.. -Ilib
+COVERAGE= -fprofile-arcs -ftest-coverage
+CFLAGS= -std=gnu99 -g -Wall -O0 $(INCLUDES) $(COVERAGE)
+LDLIBS= -L`pwd` -Wl,-rpath=`pwd` -lm -lunittest
+
 $(P): $(OBJECTS)
+	$(CC) $(CFLAGS) $(OBJECTS) $(LDLIBS) -o $@
 
 clean:
-	rm -f testset *.o *.gcda *.gcno *.gcov gmon.out analysis.txt \
-		callgrind.out.* cache.txt
+	rm -f $(P) $(OBJECTS) *.gcda *.gcno *.gcov gmon.out .inspect.gdb
 
-test: testset
-	gtester --verbose --keep-going testset
+libunittest.so: unittest.c
+	$(CC) -fPIC -shared $(CFLAGS) -o libunittest.so lib/unittest.c
 
-testperf: testset
-	gtester --verbose --keep-going -m=perf testset
-	gprof -F mnmultinom_prob -F block_fwdb testset \
-		gmon.out > analysis.txt
-	gcov *.gcda
+test: $(P)
+	./$(P)
+
+inspect: $(P)
+	gdb --command=.inspect.gdb --args $(P)
+
+valgrind: $(P)
+	#valgrind --vgdb=yes --vgdb-error=0 ./$(P) --debug
+	valgrind --leak-check=full ./$(P) --debug

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "utils.h"
-#include "mnmultinom.h"
+#include "zinm.h"
 #include "hmm.h"
 
 
@@ -15,15 +15,14 @@ pso
    // input //
    const int *n_states,
    const int *n_obs,
-   const int *dim_yz,
-   const int *yz,
+   const int *dim_y,
+   const int *y,
    // fixed params //
    const double *a,
-   const double *t,
+   const double *pi,
    // start conditions //
          double *Q,
          double *p,
-         double *q,
    // index //
          int *index,
    // output //
