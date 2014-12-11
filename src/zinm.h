@@ -1,3 +1,4 @@
+#include <emmintrin.h>
 #include <float.h>
 #include <limits.h>
 #include <math.h>
@@ -18,27 +19,25 @@
 struct zinm_part_t;
 
 typedef struct zinm_par_t zinm_par_t;
+typedef unsigned int uint;
 
 struct zinm_par_t {
-   size_t r;
-   double pi;
-   double alpha;
-   double p[];
+   size_t   dim;    // 'p' has length dim+1.
+   double   pi;
+   double   alpha;
+   double   p[];
 };
 
 double       eval_nb_dfda(double, const tab_t *);
 double       eval_nb_f(double, const tab_t *);
-double 	     eval_zinm_dfda(double, double, unsigned int);
-double 	     eval_zinm_dfdp(double, double, unsigned int, double);
-double 	     eval_zinm_dgda(double, double, const tab_t *);
-double 	     eval_zinm_f(double, double, unsigned int, double);
-double 	     eval_zinm_g(double, double, const tab_t *);
-double	     ll_zinm(double, double, double, const tab_t *);
-zinm_par_t * mle_nm(size_t *, size_t, size_t);
-zinm_par_t * mle_zinm(size_t *, size_t, size_t);
+double 	    eval_zinm_dfda(double, double, unsigned int);
+double 	    eval_zinm_dfdp(double, double, unsigned int, double);
+double 	    eval_zinm_dgda(double, double, const tab_t *);
+double 	    eval_zinm_f(double, double, unsigned int, double);
+double 	    eval_zinm_g(double, double, const tab_t *);
+double	    ll_zinm(double, double, double, const tab_t *);
+zinm_par_t * mle_nm(int *, uint, uint);
+zinm_par_t * mle_zinm(int *, uint, uint);
 double       nb_est_alpha(tab_t *);
 zinm_par_t * new_zinm_par(size_t);
-void         zinm_prob (const int *, const int *, const int *, const int *,
-                const double *, const double *, const double *,
-                int *, const int *, double *);
 #endif

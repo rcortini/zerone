@@ -4,7 +4,7 @@ vpath %.h ..
 vpath %.h lib
 
 P= runtests
-OBJECTS= zinm.o hmm.o utils.o xxhash.o tests.o libunittest.so
+OBJECTS= jahmm.o zinm.o hmm.o utils.o xxhash.o tests.o libunittest.so
 
 CC= gcc
 INCLUDES= -I.. -Ilib
@@ -26,6 +26,9 @@ test: $(P)
 
 inspect: $(P)
 	gdb --command=.inspect.gdb --args $(P)
+
+debug: $(P)
+	gdb --command=.debug.gdb --args $(P)
 
 valgrind: $(P)
 	#valgrind --vgdb=yes --vgdb-error=0 ./$(P) --debug

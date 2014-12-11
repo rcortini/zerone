@@ -4,80 +4,43 @@
 #include <math.h>
 #include <err.h>
 
-double
-fwd(
-   // input //
-         int    m,
-         int    n,
-   const double *Q,
-   const double *init,
-   // output //
-         double *prob
-);
+#ifndef _HMM_HEADER_
+#define _HMM_HEADER_
 
-void
-bwd(
-   // input //
-         int    m,
-         int    n,
-   const double *Q,
-   // output //
-         double *alpha,
-         double *phi,
-         double *T
-);
+struct hmm_p_t;
 
-double fwdb(
-   // input //
-      int    m,
-      int    n,
-const double *Q,
-const double *init,
-   // output //
-      double *prob,
-      double *phi,
-   // not initialized //
-      double *trans
-);
+typedef unsigned int uint;
+typedef struct hmm_p_t hmm_p_t;
 
-void block_fwdb(
-   // input //
-      int *n_states,
-      int *nblocks,
-      int *size,
-   // params //
-      double *Q,
-      double *init,
-   // output //
-      double *prob,
-      double *phi,
-      double *sumtrans,
-      double *loglik
-);
+struct hmm_p_t {
+   uint     m;     // number of states //
+   void   * par;   // emission parameters //
+   double   Q[];   // transition parameters //
+};
 
-int *
-viterbi(
-   // input //
-   int m,
-   int n,
-   const double *log_Q,
-   const double *log_init,
-   const double *log_prob,
-   // output //
-   int *path
-);
+#define D double
+#define H hmm_p_t
+#define I int
+#define U uint
+#define V void
+#define cD const double
+#define cU const uint
 
-int
-block_viterbi(
-   // input //
-   const int *nstates,
-   const int *nblocks,
-   const int *size,
-   const double *Q,
-   const double *init,
-   const double *prob,
-   // control //
-   const int *arglog,
-   // output //
-   int *path
-);
+//  function      ( 1    2   3    4    5    6   7   8   9  )
+V   block_fwdb    (  U,  U, cU*,  D*,  D*,  D*, D*, D*, D* );
+I   block_viterbi ( cU, cU, cU*, cD*, cD*, cD*, U,  U*     );
+V   bwd           (  U,  U, cD*,  D*,  D*,  D*             );
+V   destroy_hmm_p (  H*                                    );
+D   fwd           (  U,  U, cD*, cD*,  D*                  );
+D   fwdb          (  U,  U, cD*, cD*,  D*,  D*, D*         );
+H * new_hmm_p     (  U                                     );
+U * viterbi       (  U,  U, cD*, cD*,  cD*, U*             );
+
+#undef D
+#undef H
+#undef U
+#undef V
+#undef cD
+#undef cU
+
+#endif

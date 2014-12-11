@@ -1,10 +1,43 @@
 #include "hmm.h"
 
+
+hmm_p_t *
+new_hmm_p
+(
+   uint m
+)
+{
+
+   // The transition parmaters are stored in an (m,m) matrix.
+   size_t extra = m*m * sizeof(double);
+   hmm_p_t *new = calloc(1, sizeof(hmm_p_t) + extra);
+   if (new == NULL) return NULL;
+   new->m = m;
+
+   return new;
+
+}
+
+
+void
+destroy_hmm_p
+(
+   hmm_p_t * hmm_p
+)
+{
+
+   if (hmm_p->par != NULL) free(hmm_p->par);
+   free(hmm_p);
+
+}
+
+
 double
-fwd(
+fwd
+(
    // input //
-         int    m,
-         int    n,
+         uint     m,
+         uint     n,
    const double * restrict Q,
    const double * restrict init,
    // output //
@@ -82,9 +115,9 @@ fwd(
       if (prob[0+k*m] < 0) {
          // Use an alternative computation to obviate underflow.
          // The is is slower because of the call to the function `exp`.
-         // First I find the max emission probability, then I divide 'c' by
-         // the exp of that value and compensate by adding the value to
-         // 'loglik' directly.
+         // First I find the max emission probability, then I divide 'c'
+         // by the exp of that value and compensate by adding the value
+         // to 'loglik' directly.
          int w = 0;
          for (j = 1 ; j < m ; j++) if (prob[j+k*m] > prob[w+k*m]) w = j;
          for (j = 0 ; j < m ; j++) {
@@ -122,10 +155,11 @@ fwd(
 
 
 void
-bwd(
+bwd
+(
    // input //
-         int    m,
-         int    n,
+         uint     m,
+         uint     n,
    const double * restrict Q,
    // output //
          double * restrict alpha,
@@ -206,10 +240,11 @@ bwd(
 
 
 double
-fwdb(
+fwdb
+(
    // input //
-         int    m,
-         int    n,
+         uint     m,
+         uint     n,
    const double * restrict Q,
    const double * restrict init,
    // output //
@@ -247,16 +282,16 @@ fwdb(
 }
 
 
-int *
+uint *
 viterbi(
-   // input //
-   int m,
-   int n,
+         // input //
+         uint              m,
+         uint              n,
    const double * restrict log_Q,
    const double * restrict log_i,
    const double * restrict log_p,
-   // output //
-   int * restrict path
+         // output //
+         uint   * restrict path
 )
 // SYNOPSIS:                                                             
 //   Log-space implementation of the Viterbi algorithm.                  
@@ -268,8 +303,8 @@ viterbi(
 // ARGUMENTS:                                                            
 //   'm': the number of states                                           
 //   'n': the length of the sequence of observations                     
-//   'log_i': (m) log initial probabilities                              
 //   'log_Q': (m,m) log transition matrix.                               
+//   'log_i': (m) log initial probabilities                              
 //   'log_p': (m,n) log emission probabilities                           
 //   'path': (n) Viterbi path.                                           
 //                                                                       
@@ -331,19 +366,20 @@ viterbi(
 }
 
 
-void block_fwdb(
-   // input //
-   int *nstates,
-   int *nblocks,
-   int *size,
-   // params //
-   double * restrict Q,
-   double * restrict init,
-   // output //
-   double * restrict prob,
-   double * restrict phi,
-   double * restrict sumtrans,
-   double * restrict loglik
+void
+block_fwdb(
+         // input //
+         uint              m,
+         uint              nblocks,
+   const uint   *          size,
+         // params //
+         double * restrict Q,
+         double * restrict init,
+         // output //
+         double * restrict prob,
+         double * restrict phi,
+         double * restrict sumtrans,
+         double * restrict loglik
 )
 // SYNOPSIS:                                                             
 //   Wrapper for 'fwdb' which separates independent fragments of a       
@@ -352,7 +388,7 @@ void block_fwdb(
 // ARGUMENTS:                                                            
 //   'm': the number of states                                           
 //   'nblocks': the number of fragments in the time series               
-//   'size': the lengths of the fragments of the time series             
+//   'size': (nblocks) the lengths of the fragments of the time series   
 //   'Q': (m,m) transition matrix ('Q[i+j*m]' is a ij transtition)       
 //   'init': (m) initial probabilities                                   
 //   'prob': (n) the emssion probabilities                               
@@ -366,8 +402,6 @@ void block_fwdb(
 //   Updates 'prob', 'phi', 'sumtrans' and 'loglik' in place.            
 {
 
-   const int m = *nstates;
-
    // Initialization.
    *loglik = 0.0;
    int offset = 0;
@@ -375,8 +409,12 @@ void block_fwdb(
 
    // Cycle over fragments of the time series.
    offset = 0;
-   double T[m*m] __attribute__((aligned));
-   for (int i = 0 ; i < *nblocks ; i++) {
+   double *T = malloc(m*m * sizeof(double));
+   if (T == NULL) {
+      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      return;
+   }
+   for (int i = 0 ; i < nblocks ; i++) {
       // NOTE: the call to `fwdb` replaces the values of 'prob' by
       // the normalized alphas.
       *loglik += fwdb(m, size[i], Q, init, prob+offset, phi+offset, T);
@@ -386,17 +424,22 @@ void block_fwdb(
       offset += m * size[i];
    }
 
+   free(T);
+
    return;
 
 }
 
+
 int
 is_undefined(
-   const double *slice,
-   int m
+   const double * slice,
+         int      m
 )
 // SYNOPSIS:                                                             
-//   Helper function for `block_viterbi`.                                
+//   Helper function for `block_viterbi`. A set of 'm' emission
+//   probabilities is considered undefined if one of them is NA,
+//   or if they are all equal to -inf in log space.
 {
    int n_inf = 0;
    for (int i = 0 ; i < m ; i++) {
@@ -406,19 +449,21 @@ is_undefined(
    return (n_inf == m);
 }
 
+
 int
-block_viterbi(
-   // input //
-   const int *nstates,
-   const int *nblocks,
-   const int *size,
+block_viterbi
+(
+         // input //
+         uint              m,
+         uint              nblocks,
+   const uint   *          size,
    const double * restrict Q,
    const double * restrict init,
    const double * restrict prob,
-   // control //
-   const int * restrict arglog,
-   // output //
-   int * restrict path
+         // control //
+   const uint              arglog,
+         // output //
+         uint   * restrict path
 )
 // SYNOPSIS:                                                             
 //   Viterbi algorithm for fragmented time series. The arguments can be  
@@ -430,13 +475,13 @@ block_viterbi(
 //   set to 0, so they do not contribute to the Viterbi path.            
 //                                                                       
 // ARGUMENTS:                                                            
-//   'nstates': the number of states                                     
+//   'm': the number of states                                           
 //   'nblocks': the number of fragments in the time series               
-//   'size': the lengths of the fragments of the time series             
+//   'size': (nblocks) the lengths of the fragments of the time series   
 //   'Q': (m,m) transition matrix                                        
 //   'init': (m) initial probabilities                                   
 //   'prob': (n) emssion probabilities                                   
-//   'arglog': (1) whether arguments are provided in log space           
+//   'arglog': whether arguments are provided in log space           
 //   'path': (n) Viterbi path                                            
 //                                                                       
 // RETURN:                                                               
@@ -453,25 +498,21 @@ block_viterbi(
 //   difference.                                                         
 {
 
-   int m = *nstates;
-
    int n = 0;
-   for (int i = 0 ; i < *nblocks ; i++) n += size[i];
+   for (int i = 0 ; i < nblocks ; i++) n += size[i];
 
-   //double *log_Q;
-   //double *log_i;
-   double log_Q[m*m] __attribute__((aligned));
-   double log_i[m] __attribute__((aligned));
+   double log_Q[m*m];
+   double log_i[m];
 
    // Either way we make a copy of the emission probabilities
    // because we will replace undefined emissions by 0.0. Copying
    // 'init' and 'Q' is simpler for consistency.
-   double *log_p __attribute__((aligned)) = malloc(n*m *sizeof(double));
+   double *log_p = malloc(n*m *sizeof(double));
    if (log_p == NULL) {
       fprintf(stderr, "memory error: cannot allocate 'log_p'");
       return 1;
    }
-   if (*arglog) {
+   if (arglog) {
       for (int i = 0 ; i < n*m ; i++) log_p[i] = prob[i];
       for (int i = 0 ; i < m*m ; i++) log_Q[i] = Q[i];
       for (int i = 0 ; i < m ; i++)   log_i[i] = init[i];
@@ -487,19 +528,21 @@ block_viterbi(
    for (int i = 0 ; i < m*m ; i++) {
       if (log_Q[i] != log_Q[i]) {
          fprintf(stderr, "invalid 'Q' parameter in 'block_viterbi'\n");
+         free(log_p);
          return -1;
       }
    }
    for (int i = 0 ; i < m ; i++) {
       if (log_i[i] != log_i[i]) {
          fprintf(stderr, "invalid 'init' parameter in 'block_viterbi'\n");
+         free(log_p);
          return -1;
       }
    }
    // If an emssion probability is not available at some step, all
    // the log values are set to 0.
    int offset = 0;
-   for (int i = 0 ; i < *nblocks ; i++) {
+   for (int i = 0 ; i < nblocks ; i++) {
       for (int k = 0 ; k < size[i] ; k++) {
          if (is_undefined(log_p + offset + k*m, m)) {
             memset(log_p + offset + k*m, 0, m * sizeof(double));
@@ -511,7 +554,7 @@ block_viterbi(
    // NOTE: the offset is not the same in 'path' and 'log_p' because
    // of their dimensions (explains 'm*offset' in the case of 'log_p').
    offset = 0;
-   for (int i = 0 ; i < *nblocks ; i++) {
+   for (int i = 0 ; i < nblocks ; i++) {
       viterbi(m, size[i], log_Q, log_i, log_p+m*offset, path+offset);
       offset += size[i];
    }

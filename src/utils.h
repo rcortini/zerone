@@ -17,6 +17,7 @@ struct tab_t;
 
 typedef struct histo_t histo_t;
 typedef struct tab_t tab_t;
+typedef unsigned int uint;
 
 struct histo_t {
    size_t size;
@@ -29,13 +30,15 @@ struct tab_t {
    unsigned int val[];
 };
 
-int     * indexts (int, int, const int *, int *);
+int       indexts (int, int, const int *, int *);
 tab_t   * compress_histo(histo_t *);
-void      compute_means(size_t *, size_t, size_t, double *);
+void      colmeans(int *, uint, uint, double *);
 double    digamma(double);
 int       histo_push(histo_t **, size_t);
+tab_t   * init_tab(size_t, unsigned int *, unsigned int *);
 histo_t * new_histo(void);
+void      rowsums(int *, uint, uint, int*);
 double    trigamma(double);
-tab_t   * tabulate(size_t *, size_t, size_t);
+tab_t   * tabulate(int *, unsigned int);
 
 #endif

@@ -5,238 +5,21 @@
 #endif
 
 
-int
-is_invalid
-(
-    const int *y,
-    int k,
-    int r
-)
-// SYNOPSIS:                                                              
-//   Helper function for `zinm_prob`. NAs of type 'int' is the largest
-//   negative value. More generally, any negative value in 'y' is
-//   invalid.                                     
-{
-   for (int i = 0 ; i < r ; i++) if (y[i + k*r] < 0) return 1;
-   return 0;
-}
-
-int
-is_all_zero
-(
-   const int *y,
-   int k,
-   int r
-)
-// SYNOPSIS:                                                              
-//   Helper function for `zinm_prob`. Returns 1 if and only if all
-//   the observations are 0.
-{
-   for (int i = 0 ; i < r ; i++) if (y[i + k*r] != 0) return 0;
-   return 1;
-}
-
-void
-zinm_prob
-(
-   // input //
-   const int *n_states,
-   const int *n_obs,
-   const int *dim_y,
-   const int * restrict y,
-   // params //
-   const double * restrict a,
-   const double * restrict p,
-   const double * restrict pi,
-   // index //
-         int * restrict index,
-   // control //
-   const int * restrict output,
-   // output //
-   double * restrict pem
-)
-// SYNOPSIS:                                                             
-//   Compute emission probabilities with a mixture negative multinomial  
-//   model. Since those are up to a multiplicative constant in the       
-//   forward-backward algorithm, we can drop the multiplicative terms    
-//   that do not depend on the state of the HMM.                         
-//   Since the negative nultinomial takes discrete values, we can cache  
-//   the results for reuse in order to save computation. This is done    
-//   by indexing the series.                                             
-//                                                                       
-//   My parametrization is of the form:                                  
-//                                                                       
-//        p_0(i)^a * p_1(i)^y_1 * p_2(i)^y_2 * ... * p_r+1(i)^y_r        
-//                                                                       
-//   And in the case that all emissions are 0                            
-//                                                                       
-//                      pi * p_0(i)^a + (1-pi)                           
-//                                                                       
-// NUMERICAL STABILITY:                                                  
-//   Each term of the sum above is computed in log space, the result is  
-//   the computed as the sum of two exponentials. NA emissions are       
-//   allowed and yield NA for the whole line of emissions.               
-//                                                                       
-// ARGUMENTS:                                                            
-//   'n_states': (1) number of states in the HMM (alias 'm')             
-//   'n_obs': (1) length of the sequence of observations (alias 'n')     
-//   'dim_y': (1) number of columns of 'y' (alias 'r')                 
-//   'y': (n_obs,dim_y) profiles                                       
-//   'pi': (1) model parameter                                           
-//   'a': (1) model parameter                                            
-//   'p': (dim_y,m) model parameters                                    
-//   'output': the type of output to produce (see below)                 
-//   'pem': (n_obs,n_states) emission probability                        
-//                                                                       
-// RETURN:                                                               
-//   'void'                                                              
-//                                                                       
-// SIDE EFFECTS:                                                         
-//   Update 'pem' in place.                                              
-//                                                                       
-// OUTPUT:                                                               
-//   The output type for 'pem' can be the emission probability in        
-//   log space (1), the same emission probability in linear space (2),   
-//   or in linear by default and in log space in case of underflow (0).  
-//   'output' also controls the verbosity. If the third bit is set,      
-//   i.e. the value is set to 4, 5 or 6, the function will suppress      
-//   warnings. Setting the fourth bit of 'output' forces to compute      
-//   the constant terms in emission probabilities.                       
-{
-
-   char *depends   = "compute in lin space, log space if underflow";
-   char *log_space = "always compute in log space";
-   char *lin_space = "always compute in linear space";
-   char *cases[3] = {depends, log_space, lin_space};
-   char *output_type = cases[*output & 3];
-
-   int compute_constant_terms = (*output >> 3) & 1;
-
-   int n = *n_obs;
-   int m = *n_states;
-   int r = *dim_y;
-
-   if (*index < 0) indexts(n, r, y, index);
-
-   double *logp = malloc((r+1)*m * sizeof(double));
-   if (logp == NULL) {
-      fprintf(stderr, "memory error (%s:%d)\n", __FILE__, __LINE__);
-      return;
-   }
-
-   // If the third bit of 'output' is set, suppress warnings
-   // by setting 'warned' to 1.
-   int warned = (*output >> 2) & 1;
-
-   // Make sure that 'p' defines a probability.
-   for (int i = 0 ; i < m ; i++) {
-      double sump = 0.0;
-      for (int j = 0 ; j < r+1 ; j++) {
-         // Cannot normalize negative values. Sorry folks.
-         if (p[j+i*(r+1)] < 0) {
-            fprintf(stderr, "error: 'p' negative\n");
-            return;
-         }
-         sump += p[j+i*(r+1)];
-      }
-      int p_normalized_no = fabs(sump - 1.0) > DBL_EPSILON;
-      if (!warned && p_normalized_no) {
-         fprintf(stderr, "warning: renormalizing 'p'\n");
-         warned = 1;
-      }
-      for (int j = 0 ; j < r+1 ; j++) {
-         logp[j+i*(r+1)] = log(p[j+i*(r+1)] / sump);
-      }
-   }
-
-   // The following variable 'row_of_na' comes in handy to write
-   // full lines of NAs in the emissions.
-   double *row_of_na = malloc(m * sizeof(double));
-   if (row_of_na == NULL) {
-      fprintf(stderr, "memory error (%s:%d)\n", __FILE__, __LINE__);
-      return;
-   }
-   for (int i = 0 ; i < m ; i++) row_of_na[i] = NAN;
-
-   for (int k = 0 ; k < n ; k++) {
-      // Indexing allows to compute the terms only once. If the term
-      // has been computed before, copy the value and move on.
-      if (index[k] < k) {
-         memcpy(pem + k*m, pem + index[k]*m, m * sizeof(double));
-         continue;
-      }
-
-      // This is the firt occurrence of the emission in the times
-      // series. We need to compute the emission probability.
-      // Test the presence of invalid/NA emissions in the row.
-      // If so, fill the row with NAs and move on.
-      if (is_invalid(y, k, r)) {
-         memcpy(pem + k*m, row_of_na, m * sizeof(double));
-         continue;
-      }
-
-      if (is_all_zero(y, k, r)) {
-         // Emissions are all zeros, use the zero-inflated
-         // term from the zinm model.
-         for (int i = 0 ; i < m ; i++) {
-            pem[i+k*m] = log(*pi*exp(*a*logp[0+i*(r+1)]) + (1.0-*pi));
-         }
-      }
-      else {
-         // Otherwise use the standard probability.
-         for (int i = 0 ; i < m ; i++) {
-            pem[i+k*m] = (*a) * logp[0+i*(r+1)];
-            for (int j = 0 ; j < r ; j++) {
-               pem[i+k*m] += y[j+k*r] * logp[(j+1)+i*(r+1)];
-            }
-         }
-      }
-
-      if (compute_constant_terms) {
-         double c_term = -lgamma(*a);
-         double sum = *a;
-         for (int j = 0 ; j < r ; j++) {
-            int term = y[j+k*r];
-            sum += term;
-            c_term -= lgamma(term+1);
-         }
-         c_term += lgamma(sum);
-         for (int i = 0 ; i < m ; i++) {
-            pem[i+k*m] += c_term;
-         }
-      }
-
-      if (output_type == log_space) continue;
-
-      double sum = 0.0;
-      double lin[m];
-      for (int i = 0 ; i < m ; i++) sum += lin[i] = exp(pem[i+k*m]);
-      if (sum > 0 || output_type == lin_space) {
-         memcpy(pem+k*m, lin, m * sizeof(double));
-      }
-
-   }
-
-   free(logp);
-   free(row_of_na);
-   return;
-
-}
-
-
 zinm_par_t *
 new_zinm_par
 (
-   size_t r
+   size_t dim
 )
 {
 
-   zinm_par_t *new = calloc(1, sizeof(zinm_par_t) + (r+1)*sizeof(double));
+   // Note that the length of 'p' is 'dim+1'.
+   size_t extra = (dim+1) * sizeof(double);
+   zinm_par_t *new = calloc(1, sizeof(zinm_par_t) + extra);
    if (new == NULL) {
       fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
       return NULL;
    }
-   new->r = r;
+   new->dim = dim;
    new->pi = 1.0;
 
    return new;
@@ -255,8 +38,8 @@ eval_nb_f
    double retval;
    double prev;
    // Convenience variables.
-   const unsigned int *val = tab->val;
-   const unsigned int *num = tab->num;
+   const uint *val = tab->val;
+   const uint *num = tab->num;
 
    size_t nobs = num[0];
    double mean = num[0] * val[0];
@@ -294,8 +77,8 @@ eval_nb_dfda
    double retval;
    double prev;
    // Convenience variables.
-   const unsigned int *val = tab->val;
-   const unsigned int *num = tab->num;
+   const uint *val = tab->val;
+   const uint *num = tab->num;
 
    size_t nobs = num[0];
    double mean = num[0] * val[0];
@@ -327,7 +110,7 @@ eval_zinm_f
 (
    double a,
    double p,
-   unsigned int nz,
+   uint nz,
    double sum
 )
 {
@@ -345,10 +128,10 @@ eval_zinm_g
 {
 
    // Convenience variables.
-   const unsigned int *val = tab->val;
-   const unsigned int *num = tab->num;
+   const uint *val = tab->val;
+   const uint *num = tab->num;
 
-   unsigned int nz = 0;
+   uint nz = 0;
    double retval = 0.0;
    double prev = digamma(a + val[0]);
 
@@ -380,7 +163,7 @@ eval_zinm_dfda
 (
    double a,
    double p,
-   unsigned int nz
+   uint nz
 )
 {
    const double ppa = pow(p,a);
@@ -392,7 +175,7 @@ eval_zinm_dfdp
 (
    double a,
    double p,
-   unsigned int nz,
+   uint nz,
    double m
 )
 {
@@ -411,11 +194,11 @@ eval_zinm_dgda
 {
    
    // Convenience variables.
-   const unsigned int *val = tab->val;
-   const unsigned int *num = tab->num;
+   const uint *val = tab->val;
+   const uint *num = tab->num;
    const double ppa = pow(p,a);
 
-   unsigned int nz = 0;
+   uint nz = 0;
    double retval = 0.0;
    double prev = trigamma(a + val[0]);
 
@@ -453,12 +236,12 @@ ll_zinm
 {
 
    // Convenience variables.
-   const unsigned int *val = tab->val;
-   const unsigned int *num = tab->num;
-   const unsigned int z0 = val[0] == 0 ? num[0] : 0;
+   const uint *val = tab->val;
+   const uint *num = tab->num;
+   const uint z0 = val[0] == 0 ? num[0] : 0;
    const double logp_ = log(1-p);
 
-   unsigned int nobs = z0;
+   uint nobs = z0;
    double retval = z0*log(pi*pow(p,a) + 1-pi);
 
    const size_t imin = val[0] == 0 ? 1 : 0;
@@ -477,13 +260,23 @@ ll_zinm
 zinm_par_t *
 mle_zinm
 (
-   size_t *x,
-   size_t dim,
-   size_t nobs
+   int *x,
+   uint dim,
+   uint nobs
 )
 {
 
-   tab_t *tab = tabulate(x, dim, nobs);
+   // Compute marginal sums.
+   int *sums = malloc(nobs * sizeof(int));
+   if (sums == NULL) {
+      fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
+      return NULL;
+   }
+
+   rowsums(x, dim, nobs, sums);
+
+   tab_t *tab = tabulate(sums, nobs);
+   free(sums);
    double *means = malloc(dim * sizeof(double));
    if (means == NULL) {
       fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
@@ -491,13 +284,13 @@ mle_zinm
    }
 
    // Compute the means in all dimensions and the grand mean.
-   compute_means(x, dim, nobs, means);
+   colmeans(x, dim, nobs, means);
    double mean = 0.0;
    for (size_t i = 0 ; i < dim ; i++) mean += means[i];
    double sum = mean * nobs;
 
    // Extract the number of all-zero observaions.
-   const unsigned int z0 = tab->val[0] == 0 ? tab->num[0] : 0;
+   const uint z0 = tab->val[0] == 0 ? tab->num[0] : 0;
 
    double deficit[11] = {0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1};
    double init_a[12] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1};
@@ -537,7 +330,7 @@ mle_zinm
       double p = init_p[i];
 
       double grad;
-      unsigned int iter = 0;
+      uint iter = 0;
 
       double f = eval_zinm_f(a, p, nobs-z0, sum);
       double g = eval_zinm_g(a, p, tab);
@@ -581,6 +374,7 @@ mle_zinm
             
    }
 
+   free(tab);
    free(means);
    return par;
 
@@ -633,14 +427,29 @@ nb_est_alpha
 zinm_par_t *
 mle_nm
 (
-   size_t *x,
-   size_t dim,
-   size_t nobs
+   int *x,
+   uint dim,
+   uint nobs
 )
 {
 
+   tab_t *tab;
+   // Compute marginal sums if 'dim > 1'.
+   if (dim > 1) {
+      int *sums = malloc(nobs * sizeof(int));
+      if (sums == NULL) {
+         fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
+         return NULL;
+      }
+      rowsums(x, dim, nobs, sums);
+      tab = tabulate(sums, nobs);
+      free(sums);
+   }
+   else {
+      tab = tabulate(x, nobs);
+   }
+
    // Estimate alpha.
-   tab_t *tab = tabulate(x, dim, nobs);
    double alpha = nb_est_alpha(tab);
    free(tab);
 
@@ -654,7 +463,7 @@ mle_nm
       return NULL;
    }
 
-   compute_means(x, dim, nobs, means);
+   colmeans(x, dim, nobs, means);
 
    zinm_par_t *par = new_zinm_par(dim);
    if (par == NULL) {
@@ -676,3 +485,4 @@ mle_nm
    return par;
 
 }
+
