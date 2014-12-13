@@ -359,6 +359,8 @@ read_file
          else {
             char *endchar;
             int v = (int) strtol(tok, &endchar, 10);
+            // DEBUG //
+            fprintf(stderr, "tok: %s / v: %d\n", tok, v);
             if (*endchar != '\0') {
                fprintf(stderr, "error parsing line %d:\n%s\n",
                      lineno+1, line);
