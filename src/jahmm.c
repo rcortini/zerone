@@ -299,6 +299,9 @@ read_file
    rewind(inputf);
    nobs--; // Discount the header.
 
+   // DEBUG //
+   fprintf(stderr, "nobs: %d\n", nobs);
+
    // Read and parse the header separately.
    const char sep = '\t';
    nread = getline(&line, &nchar, inputf);
@@ -326,6 +329,8 @@ read_file
    char prevtok[256] = {0};
    unsigned int lineno = 0;
    while ((nread = getline(&line, &nchar, inputf)) != -1) {
+      // DEBUG //
+      fprintf(stderr, "read: %s", line);
       // Trim new line character.
       if (line[nread-1] == '\n') line[nread-1] = '\0';
 
@@ -617,7 +622,6 @@ bw_zinm
 
    }
 
-   free(index);
    free(newp);
    free(prob);
    free(trans);
@@ -626,6 +630,8 @@ bw_zinm
    // Compute final emission probs in log space.
    unsigned int log_space_no_warn = 5;
    zinm_prob(jahmm, index, log_space_no_warn, pem);
+
+   free(index);
 
    // 'Q','p' and 'l' have been updated in-place.
    jahmm->phi = phi;
