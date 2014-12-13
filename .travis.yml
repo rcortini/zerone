@@ -5,4 +5,4 @@ compiler:
 branches:
   only:
     - master
-script: cd test && make test
+script: cd src/test && make test
