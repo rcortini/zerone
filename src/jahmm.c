@@ -1,11 +1,70 @@
 #include "jahmm.h"
 
+void
+apologize
+(void)
+{
+   char msg[] =
+   "  We apologize for the trouble you are experiencing.\n"
+   "  Please contact guillaume.filion@gmail.com about\n"
+   "  this issue and attach the error message above.\n";
+   fprintf(stderr, "%s", msg);
+}
+
+void
+do_jahmm
+(
+   unsigned int m,
+   ChIP_t *ChIP
+)
+{
+
+   // Extract the dimensios of the observations.
+   unsigned int temp = 0;
+   for (size_t i = 0 ; i < ChIP->nb ; i++) {
+      temp += ChIP->size[i];
+   }
+
+   const unsigned int n = temp;
+   const unsigned int r = ChIP->r;
+
+   // Extract the first ChIP profile, which is the sum of
+   // negative controls.
+   int *ctrl = malloc(n * sizeof(int));
+   if (ctrl == NULL) {
+      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      return;
+   }
+
+   for (size_t i = 0 ; i < n ; i++) {
+      ctrl[i] = ChIP->y[0+i*r];
+   }
+
+   zinb_par_t *z = mle_zinb(ctrl, n);
+   if (z == NULL) {
+      fprintf(stderr, "jahmm failure %s:%d\n", __FILE__, __LINE__);
+      apologize();
+      return;
+   }
+
+   // FIXME: initialize this properly.
+   double Q[] = {0};
+   double p[] = {0};
+
+   jahmm_t *jahmm = new_jahmm(m, ChIP);
+   set_jahmm_par(jahmm, Q, z->a, z->pi, p);
+
+   bw_zinm(jahmm);
+
+}
+
+
 int
 is_invalid
 (
-    const int *y,
-    int k,
-    int r
+    const int * y,
+          int   k,
+          int   r
 )
 // SYNOPSIS:                                                              
 //   Helper function for `zinm_prob`. NAs of type 'int' is the largest
@@ -19,9 +78,9 @@ is_invalid
 int
 is_all_zero
 (
-   const int *y,
-   int k,
-   int r
+   const int * y,
+         int   k,
+         int   r
 )
 // SYNOPSIS:                                                              
 //   Helper function for `zinm_prob`. Returns 1 if and only if all
@@ -37,9 +96,9 @@ zinm_prob
 (
          jahmm_t * restrict jahmm,
    const int     * restrict index,
-         // control //
+   // control //
          int                otype,
-         // output //
+   // output //
          double  * restrict pem
 )
 // SYNOPSIS:                                                             
@@ -65,10 +124,10 @@ zinm_prob
 //   allowed and yield NA for the whole line of emissions.               
 //                                                                       
 // ARGUMENTS:                                                            
-//   'ChIP': struct of observations
-//   'par': struct of parameters for the ZINM distribution
-//   'index': a precomputed index of the ChIP data
-//   'otype': the type of output to produce (see below)                 
+//   'ChIP': struct of observations                                      
+//   'par': struct of parameters for the ZINM distribution               
+//   'index': a precomputed index of the ChIP data                       
+//   'otype': the type of output to produce (see below)                  
 //   'pem': (n_obs,n_states) emission probability                        
 //                                                                       
 // RETURN:                                                               
@@ -81,25 +140,25 @@ zinm_prob
 //   The output type for 'pem' can be the emission probability in        
 //   log space (1), the same emission probability in linear space (2),   
 //   or in linear by default and in log space in case of underflow (0).  
-//   'otype' also controls the verbosity. If the third bit is set,      
+//   'otype' also controls the verbosity. If the third bit is set,       
 //   i.e. the value is set to 4, 5 or 6, the function will suppress      
-//   warnings. Setting the fourth bit of 'otype' forces to compute      
+//   warnings. Setting the fourth bit of 'otype' forces to compute       
 //   the constant terms in emission probabilities.                       
 {
 
    ChIP_t *ChIP = jahmm->ChIP;
-   uint temp = 0;
+   unsigned int temp = 0;
    for (size_t i = 0 ; i < ChIP->nb ; i++) {
       temp += ChIP->size[i];
    }
 
-   const uint r = ChIP->r;
-   const int *y = ChIP->y;
-   const uint m = jahmm->m;
-   const double a = jahmm->a;
-   const double pi = jahmm->pi;
-   const double *p = jahmm->p;
-   const uint n = temp;
+   const unsigned int   r  = ChIP->r;
+   const int          * y  = ChIP->y;
+   const unsigned int   m  = jahmm->m;
+   const double         a  = jahmm->a;
+   const double         pi = jahmm->pi;
+   const double       * p  = jahmm->p;
+   const unsigned int   n  = temp;
 
    char *depends   = "compute in lin space, log space if underflow";
    char *log_space = "always compute in log space";
@@ -328,9 +387,9 @@ read_file
 void
 update_trans
 (
-         size_t  m,
-         double *Q,
-   const double *trans
+         size_t   m,
+         double * Q,
+   const double * trans
 )
 {
 
@@ -408,15 +467,15 @@ bw_zinm
    }
 
    // Constants.
-   const size_t   n     = temp;
-   const size_t   m     = jahmm->m;
-   const size_t   r     = ChIP->r;
-   const uint     nb    = ChIP->nb;
-   const uint   * size  = ChIP->size;
-   const int    * y     = ChIP->y;
-   const double   a     = jahmm->a;
-   const double   pi    = jahmm->pi;
-   const double   R     = (jahmm->p[1]) / jahmm->p[0];
+   const size_t         n    = temp;
+   const size_t         m    = jahmm->m;
+   const size_t         r    = ChIP->r;
+   const unsigned int   nb   = ChIP->nb;
+   const unsigned int * size = ChIP->size;
+   const int          * y    = ChIP->y;
+   const double         a    = jahmm->a;
+   const double         pi   = jahmm->pi;
+   const double         R    = (jahmm->p[1]) / jahmm->p[0];
 
    // Variables optimized by the Baum-Welch algorithm.
    double *p = jahmm->p;
@@ -426,13 +485,9 @@ bw_zinm
    for (size_t i = 1 ; i < m ; i++) {
       double ratio = jahmm->p[1+i*(r+1)] /  jahmm->p[0+i*(r+1)];
       if (fabs(ratio - R) > 1e-3) {
-         fprintf(stderr, "warning (%s): inconsistent values of 'p'\n",
-               __func__);
+         fprintf(stderr, "warning (%s): 'p' inconsistent\n", __func__);
       }
    }
-
-   // log-likelihood.
-   double l;
 
    int *index = malloc(n * sizeof(int));
    double *pem = malloc(n*m * sizeof(double));
@@ -464,8 +519,9 @@ bw_zinm
 
       // Update emission probabilities and run the block
       // forward backward algorithm.
-      zinm_prob(jahmm, index, 4, pem);
-      block_fwdb(m, nb, size, Q, prob, pem, phi, trans, &l);
+      unsigned int lin_space_no_warn = 4;
+      zinm_prob(jahmm, index, lin_space_no_warn, pem);
+      jahmm->l = block_fwdb(m, nb, size, Q, prob, pem, phi, trans);
 
       // Update 'Q'.
       update_trans(m, Q, trans);
@@ -563,11 +619,17 @@ bw_zinm
 
    free(index);
    free(newp);
-   free(pem);
-   free(phi);
    free(prob);
    free(trans);
    free(ystar);
+
+   // Compute final emission probs in log space.
+   unsigned int log_space_no_warn = 5;
+   zinm_prob(jahmm, index, log_space_no_warn, pem);
+
+   // 'Q','p' and 'l' have been updated in-place.
+   jahmm->phi = phi;
+   jahmm->pem = pem;
 
    return;
 
@@ -577,13 +639,13 @@ bw_zinm
 jahmm_t *
 new_jahmm
 (
-   uint     m,
-   ChIP_t * ChIP
+   unsigned int   m,
+   ChIP_t       * ChIP
 )
 {
 
    if (ChIP == NULL) return NULL;
-   uint r = ChIP->r;
+   unsigned int r = ChIP->r;
 
    jahmm_t *new = calloc(1, sizeof(jahmm_t));
    double *newQ = malloc(m*m * sizeof(double));
@@ -611,8 +673,8 @@ set_jahmm_par
 )
 {
 
-   const uint m = jahmm->m;
-   const uint r = jahmm->ChIP->r;
+   const unsigned int m = jahmm->m;
+   const unsigned int r = jahmm->ChIP->r;
    memcpy(jahmm->Q, Q, m*m * sizeof(double));
    memcpy(jahmm->p, p, m*(r+1) * sizeof(double));
    jahmm->a = a;
@@ -623,36 +685,24 @@ set_jahmm_par
 }
 
 
-void
-destroy_jahmm
-(
-   jahmm_t *jahmm
-)
-{
-   free(jahmm->Q);
-   free(jahmm->p);
-   free(jahmm);
-}
-
-
 ChIP_t *
 new_ChIP
 (
-         uint   r,
-         uint   nb,
-         int  * y,
-   const uint * size
+         unsigned int   r,
+         unsigned int   nb,
+                  int * y,
+   const unsigned int * size
 )
 {
 
-   size_t extra = nb * sizeof(uint);
+   size_t extra = nb * sizeof(unsigned int);
    ChIP_t *new = calloc(1, sizeof(ChIP_t) + extra);
    if (new == NULL) return NULL;
 
    new->r = r;
    new->nb = nb;
    new->y = y;
-   memcpy(new->size, size, nb * sizeof(uint));
+   memcpy(new->size, size, nb * sizeof(unsigned int));
 
    return new;
 

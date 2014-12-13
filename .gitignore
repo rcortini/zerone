@@ -11,3 +11,4 @@ src/test/analysis.txt
 src/test/test
 src/test/H3K9ac.txt
 src/test/RXRA.txt
+src/test/.inspect.gdb

@@ -4,7 +4,7 @@ vpath %.h ..
 vpath %.h lib
 
 P= runtests
-OBJECTS= jahmm.o zinm.o hmm.o utils.o xxhash.o tests.o libunittest.so
+OBJECTS= jahmm.o zinb.o hmm.o utils.o xxhash.o tests.o libunittest.so
 
 CC= gcc
 INCLUDES= -I.. -Ilib

@@ -9,8 +9,8 @@ void
 rowsums
 (
    int *x,
-   uint dim,
-   uint nobs,
+   unsigned int dim,
+   unsigned int nobs,
    int *sums
 )
 {
@@ -34,7 +34,7 @@ tab_t *
 tabulate
 (
    int *x,
-   uint nobs
+   unsigned int nobs
 )
 {
 
@@ -54,46 +54,6 @@ tabulate
    return tab;
 
 }
-
-
-void
-colmeans
-(
-   int *x,
-   uint dim,
-   uint nobs,
-   double *means
-)
-{
-
-   // Assume data is given by rows in x.
-   // Negative values are considered NA.
-   // Compute means on complete cases only.
-   memset(means, 0, dim*sizeof(double));
-   uint n_complete_cases = 0;
-   for (size_t i = 0 ; i < nobs ; i++) {
-      int case_is_incomplete = 0;
-      for (size_t j = 0 ; j < dim ; j++) {
-         if (x[j+i*dim] < 0) {
-            case_is_incomplete = 1;
-            break;
-         }
-      }
-      if (case_is_incomplete) continue;
-      n_complete_cases++;
-      for (size_t j = 0 ; j < dim ; j++) {
-         means[j] += x[j+i*dim];
-      }
-   }
-
-   for (size_t j = 0 ; j < dim ; j++) {
-      means[j] /= n_complete_cases;
-   }
-
-   return;
-
-}
-
 
 
 histo_t *
@@ -147,8 +107,8 @@ tab_t *
 init_tab
 (
    size_t size,
-   uint *val,
-   uint *num
+   unsigned int *val,
+   unsigned int *num
 )
 {
    size_t extra = 2*size * sizeof(int);

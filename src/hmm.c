@@ -1,47 +1,15 @@
 #include "hmm.h"
 
-
-hmm_p_t *
-new_hmm_p
-(
-   uint m
-)
-{
-
-   // The transition parmaters are stored in an (m,m) matrix.
-   size_t extra = m*m * sizeof(double);
-   hmm_p_t *new = calloc(1, sizeof(hmm_p_t) + extra);
-   if (new == NULL) return NULL;
-   new->m = m;
-
-   return new;
-
-}
-
-
-void
-destroy_hmm_p
-(
-   hmm_p_t * hmm_p
-)
-{
-
-   if (hmm_p->par != NULL) free(hmm_p->par);
-   free(hmm_p);
-
-}
-
-
 double
 fwd
 (
    // input //
-         uint     m,
-         uint     n,
-   const double * restrict Q,
-   const double * restrict init,
+         unsigned int            m,
+         unsigned int            n,
+   const double       * restrict Q,
+   const double       * restrict init,
    // output //
-         double * restrict prob
+         double       * restrict prob
 )
 // SYNOPSIS:                                                             
 //   Forward algorithm.                                                  
@@ -68,11 +36,11 @@ fwd
 //   Replaces 'prob' by forward alphas.                                  
 {
 
-   int i;               // State index.
-   int j;               // State index.
-   int k;               // Position of the time series.
-   double tmp[m] __attribute__((aligned));   // Intermediates.
-   double a[m] __attribute__((aligned));     // Current normalized alpha.
+   int i;           // State index.
+   int j;           // State index.
+   int k;           // Position of the time series.
+   double tmp[m];   // Intermediates.
+   double a[m];     // Current normalized alpha.
 
    // Normalization constant, also used to return log-likelihood.
    double c;
@@ -158,13 +126,13 @@ void
 bwd
 (
    // input //
-         uint     m,
-         uint     n,
-   const double * restrict Q,
+         unsigned int            m,
+         unsigned int            n,
+   const double       * restrict Q,
    // output //
-         double * restrict alpha,
-         double * restrict phi,
-         double * restrict T
+         double       * restrict alpha,
+         double       * restrict phi,
+         double       * restrict T
 )
 // SYNOPSIS:                                                             
 //   Backward algorithm with Markovian backward smoothing.               
@@ -185,11 +153,17 @@ bwd
 
 {
 
-   int i;               // State index.
-   int j;               // State index.
-   int k;               // Position of the time series.
-   double x;            // Sum used for computation intermediates.
-   double R[m*m] __attribute__((aligned));       // Reverse kernel.
+   int     i;       // State index.
+   int     j;       // State index.
+   int     k;       // Position of the time series.
+   double  x;       // Sum used for computation intermediates.
+   double *R;       // Reverse kernel.
+
+   R = malloc(m*m * sizeof(double));
+   if (R == NULL) {
+      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      return;
+   }
 
    // 'T[i+j*m]' is the sum of transition probabilities from state 'i'
    // to state 'j' (congruent with 'Q') conditional on the observations.
@@ -234,6 +208,8 @@ bwd
       }
    }
 
+   free(R);
+
    return;
 
 }
@@ -243,14 +219,14 @@ double
 fwdb
 (
    // input //
-         uint     m,
-         uint     n,
-   const double * restrict Q,
-   const double * restrict init,
+         unsigned int            m,
+         unsigned int            n,
+   const double       * restrict Q,
+   const double       * restrict init,
    // output //
-         double * restrict prob,
-         double * restrict phi,
-         double * restrict T
+         double       * restrict prob,
+         double       * restrict phi,
+         double       * restrict T
 )
 // SYNOPSIS:                                                             
 //   Forward-backward algorithm with Markovian backward smoothing.       
@@ -276,22 +252,24 @@ fwdb
 // SIDE EFFECTS:                                                         
 //   Replaces 'prob' by alphas, updates 'phi' and 'T' in place.          
 {
+
    double loglik = fwd(m, n, Q, init, prob);
    bwd(m, n, Q, prob, phi, T);
+
    return loglik;
 }
 
 
-uint *
+void
 viterbi(
-         // input //
-         uint              m,
-         uint              n,
-   const double * restrict log_Q,
-   const double * restrict log_i,
-   const double * restrict log_p,
-         // output //
-         uint   * restrict path
+   // input //
+         unsigned int            m,
+         unsigned int            n,
+   const double       * restrict log_Q,
+   const double       * restrict log_i,
+   const double       * restrict log_p,
+   // output //
+                  int * restrict path
 )
 // SYNOPSIS:                                                             
 //   Log-space implementation of the Viterbi algorithm.                  
@@ -315,23 +293,23 @@ viterbi(
 //   Updates 'path' in place.                                            
 {
 
-   int i;               // State index.
-   int j;               // State index.
-   int k;               // Position of the time series.
+   int i;        // State index.
+   int j;        // State index.
+   int k;        // Position of the time series.
 
    double thismax;
    double tmp;
 
-   long double array[2*m] __attribute__((aligned));
-   long double *oldmax = array;
-   long double *newmax = array + m;
+   long double *array = malloc(2*m * sizeof(long double));
    int *argmax = malloc(m*n * sizeof(int));
-   if (argmax == NULL) {
-      fprintf(stderr, "memory error: cannot allocate 'argmax'");
+   if (argmax == NULL || array == NULL) {
+      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
       // Set path to -1 and return.
       memset(path, -1, n*sizeof(int));
-      return path;
+      return;
    }
+   long double *oldmax = array;
+   long double *newmax = array + m;
 
    // Initial step of the algorithm.
    for (j = 0 ; j < m ; j++) newmax[j] = log_i[j+0*m] + log_p[j+0*m];
@@ -360,26 +338,27 @@ viterbi(
    // Trace back the Viterbi path.
    for (k = n-2 ; k >= 0 ; k--) path[k] = argmax[path[k+1]+(k+1)*m];
 
+   free(array);
    free(argmax);
-   return path;
+
+   return;
 
 }
 
 
-void
+double
 block_fwdb(
-         // input //
-         uint              m,
-         uint              nblocks,
-   const uint   *          size,
-         // params //
-         double * restrict Q,
-         double * restrict init,
-         // output //
-         double * restrict prob,
-         double * restrict phi,
-         double * restrict sumtrans,
-         double * restrict loglik
+   // input //
+         unsigned int            m,
+         unsigned int            nblocks,
+   const unsigned int *          size,
+   // params //
+         double       * restrict Q,
+         double       * restrict init,
+   // output //
+         double       * restrict prob,
+         double       * restrict phi,
+         double       * restrict sumtrans
 )
 // SYNOPSIS:                                                             
 //   Wrapper for 'fwdb' which separates independent fragments of a       
@@ -403,7 +382,7 @@ block_fwdb(
 {
 
    // Initialization.
-   *loglik = 0.0;
+   double loglik = 0.0;
    int offset = 0;
    memset(sumtrans, 0.0, m*m * sizeof(double));
 
@@ -412,12 +391,12 @@ block_fwdb(
    double *T = malloc(m*m * sizeof(double));
    if (T == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-      return;
+      return -1.0/0.0;
    }
    for (int i = 0 ; i < nblocks ; i++) {
       // NOTE: the call to `fwdb` replaces the values of 'prob' by
       // the normalized alphas.
-      *loglik += fwdb(m, size[i], Q, init, prob+offset, phi+offset, T);
+      loglik += fwdb(m, size[i], Q, init, prob+offset, phi+offset, T);
       for (int j = 0 ; j < m*m ; j++) {
          sumtrans[j] += T[j];
       }
@@ -426,7 +405,7 @@ block_fwdb(
 
    free(T);
 
-   return;
+   return loglik;
 
 }
 
@@ -453,17 +432,17 @@ is_undefined(
 int
 block_viterbi
 (
-         // input //
-         uint              m,
-         uint              nblocks,
-   const uint   *          size,
-   const double * restrict Q,
-   const double * restrict init,
-   const double * restrict prob,
-         // control //
-   const uint              arglog,
-         // output //
-         uint   * restrict path
+   // input //
+         unsigned int            m,
+         unsigned int            nblocks,
+   const unsigned int *          size,
+   const double       * restrict Q,
+   const double       * restrict init,
+   const double       * restrict prob,
+   // control //
+   const unsigned int            arglog,
+   // output //
+                  int * restrict path
 )
 // SYNOPSIS:                                                             
 //   Viterbi algorithm for fragmented time series. The arguments can be  
@@ -481,7 +460,7 @@ block_viterbi
 //   'Q': (m,m) transition matrix                                        
 //   'init': (m) initial probabilities                                   
 //   'prob': (n) emssion probabilities                                   
-//   'arglog': whether arguments are provided in log space           
+//   'arglog': whether arguments are provided in log space               
 //   'path': (n) Viterbi path                                            
 //                                                                       
 // RETURN:                                                               
@@ -509,7 +488,7 @@ block_viterbi
    // 'init' and 'Q' is simpler for consistency.
    double *log_p = malloc(n*m *sizeof(double));
    if (log_p == NULL) {
-      fprintf(stderr, "memory error: cannot allocate 'log_p'");
+      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
       return 1;
    }
    if (arglog) {

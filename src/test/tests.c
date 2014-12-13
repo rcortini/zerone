@@ -2,7 +2,7 @@
 #include "jahmm.h"
 #include "unittest.h"
 #include "utils.h"
-#include "zinm.h"
+#include "zinb.h"
 
 void
 test_new_histo
@@ -153,6 +153,7 @@ test_tabulate
 }
 
 
+/*
 void
 test_colmeans
 (void)
@@ -197,6 +198,7 @@ test_colmeans
    return;
 
 }
+*/
 
 
 void
@@ -247,13 +249,13 @@ test_eval_nb_dfda
 
 
 void
-test_eval_zinm_f
+test_eval_zinb_f
 (void)
 {
 
-   test_assert(fabs(eval_zinm_f(1.0, .5, 1, 2.0)) < 1e-6);
-   test_assert(fabs(eval_zinm_f(1.0, .5, 2, 4.0)) < 1e-6);
-   test_assert(fabs(eval_zinm_f(1.3, .7, 141, 8.3)-678.0838351) < 1e-6);
+   test_assert(fabs(eval_zinb_f(1.0, .5, 1, 2.0)) < 1e-6);
+   test_assert(fabs(eval_zinb_f(1.0, .5, 2, 4.0)) < 1e-6);
+   test_assert(fabs(eval_zinb_f(1.3, .7, 141, 8.3)-678.0838351) < 1e-6);
 
    return;
 
@@ -261,7 +263,7 @@ test_eval_zinm_f
 
 
 void
-test_eval_zinm_g
+test_eval_zinb_g
 (void)
 {
 
@@ -271,7 +273,7 @@ test_eval_zinm_g
                   1,1,1,1,1,2,2,2,2,3,5 };
    tab = tabulate(x1, 25);
    test_assert_critical(tab != NULL);
-   test_assert(fabs(eval_zinm_g(1, .5, tab)+0.1325713) < 1e-6);
+   test_assert(fabs(eval_zinb_g(1, .5, tab)+0.1325713) < 1e-6);
    free(tab);
 
    return;
@@ -280,15 +282,15 @@ test_eval_zinm_g
 
 
 void
-test_eval_zinm_dfda
+test_eval_zinb_dfda
 (void)
 {
 
-   test_assert(fabs(eval_zinm_dfda(1, .5, 1)-1.2274112) < 1e-6);
-   test_assert(fabs(eval_zinm_dfda(1, .5, 9)-11.0467015) < 1e-6);
-   test_assert(fabs(eval_zinm_dfda(2, .5, 9)-12.9096451) < 1e-6);
-   test_assert(fabs(eval_zinm_dfda(2, .3, 9)-25.1159846) < 1e-6);
-   test_assert(fabs(eval_zinm_dfda(2.4, .3, 9)-26.3620864) < 1e-6);
+   test_assert(fabs(eval_zinb_dfda(1, .5, 1)-1.2274112) < 1e-6);
+   test_assert(fabs(eval_zinb_dfda(1, .5, 9)-11.0467015) < 1e-6);
+   test_assert(fabs(eval_zinb_dfda(2, .5, 9)-12.9096451) < 1e-6);
+   test_assert(fabs(eval_zinb_dfda(2, .3, 9)-25.1159846) < 1e-6);
+   test_assert(fabs(eval_zinb_dfda(2.4, .3, 9)-26.3620864) < 1e-6);
 
    return;
 
@@ -296,16 +298,16 @@ test_eval_zinm_dfda
 
 
 void
-test_eval_zinm_dfdp
+test_eval_zinb_dfdp
 (void)
 {
 
-   test_assert(eval_zinm_dfdp(1, .5, 0, 0) == 0.0);
-   test_assert(eval_zinm_dfdp(1, .5, 1, 0) == 0.0);
-   test_assert(fabs(eval_zinm_dfdp(2, .5, 1, 0)+3.5555555) < 1e-6);
-   test_assert(fabs(eval_zinm_dfdp(2, .3, 1, 0)+19.5896899) < 1e-6);
-   test_assert(fabs(eval_zinm_dfdp(2, .3, 9, 0)+176.3072092) < 1e-6);
-   test_assert(fabs(eval_zinm_dfdp(2, .3, 9, 1.7)+179.7765970) < 1e-6);
+   test_assert(eval_zinb_dfdp(1, .5, 0, 0) == 0.0);
+   test_assert(eval_zinb_dfdp(1, .5, 1, 0) == 0.0);
+   test_assert(fabs(eval_zinb_dfdp(2, .5, 1, 0)+3.5555555) < 1e-6);
+   test_assert(fabs(eval_zinb_dfdp(2, .3, 1, 0)+19.5896899) < 1e-6);
+   test_assert(fabs(eval_zinb_dfdp(2, .3, 9, 0)+176.3072092) < 1e-6);
+   test_assert(fabs(eval_zinb_dfdp(2, .3, 9, 1.7)+179.7765970) < 1e-6);
 
    return;
 
@@ -313,7 +315,7 @@ test_eval_zinm_dfdp
 
 
 void
-test_eval_zinm_dgda
+test_eval_zinb_dgda
 (void)
 {
 
@@ -323,9 +325,9 @@ test_eval_zinm_dgda
                   1,1,1,1,1,2,2,2,2,3,5 };
    tab = tabulate(x1, 25);
    test_assert_critical(tab != NULL);
-   test_assert(fabs(eval_zinm_dgda(1, .5, tab)+2.2547559) < 1e-6);
-   test_assert(fabs(eval_zinm_dgda(2, .5, tab)+1.2605630) < 1e-6);
-   test_assert(fabs(eval_zinm_dgda(2, .3, tab)+1.8764955) < 1e-6);
+   test_assert(fabs(eval_zinb_dgda(1, .5, tab)+2.2547559) < 1e-6);
+   test_assert(fabs(eval_zinb_dgda(2, .5, tab)+1.2605630) < 1e-6);
+   test_assert(fabs(eval_zinb_dgda(2, .3, tab)+1.8764955) < 1e-6);
    free(tab);
 
    return;
@@ -334,7 +336,7 @@ test_eval_zinm_dgda
 
 
 void
-test_ll_zinm
+test_ll_zinb
 (void)
 {
 
@@ -344,10 +346,10 @@ test_ll_zinm
                   1,1,1,1,1,2,2,2,2,3,5 };
    tab = tabulate(x1, 25);
    test_assert_critical(tab != NULL);
-   test_assert(fabs(ll_zinm(1, .5, 1, tab)+22.5329303) < 1e-6);
-   test_assert(fabs(ll_zinm(1, .5, .7, tab)+22.7832550) < 1e-6);
-   test_assert(fabs(ll_zinm(2, .5, .7, tab)+23.7608409) < 1e-6);
-   test_assert(fabs(ll_zinm(2, .3, .7, tab)+31.6978553) < 1e-6);
+   test_assert(fabs(ll_zinb(1, .5, 1, tab)+22.5329303) < 1e-6);
+   test_assert(fabs(ll_zinb(1, .5, .7, tab)+22.7832550) < 1e-6);
+   test_assert(fabs(ll_zinb(2, .5, .7, tab)+23.7608409) < 1e-6);
+   test_assert(fabs(ll_zinb(2, .3, .7, tab)+31.6978553) < 1e-6);
    free(tab);
 
    return;
@@ -421,51 +423,51 @@ test_nb_est_alpha
 
 
 void
-test_mle_nm
+test_mle_nb
 (void)
 {
 
    // These test cases have been verified with R.
-   zinm_par_t *par;
+   zinb_par_t *par;
    
    // 0:14, 1:5, 2:4, 3:1, 5:1
    int x1[25] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                   1,1,1,1,1,2,2,2,2,3,5 };
-   par = mle_nm(x1, 1, 25);
+   par = mle_nb(x1, 25);
    test_assert_critical(par != NULL);
-   test_assert(fabs(par->alpha-0.9237) < 1e-3);
-   test_assert(fabs(par->p[0]-0.5237) < 1e-3);
-   test_assert(fabs(par->p[1]-0.4763) < 1e-3);
+   test_assert(fabs(par->a - 0.9237) < 1e-3);
+   test_assert(par->pi == 0.0);
+   test_assert(fabs(par->p - 0.5237) < 1e-3);
    free(par);
 
    // 0:27, 1:12, 2:8, 3:1, 4:1, 5:1
    int x2[50] = {3,0,1,2,0,0,1,0,0,0,0,1,1,0,0,1,2,2,0,0,0,1,2,
       0, 0,0,0,0,4,0,0,0,1,5,1,0,1,2,1,2,2,2,0,0,0,1,0,1,0,0};
-   par = mle_nm(x2, 1, 50);
+   par = mle_nb(x2, 50);
    test_assert_critical(par != NULL);
-   test_assert(fabs(par->alpha-1.3436) < 1e-3);
-   test_assert(fabs(par->p[0]-0.6267) < 1e-3);
-   test_assert(fabs(par->p[1]-0.3732) < 1e-3);
+   test_assert(fabs(par->a - 1.3436) < 1e-3);
+   test_assert(par->pi == 0.0);
+   test_assert(fabs(par->p - 0.6267) < 1e-3);
    free(par);
 
    // 0:12, 1:7, 2:13, 3:4, 4:6, 5:2, 6:1, 7:3, 8:1, 9:1
    int x3[50] = {4,5,2,1,2,4,2,2,0,4,2,1,3,6,0,0,7,3,0,8,4,2,0,
       0,2,3,2,3,7,9,2,4,0,4,2,0,0,2,5,1,1,2,1,0,0,0,1,2,1,7};
-   par = mle_nm(x3, 1, 50);
+   par = mle_nb(x3, 50);
    test_assert_critical(par != NULL);
-   test_assert(fabs(par->alpha-1.7969) < 1e-3);
-   test_assert(fabs(par->p[0]-0.4221) < 1e-3);
-   test_assert(fabs(par->p[1]-0.5779) < 1e-3);
+   test_assert(fabs(par->a - 1.7969) < 1e-3);
+   test_assert(par->pi == 0.0);
+   test_assert(fabs(par->p - 0.4221) < 1e-3);
    free(par);
 
    // 0:39, 1:8, 2:2, 3:1
    int x4[50] = {1,0,0,0,0,0,3,1,0,1,0,0,0,0,0,0,0,1,0,0,0,2,0,
       2,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0};
-   par = mle_nm(x4, 1, 50);
+   par = mle_nb(x4, 50);
    test_assert_critical(par != NULL);
-   test_assert(fabs(par->alpha-0.7073) < 1e-3);
-   test_assert(fabs(par->p[0]-0.7021) < 1e-3);
-   test_assert(fabs(par->p[1]-0.2978) < 1e-3);
+   test_assert(fabs(par->a - 0.7073) < 1e-3);
+   test_assert(par->pi == 0.0);
+   test_assert(fabs(par->p - 0.7021) < 1e-3);
    free(par);
 
    // 0:59, 1:83, 2:99, 3:67, 4:67, 5:49, 6:27, 7:22, 8:11, 9:6
@@ -488,11 +490,11 @@ test_mle_nm
        0,0,5,6,0,1,8,5,1,3,1,8,1,8,1,6,7,2,8,2,2,3,3,0,4,2,1,9,6,
        0,6,7,1,8,2,2,1,11,3,0,4,2,5,1,6,8,3,4,7,0,4,2,4,1,1,1,6,0,
        4,4,6,2,1,3,1,0,4,9,3,1,4,2,2,0,1};
-   par = mle_nm(x5, 1, 500);
+   par = mle_nb(x5, 500);
    test_assert_critical(par != NULL);
-   test_assert(fabs(par->alpha-3.0057) < 1e-3);
-   test_assert(fabs(par->p[0]-0.4854) < 1e-3);
-   test_assert(fabs(par->p[1]-0.5145) < 1e-3);
+   test_assert(fabs(par->a-3.0057) < 1e-3);
+   test_assert(par->pi == 0.0);
+   test_assert(fabs(par->p-0.4854) < 1e-3);
    free(par);
 
    return;
@@ -501,13 +503,13 @@ test_mle_nm
 
 
 void
-test_mle_zinm
+test_mle_zinb
 (void)
 {
 
    // Cases checked by simulated annealing.
    
-   zinm_par_t *par;
+   zinb_par_t *par;
    
    // 0:53, 1:8, 2:9, 3:8, 4:4, 5:7, 6:3, 7:3, 8:1, 9:3, 10:1
    int x1[100] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -515,11 +517,11 @@ test_mle_zinm
       0,3,7,4,5,3,5,1,5,7,3,6,1,2,9,1,10,6,2,2,2,3,2,1,1,5,0,2,3,
       9,4,2,9,3,5,7,3,5,2,1,0,6,1,4,2,3,4,5,8,1 };
 
-   par = mle_zinm(x1, 1, 100);
+   par = mle_zinb(x1, 100);
    test_assert_critical(par != NULL);
-   test_assert(fabs(par->alpha-3.6855) < 1e-3);
-   test_assert(fabs(par->p[0]-0.5044) < 1e-3);
-   test_assert(fabs(par->pi-0.5110) < 1e-3);
+   test_assert(fabs(par->a - 3.6855) < 1e-3);
+   test_assert(fabs(par->pi - 0.5110) < 1e-3);
+   test_assert(fabs(par->p - 0.5044) < 1e-3);
    free(par);
 
    // 0:73, 1:7, 2:7, 3:3, 4:4, 5:2, 7:1, 8:2, 9:1
@@ -528,11 +530,11 @@ test_mle_zinm
       1,0,0,8,1,1,3,0,0,8,2,4,1,2,0,3,2,0,0,4,0,0,3,1,0,2,0,0,5,
       7,0,0,2,4,0,2,1,0,0,0,0,0,0,0,1,2,9,0,4 };
 
-   par = mle_zinm(x2, 1, 100);
+   par = mle_zinb(x2, 100);
    test_assert_critical(par != NULL);
-   test_assert(fabs(par->alpha-1.8251) < 1e-3);
-   test_assert(fabs(par->p[0]-0.4109) < 1e-3);
-   test_assert(fabs(par->pi-0.3363) < 1e-3);
+   test_assert(fabs(par->a - 1.8251) < 1e-3);
+   test_assert(fabs(par->pi - 0.3363) < 1e-3);
+   test_assert(fabs(par->p - 0.4109) < 1e-3);
    free(par);
 
    return;
@@ -832,8 +834,7 @@ test_block_fwdb
    unsigned int nblocks = 2;
    unsigned int size[2] = {3,3};
 
-   double ll;
-   block_fwdb(m, nblocks, size, Q, init, prob, phi, trans, &ll);
+   double l = block_fwdb(m, nblocks, size, Q, init, prob, phi, trans);
 
    double expected_loglik = 2 * -3.105547;
    double expected_phi[12] = {
@@ -850,7 +851,7 @@ test_block_fwdb
       2 * 0.2732143, 2 * 1.4142857,
    };
 
-   test_assert(fabs(expected_loglik - ll) < 1e-6);
+   test_assert(fabs(expected_loglik - l) < 1e-6);
    for (int i = 0 ; i < m*n ; i++) {
       test_assert(fabs(expected_phi[i] - phi[i]) < 1e-6);
    }
@@ -897,8 +898,7 @@ test_block_fwdb_NA
    unsigned int nblocks = 2;
    unsigned int size[2] = {3,3};
 
-   double ll;
-   block_fwdb(m, nblocks, size, Q, init, prob, phi, trans, &ll);
+   double l = block_fwdb(m, nblocks, size, Q, init, prob, phi, trans);
 
    double expected_loglik = -1.362578 -2.710553;
    double expected_alpha[12] = {
@@ -923,7 +923,7 @@ test_block_fwdb_NA
       0.4693750+0.3037594, 1.0350000+1.1909774,
    };
 
-   test_assert(fabs(expected_loglik - ll) < 1e-6);
+   test_assert(fabs(expected_loglik - l) < 1e-6);
    for (int i = 0 ; i < m*n ; i++) {
       test_assert(fabs(expected_alpha[i] - prob[i]) < 1e-6);
       test_assert(fabs(expected_phi[i] - phi[i]) < 1e-6);
@@ -964,7 +964,7 @@ test_viterbi
       log(0.9), log(0.1), log(0.2), log(0.1),
    };
 
-   uint *path = malloc(n * sizeof(int));
+   int *path = malloc(n * sizeof(int));
    test_assert_critical(path != NULL);
 
    viterbi(
@@ -1087,7 +1087,7 @@ test_block_viterbi
       0.9, 0.1, 0.2, 0.1,
    };
 
-   uint *path = malloc(n * sizeof(int));
+   int *path = malloc(n * sizeof(int));
    test_assert_critical(path != NULL);
 
    int nblocks = 2;
@@ -1190,7 +1190,7 @@ test_block_viterbi_NA
       0.9, 0.1, 0.2, 0.1,
    };
 
-   uint *path = malloc(n * sizeof(int));
+   int *path = malloc(n * sizeof(int));
    test_assert_critical(path != NULL);
 
    int nblocks = 2;
@@ -1437,10 +1437,13 @@ test_bw_zinm
    unsigned size[2] = {15,15};
    ChIP_t *ChIP = new_ChIP(3, 2, y, size);
 
-   double p[8] = { .344,.414,.138,.104, .161,.194,.322,.323 };
+   double p[8] = {
+      .3448276, .4137931, .1379310, .1034483,
+      .1612903, .1935484, .3225806, .3225806,
+   };
    double Q[4] = { .8, .2, .2, .8 };
    jahmm_t *jahmm = new_jahmm(2, ChIP);
-   set_jahmm_par(jahmm, Q, 3.4, 1.2, p);
+   set_jahmm_par(jahmm, Q, 3.4, 1.0, p);
    bw_zinm(jahmm);
 
    double expected_Q[4] = {
@@ -1451,15 +1454,7 @@ test_bw_zinm
    for (size_t i = 0 ; i < 4 ; i++) {
       test_assert(fabs(jahmm->Q[i] - expected_Q[i]) < 1e-6);
    }
-   
-   double expected_p[8] = {
-      0.261970, 0.499570, 0.130769, 0.107692,
-      0.137600, 0.262400, 0.312727, 0.287272,
-   };
-   for (size_t i = 0 ; i < 8 ; i++) {
-      test_assert(fabs(jahmm->p[i] - expected_p[i]) < 1e-6);
-   }
-   
+
    return;
 
 }
@@ -1605,20 +1600,20 @@ main(
       {"utils/histo_push", test_histo_push},
       {"utils/compress_histo", test_compress_histo},
       {"utils/tabulate", test_tabulate},
-      {"utils/colmeans", test_colmeans},
+//      {"utils/colmeans", test_colmeans},
       {"utils/indexts", test_indexts},
       {"ZINM/zinm_prob", test_zinm_prob},
       {"ZINM/eval_nb_f", test_eval_nb_f},
       {"ZINM/eval_nb_dfda", test_eval_nb_dfda},
-      {"ZINM/eval_zinm_f", test_eval_zinm_f},
-      {"ZINM/eval_zinm_g", test_eval_zinm_g},
-      {"ZINM/eval_zinm_dfda", test_eval_zinm_dfda},
-      {"ZINM/eval_zinm_dfdp", test_eval_zinm_dfdp},
-      {"ZINM/eval_zinm_dgda", test_eval_zinm_dgda},
-      {"ZINM/ll_zinm", test_ll_zinm},
+      {"ZINM/eval_zinb_f", test_eval_zinb_f},
+      {"ZINM/eval_zinb_g", test_eval_zinb_g},
+      {"ZINM/eval_zinb_dfda", test_eval_zinb_dfda},
+      {"ZINM/eval_zinb_dfdp", test_eval_zinb_dfdp},
+      {"ZINM/eval_zinb_dgda", test_eval_zinb_dgda},
+      {"ZINM/ll_zinb", test_ll_zinb},
       {"ZINM/nb_est_alpha", test_nb_est_alpha},
-      {"ZINM/mle_nm", test_mle_nm},
-      {"ZINM/mle_zinm", test_mle_zinm},
+      {"ZINM/mle_nb", test_mle_nb},
+      {"ZINM/mle_zinb", test_mle_zinb},
       {"HMM/fwdb", test_fwdb},
       {"HMM/fwdb (NAs)", test_fwdb_NA},
       {"HMM/fwdb (underflow)", test_underflow},

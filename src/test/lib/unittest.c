@@ -164,6 +164,9 @@ test_case_init
    N_ERROR_MESSAGES = 0;
 
    if (run_flags & FORK_YES) {
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS 0
+#endif
       // Shared variables //
       TEST_CASE_FAILED = mmap(NULL, sizeof(*TEST_CASE_FAILED),
             PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
