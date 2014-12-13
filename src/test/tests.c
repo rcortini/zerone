@@ -1516,7 +1516,6 @@ test_read_file
        2, 1, 0,
    };
    for (size_t i = 0 ; i < 15 ; i++) {
-      fprintf(stderr, "%d\n", y[i]);
       test_assert(y[i] == expected_y[i]);
    }
 

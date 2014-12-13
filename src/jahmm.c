@@ -299,20 +299,19 @@ read_file
    rewind(inputf);
    nobs--; // Discount the header.
 
-   // DEBUG //
-   fprintf(stderr, "nobs: %d\n", nobs);
-
    // Read and parse the header separately.
-   const char sep = '\t';
    nread = getline(&line, &nchar, inputf);
    if (nread == -1) return NULL;
 
    // Use the header to get the number of tokens 'ntok'.
+   const char sep = '\t';
    int ntok = 0;
-   char *tok = strtok(line, &sep);
-   while (tok != NULL) {
-      ntok++;
-      tok = strtok(NULL, &sep);
+   char *c;
+   char *dummy;
+   char *tok;
+
+   for (ntok = 0, dummy = line ; ; ntok++, dummy = NULL) {
+      if ((tok = strtok_r(dummy, &sep, &c)) == NULL) break;
    }
 
    const int ntokref = ntok;
@@ -328,26 +327,29 @@ read_file
    size_t current = -1;
    char prevtok[256] = {0};
    unsigned int lineno = 0;
-   while ((nread = getline(&line, &nchar, inputf)) != -1) {
-      // DEBUG //
-      fprintf(stderr, "read: %s", line);
+
+   for ( ; (nread = getline(&line, &nchar, inputf)) != -1 ; lineno++) {
+
       // Trim new line character.
       if (line[nread-1] == '\n') line[nread-1] = '\0';
 
-      // Update block.
-      tok = strtok(line, &sep);
+      // Update block if needed.
+      dummy = line;
+      tok = strtok_r(dummy, &sep, &c);
+      if (tok == NULL) {
+         fprintf(stderr, "error parsing line %d:\n%s\n",
+               lineno+2, line);
+         return NULL;
+      }
       if (strcmp(tok, prevtok) != 0) {
          strncpy(prevtok, tok, 255);
          current++;
       }
+
       histo_push(&histo, current);
-      tok = strtok(NULL, &sep);
-      ntok = 1;
 
-      // Fill in values.
-      while (tok != NULL) {
-
-         ntok++;
+      // Gather values.
+      for (ntok = 2 ; (tok = strtok_r(NULL, &sep, &c)) != NULL ; ntok++) {
          if (ntok > ntokref) {
             fprintf(stderr, "error parsing line %d:\n%s\n",
                   lineno+2, line);
@@ -359,8 +361,6 @@ read_file
          else {
             char *endchar;
             int v = (int) strtol(tok, &endchar, 10);
-            // DEBUG //
-            fprintf(stderr, "tok: %s / v: %d\n", tok, v);
             if (*endchar != '\0') {
                fprintf(stderr, "error parsing line %d:\n%s\n",
                      lineno+1, line);
@@ -368,12 +368,13 @@ read_file
             }
             y[ntok-2 + lineno*dim] = v;
          }
-
-         tok = strtok(NULL, &sep);
-
       }
 
-      lineno++;
+      if (ntok != (ntokref + 1)) {
+         fprintf(stderr, "error parsing line %d:\n%s\n",
+               lineno+2, line);
+         return NULL;
+      }
 
    }
 
