@@ -304,18 +304,14 @@ read_file
    if (nread == -1) return NULL;
 
    // Use the header to get the number of tokens 'ntok'.
+
+   char *s;
+   int k;
+
    const char sep = '\t';
-   int ntok = 0;
-   char *c;
-   char *dummy;
-   char *tok;
+   for ( k = 0, s = line ; (s = strchr(s, sep)) != NULL ; s++) k++;
 
-   for (ntok = 0, dummy = line ; ; ntok++, dummy = NULL) {
-      if ((tok = strtok_r(dummy, &sep, &c)) == NULL) break;
-   }
-
-   const int ntokref = ntok;
-   const size_t dim = ntokref - 1;
+   const size_t dim = k;
 
    int *y = malloc(nobs*dim * sizeof(int));
    if (y == NULL) {
@@ -325,7 +321,7 @@ read_file
 
    histo_t *histo = new_histo();
    size_t current = -1;
-   char prevtok[256] = {0};
+   char prevblk[256] = {0};
    unsigned int lineno = 0;
 
    for ( ; (nread = getline(&line, &nchar, inputf)) != -1 ; lineno++) {
@@ -334,45 +330,55 @@ read_file
       if (line[nread-1] == '\n') line[nread-1] = '\0';
 
       // Update block if needed.
-      dummy = line;
-      tok = strtok_r(dummy, &sep, &c);
-      if (tok == NULL) {
-         fprintf(stderr, "error parsing line %d:\n%s\n",
+      s = strchr(line, sep);
+      if (s == NULL) {
+         fprintf(stderr, "error (1) parsing line %d:\n%s\n",
                lineno+2, line);
          return NULL;
       }
-      if (strcmp(tok, prevtok) != 0) {
-         strncpy(prevtok, tok, 255);
+      *s = '\0';
+      if (strcmp(line, prevblk) != 0) {
+         strncpy(prevblk, line, 255);
          current++;
       }
 
       histo_push(&histo, current);
 
       // Gather values.
-      for (ntok = 2 ; (tok = strtok_r(NULL, &sep, &c)) != NULL ; ntok++) {
-         if (ntok > ntokref) {
-            fprintf(stderr, "error parsing line %d:\n%s\n",
-                  lineno+2, line);
+      char *e;
+      for ( k = 0, s++ ; (e = strchr(s, sep)) != NULL ; k++, s = e+1) {
+         if (k > dim) {
+            fprintf(stderr, "too many entries line %d\n", lineno+2);
             return NULL;
          }
-         if (strcmp(tok, "NA") == 0) {
-            y[ntok-2 + lineno*dim] = -1;
+         *e = '\0';
+         if (strcmp(s, "NA") == 0) {
+            y[k + lineno*dim] = -1;
          }
          else {
-            char *endchar;
-            int v = (int) strtol(tok, &endchar, 10);
-            if (*endchar != '\0') {
-               fprintf(stderr, "error parsing line %d:\n%s\n",
-                     lineno+1, line);
+            int v = (int) strtol(s, &s, 10);
+            if (s != e) {
+               fprintf(stderr, "non integer entry line %d\n", lineno+2);
                return NULL;
             }
-            y[ntok-2 + lineno*dim] = v;
+            y[k + lineno*dim] = v;
          }
       }
 
-      if (ntok != (ntokref + 1)) {
-         fprintf(stderr, "error parsing line %d:\n%s\n",
-               lineno+2, line);
+      // Last token.
+      if (strcmp(s, "NA") == 0) {
+         y[k + lineno*dim] = -1;
+      }
+      else {
+         int v = (int) strtol(s, &s, 10);
+         if (*s != '\0') {
+            fprintf(stderr, "non integer entry line %d\n", lineno+2);
+            return NULL;
+         }
+         y[k + lineno*dim] = v;
+      }
+      if (k != (dim-1)) {
+         fprintf(stderr, "too few entries line %d\n", lineno+2);
          return NULL;
       }
 
