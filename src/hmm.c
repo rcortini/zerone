@@ -439,8 +439,6 @@ block_viterbi
    const double       * restrict Q,
    const double       * restrict init,
    const double       * restrict prob,
-   // control //
-   const unsigned int            arglog,
    // output //
                   int * restrict path
 )
@@ -460,7 +458,6 @@ block_viterbi
 //   'Q': (m,m) transition matrix                                        
 //   'init': (m) initial probabilities                                   
 //   'prob': (n) emssion probabilities                                   
-//   'arglog': whether arguments are provided in log space               
 //   'path': (n) Viterbi path                                            
 //                                                                       
 // RETURN:                                                               
@@ -480,8 +477,65 @@ block_viterbi
    int n = 0;
    for (int i = 0 ; i < nblocks ; i++) n += size[i];
 
-   double log_Q[m*m];
-   double log_i[m];
+   double *log_Q = malloc(m*m * sizeof(double));
+   double *log_i = malloc(m * sizeof(double));
+   if (log_Q == NULL || log_i == NULL) {
+      fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
+      return 1;
+   }
+
+   // Check whether arguments are passed in linear or in log space.
+   // Scan 'Q' until the first non 0 value.
+   size_t idx;
+   for (idx = 0 ; idx < m*m && Q[idx] == 0; idx++);
+   int args_in_lin_space = Q[idx] > 0;
+
+   // Check arguments.
+   double sum_i = 0.0;
+   for (size_t i = 0 ; i < m ; i++) {
+
+      // Presence of NAs in 'init'.
+      if (init[i] != init[i]) {
+         fprintf(stderr, "invalid 'init' argument in '%s()'\n", __func__);
+         return -1;
+      }
+      // Log/lin consistency of 'init'.
+      if ((init[i] >= 0) ^ args_in_lin_space) {
+         fprintf(stderr, "mixed log/lin arguments in '%s()'\n", __func__);
+         return -1;
+      }
+
+      sum_i += args_in_lin_space ? init[i] : exp(init[i]);
+      double sum_Q = 0.0;
+
+      for (size_t j = 0 ; j < m ; j++) {
+
+         // Presence of NAs in 'Q'.
+         if (Q[i+j*m] != Q[i+j*m]) {
+            fprintf(stderr, "invalid 'Q' argument in '%s()'\n", __func__);
+            return -1;
+         }
+         // Log/lin consistency of 'Q'.
+         if ((Q[i+j*m] >= 0) ^ args_in_lin_space) {
+            fprintf(stderr, "mixed log/lin arguments in '%s()'\n", __func__);
+            return -1;
+         }
+         sum_Q += args_in_lin_space ? Q[i+j*m] : exp(Q[i+j*m]);
+      }
+
+      // Check that rows of 'Q' sum to 1.0.
+      if (fabs(sum_Q - 1.0) > 1e-6) {
+         fprintf(stderr, "'Q' is not stochastic in '%s()'\n", __func__);
+         return -1;
+      }
+
+   }
+
+   // Check that 'init' sums to 1.0.
+   if (fabs(sum_i - 1.0) > 1e-6) {
+      fprintf(stderr, "'init' is not a probability in '%s()'\n", __func__);
+      return -1;
+   }
 
    // Either way we make a copy of the emission probabilities
    // because we will replace undefined emissions by 0.0. Copying
@@ -491,33 +545,18 @@ block_viterbi
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
       return 1;
    }
-   if (arglog) {
-      for (int i = 0 ; i < n*m ; i++) log_p[i] = prob[i];
-      for (int i = 0 ; i < m*m ; i++) log_Q[i] = Q[i];
-      for (int i = 0 ; i < m ; i++)   log_i[i] = init[i];
-   }
-   else {
+   if (args_in_lin_space) {
       // Copy variables.
       for (int i = 0 ; i < n*m ; i++) log_p[i] = log(prob[i]);
       for (int i = 0 ; i < m*m ; i++) log_Q[i] = log(Q[i]);
       for (int i = 0 ; i < m ; i++)   log_i[i] = log(init[i]);
    }
+   else {
+      for (int i = 0 ; i < n*m ; i++) log_p[i] = prob[i];
+      for (int i = 0 ; i < m*m ; i++) log_Q[i] = Q[i];
+      for (int i = 0 ; i < m ; i++)   log_i[i] = init[i];
+   }
 
-   // NA handling.
-   for (int i = 0 ; i < m*m ; i++) {
-      if (log_Q[i] != log_Q[i]) {
-         fprintf(stderr, "invalid 'Q' parameter in 'block_viterbi'\n");
-         free(log_p);
-         return -1;
-      }
-   }
-   for (int i = 0 ; i < m ; i++) {
-      if (log_i[i] != log_i[i]) {
-         fprintf(stderr, "invalid 'init' parameter in 'block_viterbi'\n");
-         free(log_p);
-         return -1;
-      }
-   }
    // If an emssion probability is not available at some step, all
    // the log values are set to 0.
    int offset = 0;
@@ -538,6 +577,8 @@ block_viterbi
       offset += size[i];
    }
 
+   free(log_Q);
+   free(log_i);
    free(log_p);
 
    return 0;

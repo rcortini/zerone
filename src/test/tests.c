@@ -153,54 +153,6 @@ test_tabulate
 }
 
 
-/*
-void
-test_colmeans
-(void)
-{
-
-   double means[2];
-
-   int x1[1] = {2595};
-   colmeans(x1, 1, 1, means);
-   test_assert(means[0] == 2595.0);
-
-   int x2[7] = {0,0,0,1,1,2,5};
-   colmeans(x2, 1, 7, means);
-   test_assert(fabs(means[0]-1.28571428) < 1e-6);
-
-   int x3[5] = {0,89,231,55,309};
-   colmeans(x3, 1, 5, means);
-   test_assert(fabs(means[0]-136.8) < 1e-6);
-
-   // 0:112, 1:94, 2:28, 3:12, 4:3, 7:1
-   int x4[250] = {0,0,0,3,0,0,1,1,1,1,1,2,0,2,0,0,1,0,0,0,1,1,0,1,
-      1,0,1,1,0,2,1,0,2,1,1,0,2,1,1,1,1,1,0,0,2,0,2,1,1,1,2,1,0,0,
-      1,0,1,0,0,1,0,0,3,2,0,0,0,0,0,2,1,1,1,0,0,1,0,0,1,0,0,1,0,1,
-      0,1,2,1,2,1,0,0,0,2,0,0,0,1,2,1,0,1,1,1,2,0,0,0,0,0,2,1,3,0,
-      2,3,0,0,0,1,0,0,1,1,0,0,0,0,1,0,0,1,0,3,1,0,0,0,1,1,0,0,0,0,
-      0,1,0,0,0,0,1,2,1,0,2,4,0,1,0,1,0,1,0,1,1,1,0,1,1,1,1,0,0,1,
-      0,1,1,3,1,1,1,1,0,0,0,0,3,1,3,0,1,1,0,0,0,1,1,0,1,2,4,2,0,0,
-      4,0,2,1,0,0,2,1,2,1,7,1,2,3,0,0,1,1,0,3,1,1,1,3,1,1,0,0,0,0,
-      1,2,2,0,1,1,0,1,1,1,0,2,3,0,0,0};
-   colmeans(x4, 1, 250, means);
-   test_assert(fabs(means[0]-0.82) < 1e-6);
-
-   colmeans(x4, 2, 125, means);
-   test_assert(fabs(means[0]-.832) < 1e-6);
-   test_assert(fabs(means[1]-.808) < 1e-6);
-
-   int x5[6] = {-1,1,2,3,2,3};
-   colmeans(x5, 2, 3, means);
-   test_assert(means[0] == 2);
-   test_assert(means[1] == 3);
-
-   return;
-
-}
-*/
-
-
 void
 test_eval_nb_f
 (void)
@@ -1068,7 +1020,7 @@ test_block_viterbi
       // transpose //
       0.80, 0.05, 0.05, 0.05,
       0.10, 0.90, 0.30, 0.35,
-      0.05, 0.05, 0.50, 0.45,
+      0.05, 0.05, 0.40, 0.45,
       0.05, 0.00, 0.25, 0.15,
    };
    double init[4] = {0.05, 0.10, 0.05, 0.80};
@@ -1092,7 +1044,6 @@ test_block_viterbi
 
    int nblocks = 2;
    uint size[2] = {5,5};
-   int nolog = 0;
 
    block_viterbi(
          m,
@@ -1101,7 +1052,6 @@ test_block_viterbi
          Q,
          init,
          prob,
-         nolog,
          path
    );
 
@@ -1114,12 +1064,11 @@ test_block_viterbi
    }
 
 
-   uint yeslog = 1;
    const double log_Q[16] = {
       // transpose //
       log(0.80), log(0.05), log(0.05), log(0.05),
       log(0.10), log(0.90), log(0.30), log(0.35),
-      log(0.05), log(0.05), log(0.50), log(0.45),
+      log(0.05), log(0.05), log(0.40), log(0.45),
       log(0.05), log(0.00), log(0.25), log(0.15),
    };
    double log_init[4] = {log(0.05), log(0.10), log(0.05), log(0.80)};
@@ -1145,7 +1094,6 @@ test_block_viterbi
          log_Q,
          log_init,
          log_prob,
-         yeslog,
          path
    );
 
@@ -1171,7 +1119,7 @@ test_block_viterbi_NA
       // transpose //
       0.80, 0.05, 0.05, 0.05,
       0.10, 0.90, 0.30, 0.35,
-      0.05, 0.05, 0.50, 0.45,
+      0.05, 0.05, 0.40, 0.45,
       0.05, 0.00, 0.25, 0.15,
    };
    double init[4] = {0.05, 0.10, 0.05, 0.80};
@@ -1195,7 +1143,6 @@ test_block_viterbi_NA
 
    int nblocks = 2;
    uint size[2] = {5,5};
-   uint nolog = 0;
 
    block_viterbi(
          m,
@@ -1204,7 +1151,6 @@ test_block_viterbi_NA
          Q,
          init,
          prob,
-         nolog,
          path
    );
 
@@ -1217,7 +1163,7 @@ test_block_viterbi_NA
    }
 
    // Set invalid initial probabilities.
-   static double invalid_init[4] = {-1.0, 0.10, 0.05, 0.80};
+   static double invalid_init_1[4] = {-1.0, 0.10, 0.05, 0.80};
 
    // Catch stderr.
    redirect_stderr();
@@ -1226,22 +1172,57 @@ test_block_viterbi_NA
          nblocks,
          size,
          Q,
-         invalid_init,
+         invalid_init_1,
          prob,
-         nolog,
          path
    );
    unredirect_stderr();
 
    test_assert(exit_status == -1);
-   test_assert_stderr("invalid 'init' parameter in 'block_viterbi'\n");
+   test_assert_stderr("mixed log/lin arguments in 'block_viterbi()'\n");
+
+   static double invalid_init_2[4] = {.3, .3, .6, 0.0/0.0};
+
+   // Catch stderr.
+   redirect_stderr();
+   exit_status = block_viterbi(
+         m,
+         nblocks,
+         size,
+         Q,
+         invalid_init_2,
+         prob,
+         path
+   );
+   unredirect_stderr();
+
+   test_assert(exit_status == -1);
+   test_assert_stderr("invalid 'init' argument in 'block_viterbi()'\n");
+
+   static double invalid_init_3[4] = {.3, .3, .6, .9};
+
+   // Catch stderr.
+   redirect_stderr();
+   exit_status = block_viterbi(
+         m,
+         nblocks,
+         size,
+         Q,
+         invalid_init_3,
+         prob,
+         path
+   );
+   unredirect_stderr();
+
+   test_assert(exit_status == -1);
+   test_assert_stderr("'init' is not a probability in 'block_viterbi()'\n");
 
    // Set invalid transition probabilities.
-   static double invalid_Q[16] = {
+   static double invalid_Q_1[16] = {
       // transpose //
       -1.0, 0.05, 0.05, 0.05,
       0.10, 0.90, 0.30, 0.35,
-      0.05, 0.05, 0.50, 0.45,
+      0.05, 0.05, 0.40, 0.45,
       0.05, 0.00, 0.25, 0.15,
    };
 
@@ -1251,16 +1232,63 @@ test_block_viterbi_NA
          m,
          nblocks,
          size,
-         invalid_Q,
+         invalid_Q_1,
          init,
          prob,
-         nolog,
          path
    );
    unredirect_stderr();
 
    test_assert(exit_status == -1);
-   test_assert_stderr("invalid 'Q' parameter in 'block_viterbi'\n");
+   test_assert_stderr("mixed log/lin arguments in 'block_viterbi()'\n");
+
+   static double invalid_Q_2[16] = {
+      // transpose //
+      0.80, 0.05, 0.05, 0.05,
+      0.10, 0.90, 0.30, 0.35,
+      0.05, 0.05, 0.40, 0.45,
+      0.05, 0.00, 0.25, 0.0/0.0,
+   };
+
+   // Catch stderr.
+   redirect_stderr();
+   exit_status = block_viterbi(
+         m,
+         nblocks,
+         size,
+         invalid_Q_2,
+         init,
+         prob,
+         path
+   );
+   unredirect_stderr();
+
+   test_assert(exit_status == -1);
+   test_assert_stderr("invalid 'Q' argument in 'block_viterbi()'\n");
+
+   static double invalid_Q_3[16] = {
+      // transpose //
+      0.80, 0.05, 0.05, 0.05,
+      0.10, 0.90, 0.30, 0.35,
+      0.05, 0.05, 0.40, 0.45,
+      0.05, 0.00, 0.25, 0.10,
+   };
+
+   // Catch stderr.
+   redirect_stderr();
+   exit_status = block_viterbi(
+         m,
+         nblocks,
+         size,
+         invalid_Q_3,
+         init,
+         prob,
+         path
+   );
+   unredirect_stderr();
+
+   test_assert(exit_status == -1);
+   test_assert_stderr("'Q' is not stochastic in 'block_viterbi()'\n");
 
    free(path);
 
@@ -1524,69 +1552,6 @@ test_read_file
 }
 
 
-/*
-void
-test_process
-(void)
-{
-
-   FILE *inputf = fopen("H3K9ac.txt", "r");
-   test_assert_critical(inputf != NULL);
-   ChIP_t *ChIP = read_file(inputf);
-   fclose(inputf);
-
-   unsigned int dim = ChIP->dim;
-   unsigned int nobs = 0;
-   for (size_t i = 0 ; i < ChIP->blocks->size ; i++) {
-      nobs += ChIP->blocks->num[i];
-   }
-
-   int *ctrl = malloc(nobs * sizeof(int));
-   test_assert(ctrl != NULL);
-
-   for (size_t i = 0 ; i < nobs ; i++) {
-      ctrl[i] = ChIP->y[0+i*dim];
-   }
-
-   zinm_par_t *par = mle_zinm(ctrl, 1, nobs);
-   fprintf(stderr, "alpha: %f\n", par->alpha);
-   fprintf(stderr, "pi: %f\n", par->pi);
-   fprintf(stderr, "p0: %f\n", par->p[0]);
-
-   const double a = par->alpha;
-   const double pi = par->pi;
-   double p0 = par->p[0];
-   double Q[4] = {.9, .1, .1, .9};
-   double p[8] = {p0, 1-p0, 1, 1, p0, 1-p0,3,3};
-   bw_zinm(ChIP, 2, a, pi, p, (1-p0)/p0, Q);
-
-   int m = 2;
-   int *index = malloc(nobs * sizeof(int));
-   double *logpem = malloc(m*nobs * sizeof(double));
-   test_assert_critical(index != NULL);
-   test_assert_critical(logpem != NULL);
-   *index = -1;
-
-   zinm_prob(2, nobs, dim, ChIP->y, a, p, pi, index, 1, logpem);
-   for (size_t i = 0 ; i < 4 ; i++) Q[i] = log(Q[i]);
-
-   int *out = malloc(nobs * sizeof(int));
-   test_assert_critical(out != NULL);
-   double prob[2] = {log(.5), log(.5)};
-   int nblocks = (int) ChIP->blocks->size;
-   int one = 1;
-   block_viterbi(&m, &nblocks, ChIP->blocks->num,
-         Q, prob, logpem, &one, out);
-
-   //for (size_t i = 0 ; i < nobs ; i++) {
-   //   fprintf(stdout, "%d\n", out[i]);
-   //}
-
-
-}
-*/
-
-
 int
 main(
    int argc,
@@ -1600,7 +1565,6 @@ main(
       {"utils/histo_push", test_histo_push},
       {"utils/compress_histo", test_compress_histo},
       {"utils/tabulate", test_tabulate},
-//      {"utils/colmeans", test_colmeans},
       {"utils/indexts", test_indexts},
       {"ZINM/zinm_prob", test_zinm_prob},
       {"ZINM/eval_nb_f", test_eval_nb_f},
@@ -1625,7 +1589,6 @@ main(
       {"BaumWelch/update_trans", test_update_trans},
       {"BaumWelch/bw_zinm", test_bw_zinm},
       {"read_file", test_read_file},
-//      {"process", test_process},
       {NULL, NULL}
    };
 

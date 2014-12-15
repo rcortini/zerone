@@ -31,17 +31,19 @@ struct jahmm_t {
    double          a;      // emission par //
    double          pi;     // emission par //
    double        * p;      // emission par //
-   double        * pem;    // emission probs //
    double        * phi;    // posterior probs //
-   unsigned int  * path;   // Viterbi path //
+   double        * pem;    // emission probs //
    double          l;      // log-likelihood //
+   int           * path;   // Viterbi path //
 };
 
 void      bw_zinm(jahmm_t *);
 void      destroy_ChIP(ChIP_t *);
+jahmm_t * do_jahmm(unsigned int, ChIP_t *);
 ChIP_t  * new_ChIP(unsigned int, unsigned int, int *,
             const unsigned int *);
 jahmm_t * new_jahmm(unsigned int, ChIP_t *);
+unsigned int nobs(const ChIP_t *);
 ChIP_t  * read_file(FILE *);
 void      set_jahmm_par(jahmm_t *, const double *, double,
             double, const double *);

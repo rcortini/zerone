@@ -11,7 +11,20 @@ apologize
    fprintf(stderr, "%s", msg);
 }
 
-void
+
+unsigned int
+nobs
+(
+   const ChIP_t *ChIP
+)
+{
+   unsigned int retval = 0;
+   for (size_t i = 0 ; i < ChIP->nb ; i++) retval += ChIP->size[i];
+   return retval;
+}
+
+
+jahmm_t *
 do_jahmm
 (
    unsigned int m,
@@ -19,21 +32,17 @@ do_jahmm
 )
 {
 
-   // Extract the dimensios of the observations.
-   unsigned int temp = 0;
-   for (size_t i = 0 ; i < ChIP->nb ; i++) {
-      temp += ChIP->size[i];
-   }
-
-   const unsigned int n = temp;
+   // Extract the dimensions of the observations.
    const unsigned int r = ChIP->r;
+   const unsigned int n = nobs(ChIP);
+
 
    // Extract the first ChIP profile, which is the sum of
    // negative controls.
    int *ctrl = malloc(n * sizeof(int));
    if (ctrl == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-      return;
+      return NULL;
    }
 
    for (size_t i = 0 ; i < n ; i++) {
@@ -44,17 +53,59 @@ do_jahmm
    if (z == NULL) {
       fprintf(stderr, "jahmm failure %s:%d\n", __FILE__, __LINE__);
       apologize();
-      return;
+      return NULL;
    }
 
-   // FIXME: initialize this properly.
-   double Q[] = {0};
-   double p[] = {0};
+   free(ctrl);
+
+   double *Q = malloc(m*m * sizeof(double));
+   double *p = malloc(m*(r+1) * sizeof(double));
+   if (Q == NULL || p == NULL) {
+      fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
+      return NULL;
+   }
+   // Set initial values of 'Q'.
+   for (size_t i = 0 ; i < m ; i++) {
+   for (size_t j = 0 ; j < m ; j++) {
+      Q[i+j*m] = (i == j) ? .95 : .05 / (m-1);
+   }
+   }
+   // Set initial values of 'p'. The are not normalize, but the
+   // call to 'bw_zinm' will normalize them.
+   for (size_t i = 0 ; i < m ; i++) {
+      p[0+i*(r+1)] = z->p;
+      p[1+i*(r+1)] = 1 - z->p;
+      for (size_t j = 2 ; j < r+1 ; j++) {
+         p[j+i*(r+1)] = i + 0.5;
+      }
+   }
 
    jahmm_t *jahmm = new_jahmm(m, ChIP);
    set_jahmm_par(jahmm, Q, z->a, z->pi, p);
 
+   // Run the Baum-Welch algorithm.
    bw_zinm(jahmm);
+
+   // Run the Viterbi algorithm.
+   int *path = malloc(n * sizeof(int));
+   double *initp = malloc(m * sizeof(double));
+   double *log_Q = malloc(m*m * sizeof(double));
+   if (path == NULL || initp == NULL || log_Q == NULL) {
+      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      // TODO: free everything.
+      return NULL;
+   }
+
+   for (size_t i = 0 ; i < m ; i++) initp[i] = log(1.0/m);
+   for (size_t i = 0 ; i < m*m ; i++) log_Q[i] = log(Q[i]);
+
+   block_viterbi(m, ChIP->nb, ChIP->size, log_Q, initp, jahmm->pem, path);
+   jahmm->path = path;
+
+   free(initp);
+   free(log_Q);
+
+   return jahmm;
 
 }
 
