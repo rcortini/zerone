@@ -1420,6 +1420,8 @@ test_zinm_prob
    // Test the warning message.
    test_assert_stderr("warning: renormalizing 'p'\n");
 
+   free(ChIP);
+   jahmm->ChIP = NULL;
    destroy_jahmm_all(jahmm);
 
    return;
@@ -1561,6 +1563,24 @@ test_read_file
 }
 
 
+void
+test_eval_bw_f
+(void)
+//   double a,
+//   double pi,
+//   double p0,
+//   double A,
+//   double B,
+//   double C,
+//   double D,
+//   double E
+{
+   return;
+//   double term1 = (D + a*A) / p0;
+//   double term2 = B * pi*a*pow(p0,a-1) / (pi*pow(p0,a)+1-pi);
+//   return p0 + E/(term1 + term2) - 1.0 / C;
+}
+
 int
 main(
    int argc,
@@ -1597,370 +1617,11 @@ main(
       {"HMM/block_viterbi (NAs)", test_block_viterbi_NA},
       {"BaumWelch/update_trans", test_update_trans},
       {"BaumWelch/bw_zinm", test_bw_zinm},
-      {"read_file", test_read_file},
+      {"JAHMM/eval_bw_f", test_eval_bw_f},
+      {"JAHMM/read_file", test_read_file},
       {NULL, NULL}
    };
 
    return run_unittest(argc, argv, test_cases);
 
 }
-
-#if 0
-
-
-
-
-
-
-
-
-
-
-void
-test_mean
-(void)
-{
-
-   // -- First test case -- //
-   int yz_1[8] = {
-      1, 2,
-      3, 4,
-      5, 6,
-      7, 8,
-   };
-
-   g_assert_cmpfloat(mean(yz_1, 4, 2), ==, 4.0);
-   g_assert_cmpfloat(mean(yz_1+1, 4, 2), ==, 5.0);
-
-   // -- Second test case -- //
-   int NA = (int) log(-1);
-   int yz_2[8] = {
-       1, NA,
-       3, NA,
-      NA, NA,
-       8, NA,
-   };
-
-   g_assert_cmpfloat(mean(yz_2, 4, 2), ==, 4.0);
-   g_assert_cmpfloat(mean(yz_2+1, 4, 2), !=, mean(yz_2+1, 4, 2));
-
-}
-
-void
-test_histsum
-(void)
-{
-
-   // -- First test case -- //
-   int yz_1[8] = {
-      1, 3,
-      2, 2,
-      3, 1,
-      4, 0,
-   };
-
-   int expected_hist_1[5] = {0,0,0,0,4};
-   int *hist_1 = histsum(yz_1, 4, 2);
-
-   for (int i = 0 ; i < 5 ; i++) {
-      g_assert_cmpint(hist_1[i], ==, expected_hist_1[i]);
-   }
-
-   free(hist_1);
-
-   // -- Second test case -- //
-   int yz_2[8] = {
-       1, -3,
-       2,  2,
-      -3, -1,
-       4,  0,
-   };
-
-   int expected_hist_2[5] = {0,0,0,0,2};
-   int *hist_2 = histsum(yz_2, 4, 2);
-
-   for (int i = 0 ; i < 5 ; i++) {
-      g_assert_cmpint(hist_2[i], ==, expected_hist_2[i]);
-   }
-
-   free(hist_2);
-
-   // -- Third test case -- //
-   int yz_3[8] = {
-       1, -3,
-       2, -2,
-      -3, -1,
-       0,  1024,
-   };
-   int *hist_3 = histsum(yz_3, 4, 2);
-
-   g_assert_cmpint(hist_3[1024], ==, 1);
-   for (int i = 0 ; i < 1024 ; i++) {
-      g_assert_cmpint(hist_3[i], ==, 0);
-   }
-
-   free(hist_3);
-
-}
-
-
-
-// -------------------------  mnmultinom.c ------------------------- //
-
-
-
-void
-test_perf_mnmultinom_prob
-(void)
-{
-   // -- Open input file (the code is hopelessly not portable) -- //
-   FILE *f = fopen("RXRA.txt", "r");
-
-   int n = 1031884;
-   int i = 0;
-
-   char seqname[32];
-   int *yz = malloc (3*n * sizeof(int));
-   memset(yz, (int) -1, 3*n * sizeof(int));
-
-   // `getline` is available because we define _GNU_SOURCE.
-   char *line = NULL;
-   size_t len = 0;
-   ssize_t read;
-   // Discard header (the 'if' turns off unused variable warnings).
-   if (getline(&line, &len, f));
-   while ((read = getline(&line, &len, f)) != -1) {
-      sscanf(line, "%s\t%d\t%d\t%d\n", seqname, 
-         yz+i, yz+i+1, yz+i+2);
-      i += 3;
-   }
-   free(line);
-   fclose(f);
-
-   // --               Run the performance test               -- //
-   int m = 3;
-   int r = 3;
-
-   double t = 0.91;
-   double a = 2.844083;
-
-   double p[12] = {
-      // transpose //
-      0.05155538, 0.75760266, 0.11489932, 0.07594263,
-      0.05066482, 0.74451597, 0.15030383, 0.05451538,
-      0.04539102, 0.66701779, 0.15180765, 0.13578353,
-   };
-   double q[12] = {
-      // transpose //
-      0.54836008, 0.38167944, 0.04426865, 0.02569183,
-      0.52542413, 0.36571515, 0.07734838, 0.03151234,
-      0.47888700, 0.33332350, 0.16109890, 0.02669060,
-   };
-   double Q[9] = {
-      // transpose //
-      0.8712810672, 0.0004510562, 0.4013737724,
-      0.0016887750, 0.9669194640, 0.3386870900,
-      0.1270301600, 0.0326294800, 0.2599391400,
-   };
-   double init[3] = {.33333, .33333, .33333};
-   double trans[9];
-
-   int *index = malloc(n * sizeof(int));
-   double *pem = malloc(n*m * sizeof(double));
-   double *phi = malloc(n*m * sizeof(double));
-   indexts(n, r, (const int *) yz, index);
-
-   int out = 0;
-   double ll;
-   int nblocks = 24;
-   int size[24] = {
-      83083, 45178, 45002, 44617, 38389, 35783, 34177,
-      30118, 27065, 26025, 19709, 81066, 21008, 16043,
-      17101, 66007, 63718, 60305, 57038, 53046, 48788,
-      47071, 51756, 19791,
-   };
-   redirect_stderr_to(error_buffer);
-   mnmultinom_prob(&m, &n, &r, yz, &t, &a, p, q, index, &out, pem);
-   block_fwdb(&m, &nblocks, size, Q, init, pem, phi, trans, &ll);
-   unredirect_sderr();
-
-   free(yz);
-   free(index);
-   free(pem);
-   free(phi);
-
-}
-
-void
-test_params
-(void)
-{
-
-   const int m = 3;
-   const int r = 3;
-
-   double Q[9] = {
-      0.970078, 0.007204, 0.025482,
-      0.010285, 0.961420, 0.017606,
-      0.019637, 0.031376, 0.956912,
-   };
-   double p[12] = {
-      .0548, .8062, .1304, .0086,
-      .0459, .6758, .1569, .1214,
-      .0399, .5865, .2199, .1537,
-   };
-   double q[12] = {
-      .5331, .3711, .0611, .0347,
-      .5387, .3750, .0245, .0618,
-      .4807, .3345, .0933, .0915,
-   };
-
-   // Test `params_new`.
-   params *par = params_new(m, r);
-   params *try = params_new(m, r);
-   g_assert(par != NULL);
-   g_assert(try != NULL);
-   g_assert_cmpint(par->m, ==, m);
-   g_assert_cmpint(par->r, ==, r);
-   g_assert_cmpint(try->m, ==, m);
-   g_assert_cmpint(try->r, ==, r);
-
-   // Test `params_set`.
-   params_set(par, 0.9172, 2.8440, Q, p, q);
-   g_assert_cmpfloat(par->t, ==, 0.9172);
-   g_assert_cmpfloat(par->a, ==, 2.8440);
-   for (int i = 0 ; i < m*m ; i++) g_assert(par->Q[i] == Q[i]);
-   for (int i = 0 ; i < m*(r+1) ; i++) {
-      g_assert_cmpfloat(par->p[i], ==, p[i]);
-      g_assert_cmpfloat(par->q[i], ==, q[i]);
-   }
-
-   // Test `params_cpy`.
-   params_cpy(try, par);
-   g_assert_cmpfloat(try->t, ==, 0.9172);
-   g_assert_cmpfloat(try->a, ==, 2.8440);
-   for (int i = 0 ; i < m*m ; i++) {
-      g_assert_cmpfloat(try->Q[i], ==, Q[i]);
-   }
-   for (int i = 0 ; i < m*(r+1) ; i++) {
-      g_assert_cmpfloat(try->p[i], ==, p[i]);
-      g_assert_cmpfloat(try->q[i], ==, q[i]);
-   }
-   
-   // Test `params_change`.
-   for (int i = 0 ; i < 262144 ; i++) {
-      params_change(try, par, i % 3);
-      for (int j = 0 ; j < m ; j++) {
-         double sumQ = 0.0;
-         for (int k = 0 ; k < m ; k++) {
-            sumQ += try->Q[j+k*m];
-            g_assert_cmpfloat(try->Q[j+k*m], <, 1);
-            g_assert_cmpfloat(try->Q[j+k*m], >, 0);
-         }
-         g_assert_cmpfloat(fabs(sumQ - 1.0), <, 1e-6);
-         double sump = 0.0;
-         double sumq = 0.0;
-         for (int k = 0 ; k < r+1 ; k++) {
-            sump += try->p[k+j*(r+1)];
-            sumq += try->q[k+j*(r+1)];
-            g_assert_cmpfloat(try->p[k+j*(r+1)], <, 1);
-            g_assert_cmpfloat(try->p[k+j*(r+1)], >, 0);
-            g_assert_cmpfloat(try->q[k+j*(r+1)], <, 1);
-            g_assert_cmpfloat(try->q[k+j*(r+1)], >, 0);
-         }
-         g_assert_cmpfloat(fabs(sump - 1.0), <, 1e-6);
-         g_assert_cmpfloat(fabs(sumq - 1.0), <, 1e-6);
-      }
-   }
-
-   params_destroy(try);
-   params_destroy(par);
-
-   return;
-
-}
-
-void
-test_loglik
-(void)
-{
-
-   int m = 3;
-   int n = 6;
-   int r = 3;
-
-   double t = 0.8;
-   double a = 1.2;
-
-   double Q[9] = {
-      // transpose //
-      0.7, 0.1, 0.9,
-      0.2, 0.5, 0.1,
-      0.1, 0.4, 0.0,
-   };
-
-   // 'C1' and 'C2' simplify the definition of 'p' and 'q'.
-   double C1 = 0.7692308;
-   double C2 = 2.5000000;
-   double p[12] = {
-      C1/(C1+3.0), 1.0/(C1+3.0), 1.0/(C1+3.0), 1.0/(C1+3.0), 
-      C1/(C1+4.0), 1.0/(C1+4.0), 2.0/(C1+4.0), 1.0/(C1+4.0),
-      C1/(C1+1.3), 1.0/(C1+1.3), 0.2/(C1+1.3), 0.1/(C1+1.3),
-   };
-   double q[12] = {
-      C2/(C2+3.0),   1.0/(C2+3.0),   1.0/(C2+3.0),   1.0/(C2+3.0), 
-      C2/(C2+4.0),   1.0/(C2+4.0),   2.0/(C2+4.0),   1.0/(C2+4.0),
-      // This line is not properly normalized. It should
-      // trigger a warning but not cause failure.
-      C2/(C2+1.3)*2, 1.0/(C2+1.3)*2, 0.2/(C2+1.3)*2, 0.1/(C2+1.3)*2,
-   };
-
-   params *par = params_new(m, r);
-   params_set(par, t, a, Q, p, q);
-
-   int yz[18] = {
-         1, 2, 2,
-         0, 4, 2,
-         1, 2, 2,
-         1, 2, 0,
-         // Underflow (should give 0.0).
-      1500, 1, 2,
-         // Negative values (should give NA).
-        -1, 4, 2,
-   };
-
-   int index[6] = {-1,-1,-1,-1,-1,-1};
-   double pem[18];
-   indexts(n, r, (const int *) yz, index);
-
-   redirect_stderr_to(error_buffer);
-   double ll = loglik(n, par, yz, index, pem);
-   unredirect_sderr();
-
-   double expected_ll = -1135.57472829;
-   double expected_alpha[18] = {
-      // Checked manually.
-          0.502683584781,  0.489600586793,  0.007715828424,
-          0.278067313112,  0.721741573153,  0.000191113733,
-          0.394077474900,  0.598752057680,  0.007170467419,
-          0.322075687622,  0.561610874783,  0.116313437595,
-          0.000000000000,  0.000000000000,  1.000000000000,
-          0.900000000000,  0.100000000000,  0.000000000000,
-   };   
-
-   char expected_warning[] = "fill the buffer";
-
-   g_assert_cmpfloat(abs(ll - expected_ll), <, 1e-6);
-
-   for (int i = 0 ; i < 18 ; i++) {
-      g_assert_cmpfloat(fabs(expected_alpha[i] - pem[i]), <, 1e-6);
-   }
-
-   // Test the warning message.
-   g_assert_cmpstr(error_buffer, ==, expected_warning);
-
-   params_destroy(par);
-
-   return;
-}
-#endif

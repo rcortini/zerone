@@ -58,6 +58,11 @@ do_jahmm
 
    free(ctrl);
 
+#ifndef NDEBUG
+fprintf(stderr, "a: %f\n", z->a);
+fprintf(stderr, "pi: %f\n", z->pi);
+#endif
+
    double *Q = malloc(m*m * sizeof(double));
    double *p = malloc(m*(r+1) * sizeof(double));
    if (Q == NULL || p == NULL) {
@@ -118,9 +123,8 @@ is_invalid
           int   r
 )
 // SYNOPSIS:                                                              
-//   Helper function for `zinm_prob`. NAs of type 'int' is the largest
-//   negative value. More generally, any negative value in 'y' is
-//   invalid.                                     
+//   Helper function. NAs of type 'int' is the largest negative
+//   value. More generally, any negative value in 'y' is invalid.                                     
 {
    for (int i = 0 ; i < r ; i++) if (y[i + k*r] < 0) return 1;
    return 0;
@@ -580,7 +584,11 @@ bw_zinm
    int i0 = indexts(n, r, y, index);
 
    // Start Baum-Welch cycles.
-   for (int iter = 0 ; iter < MAXITER ; iter++) {
+   for (int iter = 1 ; iter < MAXITER ; iter++) {
+
+#ifndef NDEBUG
+fprintf(stderr, "iter: %d\r", iter);
+#endif
 
       // Update emission probabilities and run the block
       // forward backward algorithm.
@@ -605,6 +613,8 @@ bw_zinm
                B += phi[i+k*m];
             }
             else {
+               // Skip invalid entries.
+               if (is_invalid(y, k, r)) continue;
                A += phi[i+k*m];
                D += phi[i+k*m] * y[0+k*r];
                for (size_t j = 1 ; j < r ; j++) {
@@ -681,6 +691,10 @@ bw_zinm
       memcpy(p, newp, m*(r+1) * sizeof(double));
 
    }
+
+#ifndef NDEBUG
+fprintf(stderr, "\n");
+#endif
 
    free(newp);
    free(prob);

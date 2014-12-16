@@ -306,9 +306,14 @@ mle_zinb
          double denom = dfdp*dgda - dfda*dgdp;
          double da = (f*dgdp - g*dfdp) / denom;
          double dp = (g*dfda - f*dgda) / denom;
+         // Maintain 'a' and 'p' in their domain of definition.
+         while (a+da < 0 || p+dp < 0 || p+dp > 1) {
+            da /= 2;
+            dp /= 2;
+         }
          f = eval_zinb_f(a+da, p+dp, nobs-z0, sum);
          g = eval_zinb_g(a+da, p+dp, tab);
-
+         // Backtrack if necessary.
          for (int j = 0 ; j < ZINM_MAXITER && f*f+g*g > grad ; j++) {
             da /= 2;
             dp /= 2;

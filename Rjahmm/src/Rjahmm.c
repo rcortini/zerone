@@ -102,6 +102,8 @@ jahmm_R_call
    PROTECT(P = allocVector(REALSXP, m*(r+1)));
    memcpy(REAL(P), jahmm->p, m*(r+1) * sizeof(double));
 
+   // FIXME: PHI and PEM are coded row-wise.
+   // The code below scrambles them completely.
    SEXP PHI;
    PROTECT(PHI = allocVector(REALSXP, m*n));
    memcpy(REAL(PHI), jahmm->phi, m*n * sizeof(double));
