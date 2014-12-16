@@ -38,7 +38,7 @@ struct jahmm_t {
 };
 
 void      bw_zinm(jahmm_t *);
-void      destroy_ChIP(ChIP_t *);
+void      destroy_jahmm_all(jahmm_t *);
 jahmm_t * do_jahmm(unsigned int, ChIP_t *);
 ChIP_t  * new_ChIP(unsigned int, unsigned int, int *,
             const unsigned int *);

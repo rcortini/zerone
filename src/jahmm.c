@@ -773,3 +773,25 @@ new_ChIP
    return new;
 
 }
+
+void
+destroy_jahmm_all
+(
+   jahmm_t * jahmm
+)
+{
+
+   if (jahmm->ChIP != NULL) {
+      if (jahmm->ChIP->y != NULL) free(jahmm->ChIP->y);
+      free(jahmm->ChIP);
+   }
+   if (jahmm->Q != NULL) free(jahmm->Q);
+   if (jahmm->p != NULL) free(jahmm->p);
+   if (jahmm->phi != NULL) free(jahmm->phi);
+   if (jahmm->pem != NULL) free(jahmm->pem);
+   if (jahmm->path != NULL) free(jahmm->path);
+   free(jahmm);
+
+   return;
+
+}
