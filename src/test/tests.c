@@ -1420,6 +1420,8 @@ test_zinm_prob
    // Test the warning message.
    test_assert_stderr("warning: renormalizing 'p'\n");
 
+   destroy_jahmm_all(jahmm);
+
    return;
 
 }
@@ -1482,6 +1484,10 @@ test_bw_zinm
    for (size_t i = 0 ; i < 4 ; i++) {
       test_assert(fabs(jahmm->Q[i] - expected_Q[i]) < 1e-6);
    }
+
+   free(ChIP);
+   jahmm->ChIP = NULL;
+   destroy_jahmm_all(jahmm);
 
    return;
 
@@ -1546,6 +1552,9 @@ test_read_file
    for (size_t i = 0 ; i < 15 ; i++) {
       test_assert(y[i] == expected_y[i]);
    }
+
+   free(ChIP->y);
+   free(ChIP);
 
    return;
 

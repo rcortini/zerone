@@ -1,2 +1,2 @@
 useDynLib(Rjahmm, jahmm_R_call)
-export(jahmm)
+export(jahmm, wig2jahmm, wig2df)

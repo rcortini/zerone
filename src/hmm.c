@@ -497,11 +497,15 @@ block_viterbi
       // Presence of NAs in 'init'.
       if (init[i] != init[i]) {
          fprintf(stderr, "invalid 'init' argument in '%s()'\n", __func__);
+         free(log_Q);
+         free(log_i);
          return -1;
       }
       // Log/lin consistency of 'init'.
       if ((init[i] >= 0) ^ args_in_lin_space) {
          fprintf(stderr, "mixed log/lin arguments in '%s()'\n", __func__);
+         free(log_Q);
+         free(log_i);
          return -1;
       }
 
@@ -513,11 +517,16 @@ block_viterbi
          // Presence of NAs in 'Q'.
          if (Q[i+j*m] != Q[i+j*m]) {
             fprintf(stderr, "invalid 'Q' argument in '%s()'\n", __func__);
+            free(log_Q);
+            free(log_i);
             return -1;
          }
          // Log/lin consistency of 'Q'.
          if ((Q[i+j*m] >= 0) ^ args_in_lin_space) {
-            fprintf(stderr, "mixed log/lin arguments in '%s()'\n", __func__);
+            fprintf(stderr, "mixed log/lin arguments in '%s()'\n",
+                  __func__);
+            free(log_Q);
+            free(log_i);
             return -1;
          }
          sum_Q += args_in_lin_space ? Q[i+j*m] : exp(Q[i+j*m]);
@@ -526,6 +535,8 @@ block_viterbi
       // Check that rows of 'Q' sum to 1.0.
       if (fabs(sum_Q - 1.0) > 1e-6) {
          fprintf(stderr, "'Q' is not stochastic in '%s()'\n", __func__);
+         free(log_Q);
+         free(log_i);
          return -1;
       }
 
@@ -534,6 +545,8 @@ block_viterbi
    // Check that 'init' sums to 1.0.
    if (fabs(sum_i - 1.0) > 1e-6) {
       fprintf(stderr, "'init' is not a probability in '%s()'\n", __func__);
+      free(log_Q);
+      free(log_i);
       return -1;
    }
 
@@ -543,6 +556,8 @@ block_viterbi
    double *log_p = malloc(n*m *sizeof(double));
    if (log_p == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      free(log_Q);
+      free(log_i);
       return 1;
    }
    if (args_in_lin_space) {
