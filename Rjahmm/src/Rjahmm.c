@@ -102,15 +102,19 @@ jahmm_R_call
    PROTECT(P = allocVector(REALSXP, m*(r+1)));
    memcpy(REAL(P), jahmm->p, m*(r+1) * sizeof(double));
 
-   // FIXME: PHI and PEM are coded row-wise.
-   // The code below scrambles them completely.
+   // For reason of cache-friendlyness, 'phi' and 'pem'
+   // are coded "row-wise". Since R objects are coded
+   // "column-wise" we neeed to disentangle them.
    SEXP PHI;
-   PROTECT(PHI = allocVector(REALSXP, m*n));
-   memcpy(REAL(PHI), jahmm->phi, m*n * sizeof(double));
-
    SEXP PEM;
+   PROTECT(PHI = allocVector(REALSXP, m*n));
    PROTECT(PEM = allocVector(REALSXP, m*n));
-   memcpy(REAL(PEM), jahmm->pem, m*n * sizeof(double));
+   for (size_t i = 0 ; i < n ; i++) {
+   for (size_t j = 0 ; j < m ; j++) {
+      REAL(PEM)[i+j*n] = jahmm->pem[j+i*m];
+      REAL(PHI)[i+j*n] = jahmm->phi[j+i*m];
+   }
+   }
 
    SEXP PATH;
    PROTECT(PATH = allocVector(INTSXP, n));
