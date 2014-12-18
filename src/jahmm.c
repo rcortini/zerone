@@ -27,7 +27,6 @@ nobs
 jahmm_t *
 do_jahmm
 (
-   unsigned int m,
    ChIP_t *ChIP
 )
 {
@@ -63,25 +62,28 @@ fprintf(stderr, "a: %f\n", z->a);
 fprintf(stderr, "pi: %f\n", z->pi);
 #endif
 
+   // Jahmm uses 3 states.
+   const unsigned int m = 3;
+
    double *Q = malloc(m*m * sizeof(double));
    double *p = malloc(m*(r+1) * sizeof(double));
    if (Q == NULL || p == NULL) {
       fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
       return NULL;
    }
-   // Set initial values of 'Q'.
-   for (size_t i = 0 ; i < m ; i++) {
-   for (size_t j = 0 ; j < m ; j++) {
-      Q[i+j*m] = (i == j) ? .95 : .05 / (m-1);
-   }
-   }
+   // Set initial values of 'Q'. Note that the transitions between
+   // extreme states are impossible.
+   double init_Q[] = {.95, .05, 0, .025, .95, .025, 0, .05, .95};
+   memcpy(Q, init_Q, m*m * sizeof(double));
+
    // Set initial values of 'p'. The are not normalize, but the
    // call to 'bw_zinm' will normalize them.
+   double init_const[3] = {1, 2, 10};
    for (size_t i = 0 ; i < m ; i++) {
       p[0+i*(r+1)] = z->p;
       p[1+i*(r+1)] = 1 - z->p;
       for (size_t j = 2 ; j < r+1 ; j++) {
-         p[j+i*(r+1)] = i + 0.5;
+         p[j+i*(r+1)] = init_const[i];
       }
    }
 
@@ -584,10 +586,10 @@ bw_zinm
    int i0 = indexts(n, r, y, index);
 
    // Start Baum-Welch cycles.
-   for (int iter = 1 ; iter < MAXITER ; iter++) {
+   for (jahmm->iter = 1 ; jahmm->iter < BW_MAXITER ; jahmm->iter++) {
 
 #ifndef NDEBUG
-fprintf(stderr, "iter: %d\r", iter);
+fprintf(stderr, "iter: %d\r", jahmm->iter);
 #endif
 
       // Update emission probabilities and run the block
@@ -596,7 +598,9 @@ fprintf(stderr, "iter: %d\r", iter);
       zinm_prob(jahmm, index, lin_space_no_warn, pem);
       jahmm->l = block_fwdb(m, nb, size, Q, prob, pem, phi, trans);
 
-      // Update 'Q'.
+      // Update 'Q'. Note that transitions from the extreme
+      // states are impossible.
+      trans[(m-1) + 0*m] = trans[0 + (m-1)*m] = 0.0;
       update_trans(m, Q, trans);
 
       // Update 'p'.
@@ -656,7 +660,7 @@ fprintf(stderr, "iter: %d\r", iter);
          }
 
          double new_p0 = (p0_lo + p0_hi) / 2;
-         for (int j = 0 ; j < JAHMM_MAXITER ; j++) {
+         for (int j = 0 ; j < BT_MAXITER ; j++) {
             p0 = (new_p0 < p0_lo || new_p0 > p0_hi) ?
                (p0_lo + p0_hi) / 2 : 
                new_p0;

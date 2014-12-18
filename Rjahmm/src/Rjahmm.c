@@ -5,10 +5,10 @@
 
 
 // Register the method 'jahmm_R_call()'.
-SEXP jahmm_R_call (SEXP, SEXP);
+SEXP jahmm_R_call (SEXP);
 
 R_CallMethodDef callMethods[] = {
-   {"jahmm_R_call", (DL_FUNC) &jahmm_R_call, 2},
+   {"jahmm_R_call", (DL_FUNC) &jahmm_R_call, 1},
    {NULL, NULL, 0},
 };
 
@@ -19,7 +19,6 @@ void R_init_jahmm(DllInfo *info) {
 SEXP
 jahmm_R_call
 (
-   SEXP nstates,
    SEXP Y
 )
 {
@@ -78,13 +77,15 @@ jahmm_R_call
    free(histo);
    free(tab);
 
-   unsigned int m = INTEGER(coerceVector(nstates, INTSXP))[0];
-   jahmm_t * jahmm = do_jahmm(m, ChIP);
+   jahmm_t * jahmm = do_jahmm(ChIP);
 
    if (jahmm == NULL) {
       Rprintf("Rjahmm error\n");
       return R_NilValue;
    }
+
+   // Jahmm uses 3 states.
+   const unsigned int m = 3;
 
    SEXP Q;
    PROTECT(Q = allocVector(REALSXP, m*m));
@@ -98,13 +99,19 @@ jahmm_R_call
    PROTECT(PI_ = allocVector(REALSXP, 1));
    *REAL(PI_) =  jahmm->pi;
 
+   // The parameters 'p' are coded "row-wise". Since R
+   // objects are coded "column-wise" we neeed to
+   // disentangle them.
    SEXP P;
    PROTECT(P = allocVector(REALSXP, m*(r+1)));
-   memcpy(REAL(P), jahmm->p, m*(r+1) * sizeof(double));
+   for (size_t i = 0 ; i < r+1 ; i++) {
+   for (size_t j = 0 ; j < m ; j++) {
+      REAL(P)[i+j*(r+1)], jahmm->p[j+i*m];
+   }
+   }
 
    // For reason of cache-friendlyness, 'phi' and 'pem'
-   // are coded "row-wise". Since R objects are coded
-   // "column-wise" we neeed to disentangle them.
+   // are also coded "row-wise".
    SEXP PHI;
    SEXP PEM;
    PROTECT(PHI = allocVector(REALSXP, m*n));

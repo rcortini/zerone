@@ -6,8 +6,8 @@
 #ifndef _JAHMM_HEADER
 #define _JAHMM_HEADER
 
-#define MAXITER 500
-#define JAHMM_MAXITER 25
+#define BW_MAXITER 100     // BW iterations //
+#define BT_MAXITER 20      // Backtrack iterations //
 #define TOLERANCE 1e-6
 
 struct ChIP_t;
@@ -35,11 +35,12 @@ struct jahmm_t {
    double        * pem;    // emission probs //
    double          l;      // log-likelihood //
    int           * path;   // Viterbi path //
+   int             iter;   // number of BW iterations //
 };
 
 void      bw_zinm(jahmm_t *);
 void      destroy_jahmm_all(jahmm_t *);
-jahmm_t * do_jahmm(unsigned int, ChIP_t *);
+jahmm_t * do_jahmm(ChIP_t *);
 ChIP_t  * new_ChIP(unsigned int, unsigned int, int *,
             const unsigned int *);
 jahmm_t * new_jahmm(unsigned int, ChIP_t *);
