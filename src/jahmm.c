@@ -57,11 +57,6 @@ do_jahmm
 
    free(ctrl);
 
-#ifndef NDEBUG
-fprintf(stderr, "a: %f\n", z->a);
-fprintf(stderr, "pi: %f\n", z->pi);
-#endif
-
    // Jahmm uses 3 states.
    const unsigned int m = 3;
 
@@ -71,27 +66,94 @@ fprintf(stderr, "pi: %f\n", z->pi);
       fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
       return NULL;
    }
-   // Set initial values of 'Q'. Note that the transitions between
-   // extreme states are impossible.
-   double init_Q[] = {.95, .05, 0, .025, .95, .025, 0, .05, .95};
-   memcpy(Q, init_Q, m*m * sizeof(double));
+   // Set initial values of 'Q'.
+   for (size_t i = 0 ; i < m ; i++) {
+   for (size_t j = 0 ; j < m ; j++) {
+      Q[i+j*m] = (i==j) ? .95 : .05/(m-1);
+   }
+   }
 
    // Set initial values of 'p'. The are not normalize, but the
    // call to 'bw_zinm' will normalize them.
-   double init_const[3] = {1, 2, 10};
    for (size_t i = 0 ; i < m ; i++) {
       p[0+i*(r+1)] = z->p;
       p[1+i*(r+1)] = 1 - z->p;
       for (size_t j = 2 ; j < r+1 ; j++) {
-         p[j+i*(r+1)] = init_const[i];
+         p[j+i*(r+1)] = i + 0.5;
       }
    }
 
    jahmm_t *jahmm = new_jahmm(m, ChIP);
+   if (jahmm == NULL) {
+      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      free(Q);
+      free(p);
+      return NULL;
+   }
    set_jahmm_par(jahmm, Q, z->a, z->pi, p);
+
+   free(Q);
+   free(p);
+
+   Q = jahmm->Q;
+   p = jahmm->p;
 
    // Run the Baum-Welch algorithm.
    bw_zinm(jahmm);
+
+   // Reorder the states in case they got scrambled.
+   // We use the value of p0 as a sort key.
+   int tmp, map[3] = {0,1,2};
+   if (p[0*(r+1)] < p[1*(r+1)]) { tmp = map[0]; map[0] = map[1]; map[1] = tmp; }
+   if (p[1*(r+1)] < p[2*(r+1)]) { tmp = map[1]; map[1] = map[2]; map[2] = tmp; }
+   if (p[0*(r+1)] < p[1*(r+1)]) { tmp = map[0]; map[0] = map[1]; map[1] = tmp; }
+
+   if (map[0] != 0 || map[1] != 1) {
+      // The states have beem scrambled. We need to reorder
+      // 'Q', 'p', 'phi' and 'pem'.
+      
+      double *phi = jahmm->phi;
+      double *pem = jahmm->pem;
+
+      double *Q_ = malloc(m*m * sizeof(double));
+      double *p_ = malloc(m*(r+1) * sizeof(double));
+      double *phi_ = malloc(m*n * sizeof(double));
+      double *pem_ = malloc(m*n * sizeof(double));
+      if (Q_ == NULL || p_ == NULL || phi_ == NULL || pem_ == NULL) {
+         // TODO: free everything
+         fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+         return NULL;
+      }
+
+      for (size_t j = 0 ; j < m ; j++) {
+      for (size_t i = 0 ; i < m ; i++) {
+         Q_[map[i]+map[j]*m] = Q[i+j*m];
+      }
+      }
+      memcpy(jahmm->Q, Q_, m*m * sizeof(double));
+
+      for (size_t j = 0 ; j < m ; j++) {
+      for (size_t i = 0 ; i < r+1 ; i++) {
+         p_[i+map[j]*(r+1)] = p[i+j*(r+1)];
+      }
+      }
+      memcpy(jahmm->p, p_, m*(r+1) * sizeof(double));
+
+      for (size_t j = 0 ; j < m ; j++) {
+      for (size_t i = 0 ; i < n ; i++) {
+         phi_[map[j]+i*m] = phi[j+i*m];
+         pem_[map[j]+i*m] = pem[j+i*m];
+      }
+      }
+      memcpy(jahmm->phi, phi_, m*n * sizeof(double));
+      memcpy(jahmm->pem, pem_, m*n * sizeof(double));
+
+      free(Q_);
+      free(p_);
+      free(phi_);
+      free(pem_);
+
+   }
 
    // Run the Viterbi algorithm.
    int *path = malloc(n * sizeof(int));
@@ -126,7 +188,7 @@ is_invalid
 )
 // SYNOPSIS:                                                              
 //   Helper function. NAs of type 'int' is the largest negative
-//   value. More generally, any negative value in 'y' is invalid.                                     
+//   value. More generally, any negative value in 'y' is invalid.
 {
    for (int i = 0 ; i < r ; i++) if (y[i + k*r] < 0) return 1;
    return 0;
@@ -598,9 +660,7 @@ fprintf(stderr, "iter: %d\r", jahmm->iter);
       zinm_prob(jahmm, index, lin_space_no_warn, pem);
       jahmm->l = block_fwdb(m, nb, size, Q, prob, pem, phi, trans);
 
-      // Update 'Q'. Note that transitions from the extreme
-      // states are impossible.
-      trans[(m-1) + 0*m] = trans[0 + (m-1)*m] = 0.0;
+      // Update 'Q'.
       update_trans(m, Q, trans);
 
       // Update 'p'.

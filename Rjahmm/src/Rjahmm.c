@@ -106,7 +106,7 @@ jahmm_R_call
    PROTECT(P = allocVector(REALSXP, m*(r+1)));
    for (size_t i = 0 ; i < r+1 ; i++) {
    for (size_t j = 0 ; j < m ; j++) {
-      REAL(P)[i+j*(r+1)], jahmm->p[j+i*m];
+      REAL(P)[j+i*m] = jahmm->p[i+j*(r+1)];
    }
    }
 
