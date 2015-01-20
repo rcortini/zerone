@@ -1,7 +1,8 @@
 SRC_DIR= src
 INC_DIR= src
+LIB_DIR= lib
 OBJECT_FILES= jahmm.o zinb.o hmm.o utils.o xxhash.o
-SOURCE_FILES= main.c
+SOURCE_FILES= main.c samread.c
 
 OBJECTS= $(addprefix $(SRC_DIR)/,$(OBJECT_FILES))
 SOURCES= $(addprefix $(SRC_DIR)/,$(SOURCE_FILES))
@@ -11,7 +12,7 @@ P= jahmm
 CC= gcc
 #CFLAGS= -std=gnu99 -g -Wall -O0
 CFLAGS= -std=gnu99 -g -Wall -O3
-LDLIBS= -lm
+LDLIBS= -lm -Llib -Wl,-rpath=lib -lhts -lsam
 
 all: $(P)
 

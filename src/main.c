@@ -1,16 +1,37 @@
 #include <stdio.h>
+#include "samread.h"
 #include "jahmm.h"
 
 int main(int argc, char **argv) {
 
-   FILE *inputf = fopen(argv[1], "r");
-   if (inputf == NULL) {
-      fprintf(stderr, "file not found: %s\n", argv[1]);
-      return 1;
+   int any_sam = 0, all_sam = 0;
+   for (int i = 1; i < argc; i++) {
+      if (is_sam(argv[i])) {
+         any_sam = 1;
+         all_sam += 1;
+      }
    }
 
-   ChIP_t *ChIP = read_file(inputf);
-   fclose(inputf);
+   ChIP_t *ChIP = NULL;
+   if (any_sam && !(all_sam == argc-1)) {
+      fprintf(stderr, "%s\n", "different file formats.");
+      return 1;
+
+   } else if (any_sam && (all_sam == argc-1)) {
+      int nfiles = 0;
+      char * samfiles[argc-1];
+      for (int i = 1; i < argc; i++) samfiles[nfiles++] = argv[i];
+      ChIP = read_sam(nfiles, samfiles);
+
+   } else if (argc == 2 && !any_sam) {
+      FILE *inputf = fopen(argv[1], "r");
+      if (inputf == NULL) {
+         fprintf(stderr, "file not found: %s\n", argv[1]);
+         return 1;
+      }
+      ChIP = read_file(inputf);
+      fclose(inputf);
+   }
 
    const unsigned int m = 2; // number of states.
    jahmm_t *jahmm = do_jahmm(m, ChIP);
