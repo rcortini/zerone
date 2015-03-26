@@ -40,7 +40,7 @@ struct jahmm_t {
 
 void      bw_zinm(jahmm_t *);
 void      destroy_jahmm_all(jahmm_t *);
-jahmm_t * do_jahmm(ChIP_t *);
+jahmm_t * do_jahmm(const unsigned int, ChIP_t *);
 ChIP_t  * new_ChIP(unsigned int, unsigned int, int *,
             const unsigned int *);
 jahmm_t * new_jahmm(unsigned int, ChIP_t *);

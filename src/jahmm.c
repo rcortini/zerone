@@ -27,6 +27,7 @@ nobs
 jahmm_t *
 do_jahmm
 (
+   const unsigned int m,
    ChIP_t *ChIP
 )
 {
@@ -56,9 +57,6 @@ do_jahmm
    }
 
    free(ctrl);
-
-   // Jahmm uses 3 states.
-   const unsigned int m = 3;
 
    double *Q = malloc(m*m * sizeof(double));
    double *p = malloc(m*(r+1) * sizeof(double));
