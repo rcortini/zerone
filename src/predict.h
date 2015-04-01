@@ -9,10 +9,10 @@
 #include <assert.h>
 #include "jahmm.h"
 
-#define NSV 129
-#define DIM 19
-#define GAMMA 0.015625
-#define RHO 0.276603236917580208587
+#define NSV 200
+#define DIM 18
+#define GAMMA 0.0625
+#define RHO 0.7399845397264748214639
 //#define NTESTS 946
 
 double * readmatrix(char *, int, int);

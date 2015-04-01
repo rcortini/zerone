@@ -134,9 +134,11 @@ predict
       kvals[i] = exp(-GAMMA * sum);
    }
 
-   // Black magick.
+   // Inner product between the kernelized test vector
+   // and the w hyperplane (here named coefs).
    double label = 0.0;
    for (int i = 0; i < NSV; i++) label += coefs[i] * kvals[i];
 
+   // Add the intercept term of the hyperplane before returning.
    return (label - RHO) > 0 ? 1 : -1;
 }

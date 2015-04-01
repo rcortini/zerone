@@ -10,8 +10,8 @@ INCLUDES= $(addprefix -I, $(INC_DIR))
 
 P= jahmm
 CC= gcc
-#CFLAGS= -std=gnu99 -g -Wall -O0
-CFLAGS= -std=gnu99 -g -Wall -O3
+CFLAGS= -std=gnu99 -g -Wall -O0
+#CFLAGS= -std=gnu99 -g -Wall -O3
 LDLIBS= -lm -Llib -Wl,-rpath=lib -lhts -lsam
 
 all: $(P)

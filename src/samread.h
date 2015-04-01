@@ -17,7 +17,7 @@ struct counter_t {
 typedef struct counter_t counter_t;
 
 int is_sam(const char * fn);
-ChIP_t * read_sam(int nfiles, char *fn[]);
+ChIP_t * read_sam(char *fn[], int nfiles);
 counter_t * read_count(const char * fn);
 void destroy_counter(counter_t * counter);
 
