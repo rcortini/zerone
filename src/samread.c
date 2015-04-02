@@ -13,8 +13,8 @@ is_sam
 ChIP_t *
 read_sam
 (
-   char * fn[],
-   int    nfiles
+            char * fn[],
+   unsigned int    nfiles
 )
 {
    // Build the counter_t's from which to build the final ChIP_t.
@@ -63,54 +63,10 @@ read_sam
       }
    }
 
-fprintf(stderr, "%s\n", "ok!");
-   ChIP_t * ChIP = new_ChIP(nfiles, nb, y, size);
-   free(size);
+   ChIP_t * ChIP = new_ChIP((unsigned int)nfiles, nb, y, size);
 
-   // Create ChIP_t and define the number of blocks.
-   //unsigned int nb = counters[0]->n_ref;
-   //ChIP_t * ChIP = malloc(sizeof(ChIP_t) + nb * sizeof(unsigned int));
-   //if (ChIP == NULL) {
-   //   fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-   //   return NULL;
-   //}
-   //ChIP->r = nfiles;
-   //ChIP->nb = nb;
-   //for (int i = 1; i < nfiles; i++) {
-   //   if (counters[i]->n_ref != ChIP->nb) {
-   //      fprintf(stderr, "%s\n", "files have discordant dimensions");
-   //      return NULL;
-   //   }
-   //}
-
-   // Define the size of each block.
-   //for (int i = 0; i < ChIP->nb; i++) {
-   //   ChIP->size[i] = counters[0]->n_bins[i];
-   //   for (int j = 1; j < nfiles; j++) {
-   //      if (counters[j]->n_bins[i] != ChIP->size[i]) {
-   //         fprintf(stderr, "%s\n", "files have discordant dimensions");
-   //         return NULL;
-   //      }
-   //   }
-   //}
-
-   // Build the observations vector.
-   //ChIP->y = malloc(ChIP->r * nobs(ChIP) * sizeof(int));
-   //if (ChIP->y == NULL) {
-   //   fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-   //   return NULL;
-   //}
-   //unsigned int offset = 0;
-   //for (int i = 0; i < ChIP->nb; i++) {
-   //   for (int j = 0; j < ChIP->size[i]; j++) {
-   //      for (int k = 0; k < nfiles; k++) {
-   //         ChIP->y[offset++] = counters[k]->bins[i][j];
-   //      }
-   //   }
-   //}
-
-fprintf(stderr, "%s\n", "5/5 finish read_sam");
    for (int i = 0; i < nfiles; i++) destroy_counter(counters[i]);
+   free(size);
 
    return ChIP;
 }
@@ -123,6 +79,7 @@ read_count
 {
    samfile_t * fp = samopen(fn, "r", NULL);
 
+   // Initialize counter_t.
    counter_t * counter = malloc(sizeof(counter_t));
    int32_t n_ref = fp->header->n_targets;
    counter->n_ref  = n_ref;
@@ -133,43 +90,31 @@ read_count
       return NULL;
    }
 
+   // Initialize bins of counter_t.
    for (int i = 0; i < n_ref; i++) {
       uint32_t tlen = fp->header->target_len[i];
       tlen = tlen / BIN_SIZE + (tlen % BIN_SIZE > 0);
       counter->n_bins[i] = tlen;
       counter->bins[i] = calloc(tlen, sizeof(int32_t));
+      if (counter->bins[i] == NULL) {
+         fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+         return NULL;
+      }
    }
 
-fprintf(stderr, "%s\n", "1/2 read_count");
+   // Count the number of alignments per bin.
    bam1_t * b;
    int bytesread;
    while((bytesread = samread(fp, (b = bam_init1()))) >= 0) {
-//fprintf(stderr, "%s:%d\n", "br", bytesread);
-      if (bytesread > 0) {
+      if (bytesread > 0 && b->core.tid != -1) {
          int32_t pos = b->core.pos / BIN_SIZE + (b->core.pos % BIN_SIZE > 0);
-//fprintf(stderr, "%s:%d\n", "pos", pos);
          counter->bins[b->core.tid][pos]++;
       }
       bam_destroy1(b);
    }
 
-//int bytesread;
-//do {
-//   bam1_t * b = bam_init1();
-//   bytesread = samread(fp, b);
-//   int32_t pos = b->core.pos / BIN_SIZE + (b->core.pos % BIN_SIZE > 0);
-//   counter->bins[b->core.tid][pos]++;
-//   bam_destroy1(b);
-//} while (bytesread >= 0);
-
-fprintf(stderr, "%s\n", "2/2 printing counter values");
-for (int i = 0; i < counter->n_ref; i++) {
-   for (int j = 0; j < counter->n_bins[i]; j++) {
-      fprintf(stderr, "%s:%d\n", "count", counter->bins[i][j]);
-   }
-}
-
    samclose(fp);
+
    return counter;
 }
 

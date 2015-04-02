@@ -3,6 +3,7 @@
 #include "samread.h"
 #include "jahmm.h"
 
+// Includes for SIGSEGV.
 #include <execinfo.h>
 #include <signal.h>
 
@@ -37,7 +38,7 @@ signal(SIGSEGV, SIGSEGV_handler);
 
    } else if (any_sam && all_sam) {
       char * samfiles[argc-1];
-      int nfiles = 0;
+      unsigned int nfiles = 0;
       for (int i = 1; i < argc; i++) samfiles[nfiles++] = argv[i];
       ChIP = read_sam(samfiles, nfiles);
 
@@ -53,13 +54,12 @@ signal(SIGSEGV, SIGSEGV_handler);
 
    const unsigned int m = 3; // number of states.
    jahmm_t *jahmm = do_jahmm(m, ChIP);
-   //fprintf(stderr, "now work...\n");
    if (jahmm == NULL) return 1;
 
-   for (size_t i = 0 ; i < nobs(ChIP) ; i++) {
-      fprintf(stdout, "%d\t%f\t%f\t%f\n", jahmm->path[i],
-            jahmm->phi[0+i*m], jahmm->phi[1+i*m], jahmm->phi[2+i*m]);
-   }
+   //for (size_t i = 0 ; i < nobs(ChIP) ; i++) {
+   //   fprintf(stdout, "%d\t%f\t%f\t%f\n", jahmm->path[i],
+   //         jahmm->phi[0+i*m], jahmm->phi[1+i*m], jahmm->phi[2+i*m]);
+   //}
 
    char * centerfn = "/home/pcusco/jahmm/classifier/SVM_18x1_center.csv";
    char * scalefn  = "/home/pcusco/jahmm/classifier/SVM_18x1_scale.csv";
@@ -74,7 +74,7 @@ signal(SIGSEGV, SIGSEGV_handler);
    double * feat = extractfeats(ChIP, jahmm);
    double * sfeat = zscale(feat, center, scale);
 
-   fprintf(stdout, "%d\n", predict(sfeat, sv, coefs));
+   fprintf(stdout, "prediction: %d\n", predict(sfeat, sv, coefs));
 
    free(center);
    free(scale);
@@ -82,11 +82,8 @@ signal(SIGSEGV, SIGSEGV_handler);
    free(coefs);
    free(feat);
    free(sfeat);
-
-   free(ChIP->y);
-   free(ChIP);
    
-   destroy_jahmm_all(jahmm);
+   destroy_jahmm_all(jahmm); // Also frees ChIP.
 
    return 0;
 }
