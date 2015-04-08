@@ -3,27 +3,9 @@
 #include "samread.h"
 #include "jahmm.h"
 
-// Includes for SIGSEGV.
-#include <execinfo.h>
-#include <signal.h>
-
-void SIGSEGV_handler(int sig) {
-   void *array[10];
-   size_t size;
-
-   // get void*'s for all entries on the stack
-   size = backtrace(array, 10);
-   
-   // print out all the frames to stderr
-   fprintf(stderr, "Error: signal %d:\n", sig);
-   backtrace_symbols_fd(array, size, STDERR_FILENO);
-   exit(1);
-}
-
 int main(int argc, char **argv) {
 
-signal(SIGSEGV, SIGSEGV_handler);
-
+   // Read files and build ChIP structure.
    int any_sam = 0;
    int all_sam = 1;
    for (int i = 1; i < argc; i++) {
@@ -52,15 +34,18 @@ signal(SIGSEGV, SIGSEGV_handler);
       fclose(inputf);
    }
 
+   // Do jahmm.
    const unsigned int m = 3; // number of states.
    jahmm_t *jahmm = do_jahmm(m, ChIP);
    if (jahmm == NULL) return 1;
 
-   //for (size_t i = 0 ; i < nobs(ChIP) ; i++) {
-   //   fprintf(stdout, "%d\t%f\t%f\t%f\n", jahmm->path[i],
-   //         jahmm->phi[0+i*m], jahmm->phi[1+i*m], jahmm->phi[2+i*m]);
-   //}
+    Print results (Viretbi path and phi matrix).
+   for (size_t i = 0 ; i < nobs(ChIP) ; i++) {
+      fprintf(stdout, "%d\t%f\t%f\t%f\n", jahmm->path[i],
+            jahmm->phi[0+i*m], jahmm->phi[1+i*m], jahmm->phi[2+i*m]);
+   }
 
+   // Quality control.
    char * centerfn = "/home/pcusco/jahmm/classifier/SVM_18x1_center.csv";
    char * scalefn  = "/home/pcusco/jahmm/classifier/SVM_18x1_scale.csv";
    char * svfn     = "/home/pcusco/jahmm/classifier/SVM_200x18_sv.csv";
@@ -74,7 +59,26 @@ signal(SIGSEGV, SIGSEGV_handler);
    double * feat = extractfeats(ChIP, jahmm);
    double * sfeat = zscale(feat, center, scale);
 
-   fprintf(stdout, "prediction: %d\n", predict(sfeat, sv, coefs));
+   char * advice = predict(sfeat, sv, coefs) >= 0 ? "accept" : "reject";
+   fprintf(stderr, "advice: %s discretization.\n", advice);
+
+//char * featsfn = "/home/pcusco/jahmm/classifier/SVM_946x18_features.csv";
+//char * labelsfn = "/home/pcusco/jahmm/classifier/SVM_946x1_labels.csv";
+//double * feats = readmatrix(featsfn, 946, DIM);
+//double * labels = readmatrix(labelsfn, 946, 1);
+//
+//int sum = 0;
+//for (int i = 0; i < 946; i++) {
+//   double * sfeat = zscale(&feats[i*DIM], center, scale);
+//   int p = predict(sfeat, sv, coefs);
+//   free(sfeat);
+//   if (p == -1) p = 0;
+//   if (p != (int)labels[i]) {
+//      sum++;
+//      fprintf(stderr, "%d:%d\n", (int)labels[i], p);
+//   }
+//}
+//fprintf(stderr, "sum: %d\n", sum);
 
    free(center);
    free(scale);
