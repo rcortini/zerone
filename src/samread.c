@@ -47,7 +47,7 @@ read_sam
    }
 
    // Build the observations vector.
-   int nobs;
+   int nobs = 0;
    for (int i = 0; i < nb; i++) nobs += size[i];
    int * y = malloc(nfiles * nobs * sizeof(int));
    if (y == NULL) {
@@ -81,11 +81,15 @@ read_count
 
    // Initialize counter_t.
    counter_t * counter = malloc(sizeof(counter_t));
+   if (counter == NULL) {
+      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      return NULL;
+   }
    int32_t n_ref = fp->header->n_targets;
    counter->n_ref  = n_ref;
    counter->n_bins = malloc(n_ref * sizeof(int32_t));
    counter->bins   = malloc(n_ref * sizeof(int32_t *));
-   if (counter == NULL || counter->n_bins == NULL || counter->bins == NULL) {
+   if (counter->n_bins == NULL || counter->bins == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
       return NULL;
    }

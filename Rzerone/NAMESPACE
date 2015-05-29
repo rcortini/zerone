@@ -1,0 +1,2 @@
+useDynLib(Rzerone, zerone_R_call)
+export(zerone, wig2zerone, wig2df)

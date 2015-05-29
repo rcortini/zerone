@@ -9,10 +9,15 @@ readmatrix
 )
 {
    FILE   * fp  = fopen(fn, "r");
+   if (fp == NULL) return NULL;
    size_t   n   = 512;
    char   * row = malloc(n * sizeof(size_t));
    int      eln = 0; // Element number in matrix.
    double * matrix = malloc(nrow * ncol * sizeof(double));
+   if (row == NULL || matrix == NULL) {
+      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      return NULL;
+   }
 
    int slen;
    while ((slen = getline(&row, &n, fp)) > 0) {
@@ -37,18 +42,18 @@ double *
 extractfeats
 (
    ChIP_t  * ChIP,
-   jahmm_t * jahmm
+   zerone_t * zerone
 )
 {
    double * feat = malloc(DIM * sizeof(double));
-   double * p = jahmm->p;
-   unsigned int m = jahmm->m;
+   double * p = zerone->p;
+   unsigned int m = zerone->m;
    unsigned int n = nobs(ChIP);
    unsigned int r = ChIP->r + 1;
 
    // Add the values of the transition matrix Q to the feature vector...
-   for (int i = 0; i < 6; i++) feat[i] = jahmm->Q[i];
-   
+   for (int i = 0; i < 6; i++) feat[i] = zerone->Q[i];
+
    // ...the min, max and mean values of the ratios between the values of p...
    double ummin = 1.0;
    double ubmin = 1.0;
@@ -87,14 +92,14 @@ extractfeats
    double meanphi[2] = { 0.0, 0.0 };
    for (int i = 1; i < m; i++) {
       for (int j = 0; j < n; j++) {
-         meanphi[i - 1] += jahmm->phi[j * m + i];
+         meanphi[i - 1] += zerone->phi[j * m + i];
       }
       feat[14 + i] = meanphi[i - 1] / n;
    }
 
    // ...and also the mean of the Viterbi path.
    double meanpath = 0.0;
-   for (int i = 0; i < n; i++) meanpath += jahmm->path[i];
+   for (int i = 0; i < n; i++) meanpath += zerone->path[i];
    feat[17] = meanpath / n;
 
    return feat;

@@ -1,7 +1,7 @@
 #include "predict.h"
 #include <stdio.h>
 #include "samread.h"
-#include "jahmm.h"
+#include "zerone.h"
 
 int main(int argc, char **argv) {
 
@@ -34,36 +34,40 @@ int main(int argc, char **argv) {
       fclose(inputf);
    }
 
-   // Do jahmm.
+   // Do zerone.
    const unsigned int m = 3; // number of states.
-   jahmm_t *jahmm = do_jahmm(m, ChIP);
-   if (jahmm == NULL) return 1;
+   zerone_t *zerone = do_zerone(ChIP);
+   if (zerone == NULL) return 1;
 
-    Print results (Viretbi path and phi matrix).
+   // Print results (Viretbi path and phi matrix).
    for (size_t i = 0 ; i < nobs(ChIP) ; i++) {
-      fprintf(stdout, "%d\t%f\t%f\t%f\n", jahmm->path[i],
-            jahmm->phi[0+i*m], jahmm->phi[1+i*m], jahmm->phi[2+i*m]);
+      fprintf(stdout, "%d\t%f\t%f\t%f\n", zerone->path[i],
+            zerone->phi[0+i*m], zerone->phi[1+i*m], zerone->phi[2+i*m]);
    }
 
    // Quality control.
-   char * centerfn = "/home/pcusco/jahmm/classifier/SVM_18x1_center.csv";
-   char * scalefn  = "/home/pcusco/jahmm/classifier/SVM_18x1_scale.csv";
-   char * svfn     = "/home/pcusco/jahmm/classifier/SVM_200x18_sv.csv";
-   char * coefsfn  = "/home/pcusco/jahmm/classifier/SVM_200x1_coefs.csv";
+   char * centerfn = "/home/pcusco/Zerone/classifier/SVM_18x1_center.csv";
+   char * scalefn  = "/home/pcusco/Zerone/classifier/SVM_18x1_scale.csv";
+   char * svfn     = "/home/pcusco/Zerone/classifier/SVM_200x18_sv.csv";
+   char * coefsfn  = "/home/pcusco/Zerone/classifier/SVM_200x1_coefs.csv";
 
    double * coefs  = readmatrix(coefsfn, NSV, 1);
    double * center = readmatrix(centerfn, DIM, 1);
    double * scale  = readmatrix(scalefn, DIM, 1);
    double * sv     = readmatrix(svfn, NSV, DIM);
+   if (coefs == NULL || center == NULL || scale == NULL || sv == NULL) {
+      fprintf(stderr, "could not read SVM file\n");
+      return 1;
+   }
 
-   double * feat = extractfeats(ChIP, jahmm);
+   double * feat = extractfeats(ChIP, zerone);
    double * sfeat = zscale(feat, center, scale);
 
    char * advice = predict(sfeat, sv, coefs) >= 0 ? "accept" : "reject";
    fprintf(stderr, "advice: %s discretization.\n", advice);
 
-//char * featsfn = "/home/pcusco/jahmm/classifier/SVM_946x18_features.csv";
-//char * labelsfn = "/home/pcusco/jahmm/classifier/SVM_946x1_labels.csv";
+//char * featsfn = "/home/pcusco/zerone/classifier/SVM_946x18_features.csv";
+//char * labelsfn = "/home/pcusco/zerone/classifier/SVM_946x1_labels.csv";
 //double * feats = readmatrix(featsfn, 946, DIM);
 //double * labels = readmatrix(labelsfn, 946, 1);
 //
@@ -75,8 +79,8 @@ int main(int argc, char **argv) {
 //   if (p == -1) p = 0;
 //   if (p != (int)labels[i]) {
 //      sum++;
-//      fprintf(stderr, "%d:%d\n", (int)labels[i], p);
 //   }
+//      fprintf(stdout, "%d:%d\n", (int)labels[i], p);
 //}
 //fprintf(stderr, "sum: %d\n", sum);
 
@@ -86,8 +90,8 @@ int main(int argc, char **argv) {
    free(coefs);
    free(feat);
    free(sfeat);
-   
-   destroy_jahmm_all(jahmm); // Also frees ChIP.
+
+   destroy_zerone_all(zerone); // Also frees ChIP.
 
    return 0;
 }

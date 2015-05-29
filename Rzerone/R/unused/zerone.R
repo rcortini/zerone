@@ -28,7 +28,7 @@ BaumWelch <- function(m, y, pi_, alpha, C, blocks, index,
    }
    # Assert that values are well-defined.
    if (any(p < .Machine$double.eps)) {
-      stop('p undefined: check input to jahmm')
+      stop('p undefined: check input to zerone')
    }
    p <- scale(p, center=FALSE, scale=colSums(p))
 
@@ -162,7 +162,7 @@ BaumWelch <- function(m, y, pi_, alpha, C, blocks, index,
 }
 
 
-jahmm <- function (data, PSO=FALSE, verbose=TRUE, threshold=0.08, ...) {
+zerone <- function (data, PSO=FALSE, verbose=TRUE, threshold=0.08, ...) {
 
 ###############################################
 #              OPTION PROCESSING              #

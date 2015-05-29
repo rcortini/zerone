@@ -7,7 +7,7 @@
 #include <string.h>
 #include <math.h> // Link with -lm
 #include <assert.h>
-#include "jahmm.h"
+#include "zerone.h"
 
 #define NSV 200
 #define DIM 18
@@ -16,6 +16,6 @@
 //#define NTESTS 946
 
 double * readmatrix(char *, int, int);
-double * extractfeats(ChIP_t *, jahmm_t *);
+double * extractfeats(ChIP_t *, zerone_t *);
 double * zscale(double *, double *, double *);
 int      predict(double *, double *, double *);

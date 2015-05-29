@@ -1,10 +1,10 @@
-wig2jahmm <- function (directory) {
-   fnames <- list.files(directory, pattern="\\.wig(\\.gz)?$")
-   # Look for "input" or "control" in file names to build the
-   # control profile.
-   inputs <- grep("(input|control)", fnames,
+wig2zerone <- function (directory) {
+   directory <- gsub("/$", "", directory)
+   fnames <- list.files(directory, pattern="\\.wig(\\.gz)?$", full.names=TRUE)
+   # Look for "input" or "control" in file names to build the control profile.
+   inputs <- grep("(input|control)", basename(fnames),
                  ignore.case=TRUE, value=TRUE)
-   targets <- grep("(input|control)", fnames,
+   targets <- grep("(input|control)", basename(fnames),
                    ignore.case=TRUE, value=TRUE, invert=TRUE)
 
    # Check that all files are present.
@@ -17,14 +17,15 @@ wig2jahmm <- function (directory) {
    # Read chromosome information from the first file.
    dfChrom <- wig2df(fnames[1], chrom_only=TRUE)
    # Read input control files and sum them into a single vector.
-   dfInputs <- rowSums(sapply(X=inputs, FUN=wig2df))
+   dfInputs <- rowSums(sapply(X=paste(directory, inputs, sep="/"), FUN=wig2df))
    # Read ChIP profiles and make a 'data.frame' out of them.
-   dfTargets <- data.frame(lapply(X=targets, FUN=wig2df))
+   dfTargets <- data.frame(lapply(X=paste(directory, targets, sep="/"),
+                                  FUN=wig2df))
    names(dfTargets) <- seq(length(dfTargets))
    dfAll <- data.frame(chrom=dfChrom, input=dfInputs, dfTargets)
 
-   write("Running jahmm...", stderr())
-   return(jahmm(dfAll))
+   write("Running zerone...", stderr())
+   return(zerone(dfAll))
 }
 
 wig2df <- function(fname, chrom_only=FALSE) {
@@ -46,8 +47,7 @@ wig2df <- function(fname, chrom_only=FALSE) {
       return(chromCol)
    } else {
       # Only keep the scores.
-      scores <- as.numeric(grep("^fixedStep", input,
-                              value=TRUE, invert=TRUE))
+      scores <- as.numeric(grep("^fixedStep", input, value=TRUE, invert=TRUE))
       return(scores)
    }
 }

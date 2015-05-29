@@ -1,17 +1,17 @@
 SRC_DIR= src
 INC_DIR= src
 LIB_DIR= lib
-OBJECT_FILES= jahmm.o zinb.o hmm.o utils.o xxhash.o
+OBJECT_FILES= zerone.o zinb.o hmm.o utils.o xxhash.o
 SOURCE_FILES= main.c samread.c predict.c
 
 OBJECTS= $(addprefix $(SRC_DIR)/,$(OBJECT_FILES))
 SOURCES= $(addprefix $(SRC_DIR)/,$(SOURCE_FILES))
 INCLUDES= $(addprefix -I, $(INC_DIR))
 
-P= jahmm
+P= zerone
 CC= gcc
-CFLAGS= -std=gnu99 -g -Wall -O0
-#CFLAGS= -std=gnu99 -g -Wall -O3
+#CFLAGS= -std=gnu99 -g -Wall -O0
+CFLAGS= -std=gnu99 -g -Wall -O3
 LDLIBS= -lm -Llib -Wl,-rpath=lib -lhts -lsam
 
 all: $(P)

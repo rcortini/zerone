@@ -4,7 +4,7 @@
 
 #include <string.h>
 #include "../lib/sam.h"
-#include "jahmm.h"
+#include "zerone.h"
 
 #define BIN_SIZE 300
 
@@ -16,9 +16,9 @@ struct counter_t {
 
 typedef struct counter_t counter_t;
 
-int is_sam(const char * fn);
-ChIP_t * read_sam(char *fn[], unsigned int nfiles);
+int         is_sam(const char * fn);
+ChIP_t    * read_sam(char *fn[], unsigned int nfiles);
 counter_t * read_count(const char * fn);
-void destroy_counter(counter_t * counter);
+void        destroy_counter(counter_t * counter);
 
 #endif
