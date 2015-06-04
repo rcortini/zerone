@@ -1,5 +1,5 @@
 *.o
-src/*.so
+*.so
 Rjahmm/src/*.so
 *swp
 *~

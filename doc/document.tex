@@ -1,0 +1,254 @@
+\documentclass{bioinfo}
+\copyrightyear{2015}
+\pubyear{2015}
+
+\begin{document}
+\firstpage{1}
+
+\title[ChIP-seq joint discretization with quality control]{Zerone: a ChIP-seq
+discretizer for multiple replicates with built-in quality control}
+\author[Cusc\'o \textit{et~al}]{Pol Cusc\'o\,$^{1,2}$ and Guillaume
+Filion\,$^{1,2}$\footnote{to whom correspondence should be addressed}}
+\address{$^{1}$Genome Architecture, Gene Regulation, Stem Cells and Cancer
+Programme, Centre for Genomic Regulation (CRG), Dr. Aiguader 88, 08003
+Barcelona, Spain.\\
+$^{2}$Universitat Pompeu Fabra (UPF), Barcelona, Spain.}
+
+\history{Received on XXXXX; revised on XXXXX; accepted on XXXXX}
+
+\editor{Associate Editor: XXXXXXX}
+
+\maketitle
+
+\begin{abstract} % max 150 words recommended
+
+\section{Motivation:}
+Chromatin immunoprecipitation followed by high-throughput sequencing (ChIP-seq)
+is the standard method to investigate chromatin protein composition. As the
+number of community-available ChIP-seq profiles increases, it becomes more
+common to use data from different sources, which makes joint analysis
+challenging. Issues such as lack of reproducibility, heterogeneous quality and
+conflicts between replicates become evident when comparing datasets, especially
+when they are produced by different laboratories.
+
+\section{Results:}
+Here we present Zerone, a ChIP-seq discretizer with built-in quality control.
+Zerone is powered by a Hidden Markov Model (HMM) with zero-inflated negative
+multinomial emissions, which allows it to merge several replicates into a single
+discretized profile. To identify low quality or irreproducible data, we trained
+a Support Vector Machine (SVM) and integrated it as part of the discretization
+process. Zerone identified low quality data with 95\% accuracy. In terms of
+performance, Zerone is approximately 5 times faster than MACS for a similar
+accuracy.
+
+\section{Availability:}
+Zerone is available as a command line tool and as an R package. The C
+source code and R scripts can be downloaded from
+\href{https://github.com/gui11aume/jahmm}{https://github.com/gui11aume/jahmm}.
+
+\section{Contact:}
+\href{guillaume.filion@gmail.com}{guillaume.filion@gmail.com}
+\end{abstract}
+
+\section{Introduction}
+One of the major challenges of biology is to understand how transcription
+factors and chromatin proteins coordinate genome-dependent processes 
+such as transcription, replication and repair. Massive research efforts
+are invested into collecting protein-genome interaction data in order
+to gain insight into the organization of the genome as a whole. Chromatin
+immunoprecipitation followed by high throughput sequencing (ChIP-seq)
+emerged as the standard method to identify the targets of a transcription
+factor or a histone modification in a cell population. However, ChIP is not
+fully understood and artifacts are still discovered more than 10 years after
+its adoption \citep{pmid24349523, pmid24173036}. Besides, the constant
+improvement of sequencing technologies makes analysis of ChIP-seq profiles
+difficult to standardize. There is thus a continuous need to develop and
+improve computational tools to analyse ChIP-seq data.
+
+One of the most common analyses performed on ChIP-seq profiles is to
+discretize the signal, \textit{i.e.} make calls whether the feature is
+present or absent for every \textit{locus} of the genome. This may seem
+dubious at first glance because the biological reality is intrinsically
+quantitative, but there are several good reasons to discretize ChIP-seq
+profiles: it makes the signal simpler to interpret from the human
+perspective, it simplifies downstream analyses and it allows to compare or
+combine profiles of different features. The last point is particularly
+relevant for integrating protein-genome interaction data with 
+other types of data, such as gene expression or genome conformation to
+name a few. This raises a challenge at the computational level because
+discretization has to be carried out uniformly for signals that may
+have very different properties. For instance compare the begabase scale
+domains of Lamin \citep{pmid18463634} to the 6 bp binding sites of typical
+transcription factors.
+
+Large consortia such as ENCODE have brought to light a more severe type
+of issue related to the quality of ChIP-seq data. Conflicts between
+replicates are common, and
+sometimes laboratory effects are clearly detectable in the data,
+even when experimentalists use the same material and follow the same
+protocol (our unpublished observations). The most popular remedy is to
+use a metric called IDR (Irreproducible Discovery Rate \cite{li2011}),
+which allows to weed
+out poorly reproducible signal. This approach is a significant step
+forward, but the IDR is undefined when more than two replicates are
+available. Besides, keeping only the reproducible ChIP peaks is not always
+the best option, as when one of the replicates has very low quality for
+instance. In summary, how to integrate ChIP-seq data from different sources
+and with variable qualities is still an open problem.
+
+\section{Approach}
+Our strategy has two pillars. The first is a HMM with a robust multidimensional
+emission model called zero-inflated negative multinomial, which allows us to
+merge data from different sources while resolving conflicts by maximum
+likelihood. The second is the surprisingly simple idea of training a classifier
+on the discretized output to detect failures. This strategy is in no way limited
+to ChIP-seq discretization and it may inspire computational biologists working
+on different problems.
+
+\begin{methods}
+\section{Methods}
+
+\subsection{Datasets and preprocessing}
+We used all the ChIP-seq profiles produced by the ENCODE consortium on the human
+myelogenous leukemia cell line K562. We did not make use of preprocessed mapped
+reads because they could have been mapped with different software and could
+therefore disagree on its results \citep{Szalkowski2011}. Instead, we mapped all
+the raw reads onto the hg19 assembly of the human genome with GEM
+\citep{Marco-Sola2012}, using the options \texttt{--unique-mapping} and
+\texttt{-q ignore} of gem-mapper, version 1.376 (beta). The version of
+gem-indexer was 1.423 (beta). We preprocessed the data in the same
+way both for training the classifier and for benchmarking.
+
+For training the classifier, we binned the mapped reads into 300~bp windows and
+saved the data in WIG format before discretization.
+
+For comparing Zerone against other discretizers, we analyzed three different
+ChIP-seq datasets ---CCCTC-binding factor (CTCF), tri-methylated histone H3 at
+lysine 36 (H3K36me3) and RNA polymerase II (Pol II)--- that represent punctate,
+broad and mixed type signals respectively.
+
+\subsection{Emission model}
+%Describe the emission model and justify its choicebased on the observed
+%distribution of reads along the genome in ChIP-seq experiments.
+%describe how the model integrates data into a single discretized profile, give
+%a few examples.
+
+\subsection{Classifier training}
+After the analysis, Zerone returns information about the learned model, such as
+the estimated transition matrix, Viterbi path, and phi and p matrices. These
+features differ depending on the quality of the discretization and therefore we
+used them for training a SVM \citep{e1071}.
+
+We built a dataset composed of 91 positive and 53 negative manually selected
+discretizations that the classifier should accept or discard, respectively.
+For these positive and negative examples, we discretized experimental replicates
+together with their respective input control, and subsequently decided whether
+the discretizations were correct based on literature about the studied proteins.
+We also included in the dataset a number of aberrant negative examples obtained
+by discretizing false replicates (\emph{i.e.} profiles that were not replicates
+from one another but came from two different proteins, and should therefore
+disagree on which were the enriched loci) and flat profiles (\emph{i.e.} input
+profiles that were passed to Zerone as target profiles and should not contain
+real enrichments at all).
+
+We trained the SVM and selected the hyperparameters that maximized the
+prediction performance on test sets using a 10-fold cross-validation scheme. We
+then implemented a prediction function in Zerone that used the model trained by
+the SVM to classify the discretizations and suggest whether they could be
+accepted or should be discarded.
+
+% RESULTS: Performance on test sets (around 95% on 10-fold cross-validation)
+% RESULTS:  describe the shapes of the data???
+% Implementation of prediction function inside Zerone
+
+\subsection{Benchmark conditions}
+We benchmarked Zerone against several other ChIP-seq discretizers: MACS
+\citep{Zhang2008}, HPeak \citep{Qin2010}, ZINBA \citep{Rashid2011} and
+JAMM \citep{Ibrahim2014}. We chose to include MACS because it is the
+\emph{de facto} standard method for peak calling; HPeak because, as Zerone, it
+also makes use of a HMM to estimate the regions of enrichment; ZINBA because it
+assumes a similar read distribution, namely a zero-inflated negative binomial;
+and JAMM because it can perform joint analysis on experimental replicates.
+
+All the tests were performed on a 8-core Intel Xeon E5606 machine with 48~GB of
+DDR3-RAM at 1333~MHz.
+
+\end{methods}
+
+\section{Results}
+
+% give an example where using Zerone highlighted inconsistencies in published
+% ChIP-seq ENCODE data, allowing us to detect noisy and non-replicating profiles
+% that should be flagged as such.
+
+\subsection{Benchmark}
+Table \ref{Tab:perf} summarize the performace results of the analyses.
+
+\begin{table}[!t]
+\processtable{Performance comparison between discretizers.
+\label{Tab:perf}}
+{\begin{tabular}{lll}\toprule
+\bf{Software} & \bf{Version} & \bf{Time spent (s)} \\\midrule
+HPeak & 2.1 & row1 \\
+JAMM & 1.0.7 & row2 \\
+MACS & 2.1.0 & row3 \\ %MACS callpeak
+Zerone & 1.0 & row4 \\
+ZINBA & 2.02.03 & row5 \\\botrule
+\end{tabular}}{Footnote}
+\end{table}
+
+\section{Discussion and conclusion}
+
+\section*{Acknowledgement}
+
+\paragraph{Funding\textcolon}
+P.C. fellowship is partly financed by the Spanish Ministry of Economy and
+Competitiveness (State Training Subprogram: predoctoral fellowships for the
+training of PhD students (FPI) 2013).
+
+\bibliographystyle{natbib}
+\bibliography{document,e1071}
+
+\end{document}
+
+%\begin{equation}
+%\label{eq:01}
+%\sum x+ y =Z
+%\end{equation}
+
+%\begin{enumerate}
+%\item this is item, use enumerate
+%\item this is item, use enumerate
+%\item this is item, use enumerate
+%\end{enumerate}
+
+%\begin{itemize}
+%\item for bulleted list, use itemize
+%\item for bulleted list, use itemize
+%\item for bulleted list, use itemize
+%\end{itemize}
+
+%\begin{table}[!t]
+%\processtable{This is table caption\label{Tab:01}}
+%{\begin{tabular}{llll}\toprule
+%head1 & head2 & head3 & head4\\\midrule
+%row1 & row1 & row1 & row1\\
+%row2 & row2 & row2 & row2\\
+%row3 & row3 & row3 & row3\\
+%row4 & row4 & row4 & row4\\\botrule
+%\end{tabular}}{This is a footnote}
+%\end{table}
+
+%\begin{figure}[!tpb]%figure1
+%%\centerline{\includegraphics{fig01.eps}}
+%\caption{Caption, caption.}\label{fig:01}
+%\end{figure}
+%
+%\begin{figure}[!tpb]%figure2
+%%\centerline{\includegraphics{fig02.eps}}
+%\caption{Caption, caption.}\label{fig:02}
+%\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% please remove the " % " symbol from \centerline{\includegraphics{fig01.eps}}
+% as it may ignore the figures.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
