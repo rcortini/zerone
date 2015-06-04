@@ -1,23 +1,23 @@
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
-#include "../../src/jahmm.h"
+#include "../../src/zerone.h"
 
 
-// Register the method 'jahmm_R_call()'.
-SEXP jahmm_R_call (SEXP);
+// Register the method 'zerone_R_call()'.
+SEXP zerone_R_call (SEXP);
 
 R_CallMethodDef callMethods[] = {
-   {"jahmm_R_call", (DL_FUNC) &jahmm_R_call, 1},
+   {"zerone_R_call", (DL_FUNC) &zerone_R_call, 1},
    {NULL, NULL, 0},
 };
 
-void R_init_jahmm(DllInfo *info) {
+void R_init_zerone(DllInfo *info) {
    R_registerRoutines(info, NULL, callMethods, NULL, NULL);
 }
 
 SEXP
-jahmm_R_call
+zerone_R_call
 (
    SEXP Y
 )
@@ -29,7 +29,7 @@ jahmm_R_call
    // Get the values.
    int *y = malloc(n*r * sizeof(int));
    if (y == NULL) {
-      Rprintf("Rjahmm memory error %s:%d\n", __FILE__, __LINE__);
+      Rprintf("Rzerone memory error %s:%d\n", __FILE__, __LINE__);
       return R_NilValue;
    }
 
@@ -41,7 +41,7 @@ jahmm_R_call
    // Get the blocks.
    histo_t *histo = new_histo();
    if (histo == NULL) {
-      Rprintf("Rjahmm memory error %s:%d\n", __FILE__, __LINE__);
+      Rprintf("Rzerone memory error %s:%d\n", __FILE__, __LINE__);
       return R_NilValue;
    }
 
@@ -70,17 +70,17 @@ jahmm_R_call
 
    tab_t *tab = compress_histo(histo);
    if (tab == NULL) {
-      Rprintf("Rjahmm memory error %s:%d\n", __FILE__, __LINE__);
+      Rprintf("Rzerone memory error %s:%d\n", __FILE__, __LINE__);
       return R_NilValue;
    }
    ChIP_t *ChIP = new_ChIP(r, tab->size, y, tab->num);
    free(histo);
    free(tab);
 
-   jahmm_t * jahmm = do_jahmm(ChIP);
+   zerone_t * zerone = do_zerone(ChIP);
 
-   if (jahmm == NULL) {
-      Rprintf("Rjahmm error\n");
+   if (zerone == NULL) {
+      Rprintf("Rzerone error\n");
       return R_NilValue;
    }
 
@@ -89,15 +89,15 @@ jahmm_R_call
 
    SEXP Q;
    PROTECT(Q = allocVector(REALSXP, m*m));
-   memcpy(REAL(Q), jahmm->Q, m*m * sizeof(double));
+   memcpy(REAL(Q), zerone->Q, m*m * sizeof(double));
 
    SEXP A;
    PROTECT(A = allocVector(REALSXP, 1));
-   *REAL(A) =  jahmm->a;
+   *REAL(A) =  zerone->a;
 
    SEXP PI_;
    PROTECT(PI_ = allocVector(REALSXP, 1));
-   *REAL(PI_) =  jahmm->pi;
+   *REAL(PI_) =  zerone->pi;
 
    // The parameters 'p' are coded "row-wise". Since R
    // objects are coded "column-wise" we neeed to
@@ -106,7 +106,7 @@ jahmm_R_call
    PROTECT(P = allocVector(REALSXP, m*(r+1)));
    for (size_t i = 0 ; i < r+1 ; i++) {
    for (size_t j = 0 ; j < m ; j++) {
-      REAL(P)[j+i*m] = jahmm->p[i+j*(r+1)];
+      REAL(P)[j+i*m] = zerone->p[i+j*(r+1)];
    }
    }
 
@@ -118,18 +118,18 @@ jahmm_R_call
    PROTECT(PEM = allocVector(REALSXP, m*n));
    for (size_t i = 0 ; i < n ; i++) {
    for (size_t j = 0 ; j < m ; j++) {
-      REAL(PEM)[i+j*n] = jahmm->pem[j+i*m];
-      REAL(PHI)[i+j*n] = jahmm->phi[j+i*m];
+      REAL(PEM)[i+j*n] = zerone->pem[j+i*m];
+      REAL(PHI)[i+j*n] = zerone->phi[j+i*m];
    }
    }
 
    SEXP PATH;
    PROTECT(PATH = allocVector(INTSXP, n));
-   memcpy(INTEGER(PATH), jahmm->path, n * sizeof(int));
+   memcpy(INTEGER(PATH), zerone->path, n * sizeof(int));
 
    SEXP L;
    PROTECT(L = allocVector(REALSXP, 1));
-   *REAL(L) = jahmm->l;
+   *REAL(L) = zerone->l;
 
    SEXP dimQ;
    PROTECT(dimQ = allocVector(INTSXP, 2));
@@ -168,7 +168,7 @@ jahmm_R_call
 
    UNPROTECT(13);
 
-   destroy_jahmm_all(jahmm);
+   destroy_zerone_all(zerone);
 
    return RETLIST;
 

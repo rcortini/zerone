@@ -1,6 +1,5 @@
 *.o
 *.so
-Rjahmm/src/*.so
 *swp
 *~
 *.gcda

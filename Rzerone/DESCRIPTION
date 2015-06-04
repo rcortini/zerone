@@ -1,5 +1,5 @@
-Package: Rjahmm
-Title: Just Another HMM
+Package: Rzerone
+Title: A ChIP-seq discretizer with built-in quality control
 Version: 0.1-1
 Date: 2014-12-15
 Author: Guillaume Filion

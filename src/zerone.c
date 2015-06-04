@@ -1,4 +1,4 @@
-#include "jahmm.h"
+#include "zerone.h"
 
 void
 apologize
@@ -24,12 +24,13 @@ nobs
 }
 
 
-jahmm_t *
-do_jahmm
+zerone_t *
+do_zerone
 (
    ChIP_t *ChIP
 )
 {
+   const unsigned int m = 3;
 
    // Extract the dimensions of the observations.
    const unsigned int r = ChIP->r;
@@ -50,15 +51,12 @@ do_jahmm
 
    zinb_par_t *z = mle_zinb(ctrl, n);
    if (z == NULL) {
-      fprintf(stderr, "jahmm failure %s:%d\n", __FILE__, __LINE__);
+      fprintf(stderr, "zerone failure %s:%d\n", __FILE__, __LINE__);
       apologize();
       return NULL;
    }
 
    free(ctrl);
-
-   // Jahmm uses 3 states.
-   const unsigned int m = 3;
 
    double *Q = malloc(m*m * sizeof(double));
    double *p = malloc(m*(r+1) * sizeof(double));
@@ -83,23 +81,23 @@ do_jahmm
       }
    }
 
-   jahmm_t *jahmm = new_jahmm(m, ChIP);
-   if (jahmm == NULL) {
+   zerone_t *zerone = new_zerone(m, ChIP);
+   if (zerone == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
       free(Q);
       free(p);
       return NULL;
    }
-   set_jahmm_par(jahmm, Q, z->a, z->pi, p);
+   set_zerone_par(zerone, Q, z->a, z->pi, p);
 
    free(Q);
    free(p);
 
-   Q = jahmm->Q;
-   p = jahmm->p;
+   Q = zerone->Q;
+   p = zerone->p;
 
    // Run the Baum-Welch algorithm.
-   bw_zinm(jahmm);
+   bw_zinm(zerone);
 
    // Reorder the states in case they got scrambled.
    // We use the value of p0 as a sort key.
@@ -111,9 +109,9 @@ do_jahmm
    if (map[0] != 0 || map[1] != 1) {
       // The states have beem scrambled. We need to reorder
       // 'Q', 'p', 'phi' and 'pem'.
-      
-      double *phi = jahmm->phi;
-      double *pem = jahmm->pem;
+
+      double *phi = zerone->phi;
+      double *pem = zerone->pem;
 
       double *Q_ = malloc(m*m * sizeof(double));
       double *p_ = malloc(m*(r+1) * sizeof(double));
@@ -130,14 +128,14 @@ do_jahmm
          Q_[map[i]+map[j]*m] = Q[i+j*m];
       }
       }
-      memcpy(jahmm->Q, Q_, m*m * sizeof(double));
+      memcpy(zerone->Q, Q_, m*m * sizeof(double));
 
       for (size_t j = 0 ; j < m ; j++) {
       for (size_t i = 0 ; i < r+1 ; i++) {
          p_[i+map[j]*(r+1)] = p[i+j*(r+1)];
       }
       }
-      memcpy(jahmm->p, p_, m*(r+1) * sizeof(double));
+      memcpy(zerone->p, p_, m*(r+1) * sizeof(double));
 
       for (size_t j = 0 ; j < m ; j++) {
       for (size_t i = 0 ; i < n ; i++) {
@@ -145,8 +143,8 @@ do_jahmm
          pem_[map[j]+i*m] = pem[j+i*m];
       }
       }
-      memcpy(jahmm->phi, phi_, m*n * sizeof(double));
-      memcpy(jahmm->pem, pem_, m*n * sizeof(double));
+      memcpy(zerone->phi, phi_, m*n * sizeof(double));
+      memcpy(zerone->pem, pem_, m*n * sizeof(double));
 
       free(Q_);
       free(p_);
@@ -168,13 +166,13 @@ do_jahmm
    for (size_t i = 0 ; i < m ; i++) initp[i] = log(1.0/m);
    for (size_t i = 0 ; i < m*m ; i++) log_Q[i] = log(Q[i]);
 
-   block_viterbi(m, ChIP->nb, ChIP->size, log_Q, initp, jahmm->pem, path);
-   jahmm->path = path;
+   block_viterbi(m, ChIP->nb, ChIP->size, log_Q, initp, zerone->pem, path);
+   zerone->path = path;
 
    free(initp);
    free(log_Q);
 
-   return jahmm;
+   return zerone;
 
 }
 
@@ -186,7 +184,7 @@ is_invalid
           int   k,
           int   r
 )
-// SYNOPSIS:                                                              
+// SYNOPSIS:
 //   Helper function. NAs of type 'int' is the largest negative
 //   value. More generally, any negative value in 'y' is invalid.
 {
@@ -201,7 +199,7 @@ is_all_zero
          int   k,
          int   r
 )
-// SYNOPSIS:                                                              
+// SYNOPSIS:
 //   Helper function for `zinm_prob`. Returns 1 if and only if all
 //   the observations are 0.
 {
@@ -213,59 +211,59 @@ is_all_zero
 void
 zinm_prob
 (
-         jahmm_t * restrict jahmm,
+         zerone_t * restrict zerone,
    const int     * restrict index,
    // control //
          int                otype,
    // output //
          double  * restrict pem
 )
-// SYNOPSIS:                                                             
-//   Compute emission probabilities with a mixture negative multinomial  
-//   model. Since those are up to a multiplicative constant in the       
-//   forward-backward algorithm, we can drop the multiplicative terms    
-//   that do not depend on the state of the HMM.                         
-//   Since the negative nultinomial takes discrete values, we can cache  
-//   the results for reuse in order to save computation. This is done    
-//   by indexing the series.                                             
-//                                                                       
-//   My parametrization is of the form:                                  
-//                                                                       
-//        p_0(i)^a * p_1(i)^y_1 * p_2(i)^y_2 * ... * p_r+1(i)^y_r        
-//                                                                       
-//   And in the case that all emissions are 0                            
-//                                                                       
-//                      pi * p_0(i)^a + (1-pi)                           
-//                                                                       
-// NUMERICAL STABILITY:                                                  
-//   Each term of the sum above is computed in log space, the result is  
-//   the computed as the sum of two exponentials. NA emissions are       
-//   allowed and yield NA for the whole line of emissions.               
-//                                                                       
-// ARGUMENTS:                                                            
-//   'ChIP': struct of observations                                      
-//   'par': struct of parameters for the ZINM distribution               
-//   'index': a precomputed index of the ChIP data                       
-//   'otype': the type of output to produce (see below)                  
-//   'pem': (n_obs,n_states) emission probability                        
-//                                                                       
-// RETURN:                                                               
-//   'void'                                                              
-//                                                                       
-// SIDE EFFECTS:                                                         
-//   Update 'pem' in place.                                              
-//                                                                       
-// OUTPUT:                                                               
-//   The output type for 'pem' can be the emission probability in        
-//   log space (1), the same emission probability in linear space (2),   
-//   or in linear by default and in log space in case of underflow (0).  
-//   'otype' also controls the verbosity. If the third bit is set,       
-//   i.e. the value is set to 4, 5 or 6, the function will suppress      
-//   warnings. Setting the fourth bit of 'otype' forces to compute       
-//   the constant terms in emission probabilities.                       
+// SYNOPSIS:
+//   Compute emission probabilities with a mixture negative multinomial
+//   model. Since those are up to a multiplicative constant in the
+//   forward-backward algorithm, we can drop the multiplicative terms
+//   that do not depend on the state of the HMM.
+//   Since the negative nultinomial takes discrete values, we can cache
+//   the results for reuse in order to save computation. This is done
+//   by indexing the series.
+//
+//   My parametrization is of the form:
+//
+//        p_0(i)^a * p_1(i)^y_1 * p_2(i)^y_2 * ... * p_r+1(i)^y_r
+//
+//   And in the case that all emissions are 0
+//
+//                      pi * p_0(i)^a + (1-pi)
+//
+// NUMERICAL STABILITY:
+//   Each term of the sum above is computed in log space, the result is
+//   the computed as the sum of two exponentials. NA emissions are
+//   allowed and yield NA for the whole line of emissions.
+//
+// ARGUMENTS:
+//   'ChIP': struct of observations
+//   'par': struct of parameters for the ZINM distribution
+//   'index': a precomputed index of the ChIP data
+//   'otype': the type of output to produce (see below)
+//   'pem': (n_obs,n_states) emission probability
+//
+// RETURN:
+//   'void'
+//
+// SIDE EFFECTS:
+//   Update 'pem' in place.
+//
+// OUTPUT:
+//   The output type for 'pem' can be the emission probability in
+//   log space (1), the same emission probability in linear space (2),
+//   or in linear by default and in log space in case of underflow (0).
+//   'otype' also controls the verbosity. If the third bit is set,
+//   i.e. the value is set to 4, 5 or 6, the function will suppress
+//   warnings. Setting the fourth bit of 'otype' forces to compute
+//   the constant terms in emission probabilities.
 {
 
-   ChIP_t *ChIP = jahmm->ChIP;
+   ChIP_t *ChIP = zerone->ChIP;
    unsigned int temp = 0;
    for (size_t i = 0 ; i < ChIP->nb ; i++) {
       temp += ChIP->size[i];
@@ -273,10 +271,10 @@ zinm_prob
 
    const unsigned int   r  = ChIP->r;
    const int          * y  = ChIP->y;
-   const unsigned int   m  = jahmm->m;
-   const double         a  = jahmm->a;
-   const double         pi = jahmm->pi;
-   const double       * p  = jahmm->p;
+   const unsigned int   m  = zerone->m;
+   const double         a  = zerone->a;
+   const double         pi = zerone->pi;
+   const double       * p  = zerone->p;
    const unsigned int   n  = temp;
 
    char *depends   = "compute in lin space, log space if underflow";
@@ -405,7 +403,7 @@ read_file
 {
 
    ssize_t nread;
-   size_t nchar = 256; 
+   size_t nchar = 256;
    char *line = malloc(256 * sizeof(char));
    if (line == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
@@ -588,12 +586,12 @@ eval_bw_dfdp0
 void
 bw_zinm
 (
-   jahmm_t *jahmm   
+   zerone_t *zerone
 )
 {
 
    // Unpack parameters.
-   ChIP_t *ChIP = jahmm->ChIP;
+   ChIP_t *ChIP = zerone->ChIP;
    size_t temp = 0;
    for (size_t i = 0 ; i < ChIP->nb ; i++) {
       temp += ChIP->size[i];
@@ -601,22 +599,22 @@ bw_zinm
 
    // Constants.
    const size_t         n    = temp;
-   const size_t         m    = jahmm->m;
+   const size_t         m    = zerone->m;
    const size_t         r    = ChIP->r;
    const unsigned int   nb   = ChIP->nb;
    const unsigned int * size = ChIP->size;
    const int          * y    = ChIP->y;
-   const double         a    = jahmm->a;
-   const double         pi   = jahmm->pi;
-   const double         R    = (jahmm->p[1]) / jahmm->p[0];
+   const double         a    = zerone->a;
+   const double         pi   = zerone->pi;
+   const double         R    = (zerone->p[1]) / zerone->p[0];
 
    // Variables optimized by the Baum-Welch algorithm.
-   double *p = jahmm->p;
-   double *Q = jahmm->Q;
+   double *p = zerone->p;
+   double *Q = zerone->Q;
 
    // Check the input.
    for (size_t i = 1 ; i < m ; i++) {
-      double ratio = jahmm->p[1+i*(r+1)] /  jahmm->p[0+i*(r+1)];
+      double ratio = zerone->p[1+i*(r+1)] /  zerone->p[0+i*(r+1)];
       if (fabs(ratio - R) > 1e-3) {
          fprintf(stderr, "warning (%s): 'p' inconsistent\n", __func__);
       }
@@ -648,17 +646,17 @@ bw_zinm
    int i0 = indexts(n, r, y, index);
 
    // Start Baum-Welch cycles.
-   for (jahmm->iter = 1 ; jahmm->iter < BW_MAXITER ; jahmm->iter++) {
+   for (zerone->iter = 1 ; zerone->iter < BW_MAXITER ; zerone->iter++) {
 
 #ifndef NDEBUG
-fprintf(stderr, "iter: %d\r", jahmm->iter);
+fprintf(stderr, "iter: %d\r", zerone->iter);
 #endif
 
       // Update emission probabilities and run the block
       // forward backward algorithm.
       unsigned int lin_space_no_warn = 4;
-      zinm_prob(jahmm, index, lin_space_no_warn, pem);
-      jahmm->l = block_fwdb(m, nb, size, Q, prob, pem, phi, trans);
+      zinm_prob(zerone, index, lin_space_no_warn, pem);
+      zerone->l = block_fwdb(m, nb, size, Q, prob, pem, phi, trans);
 
       // Update 'Q'.
       update_trans(m, Q, trans);
@@ -689,7 +687,7 @@ fprintf(stderr, "iter: %d\r", jahmm->iter);
          for (size_t j = 1 ; j < r ; j++) {
             E += ystar[j];
          }
-         
+
          // Find upper and lower bound for 'p0'.
          double p0 = .5;
          double p0_lo;
@@ -699,13 +697,13 @@ fprintf(stderr, "iter: %d\r", jahmm->iter);
             while (eval_bw_f(a, pi, p0, A, B, C, D, E) < 0) p0 *= 2;
             p0_lo = p0/2;
             p0_hi = p0;
-         }   
+         }
          else {
             p0 /= 2;
             while (eval_bw_f(a, pi, p0, A, B, C, D, E) > 0) p0 /= 2;
             p0_lo = p0;
             p0_hi = p0*2;
-         }   
+         }
 
          if (p0_lo > 1.0 || p0_hi < 0.0) {
             fprintf(stderr, "cannot complete Baum-Welch algorithm\n");
@@ -722,14 +720,14 @@ fprintf(stderr, "iter: %d\r", jahmm->iter);
          double new_p0 = (p0_lo + p0_hi) / 2;
          for (int j = 0 ; j < BT_MAXITER ; j++) {
             p0 = (new_p0 < p0_lo || new_p0 > p0_hi) ?
-               (p0_lo + p0_hi) / 2 : 
+               (p0_lo + p0_hi) / 2 :
                new_p0;
             double f = eval_bw_f(a, pi, p0, A, B, C, D, E);
             if (f > 0) p0_hi = p0; else p0_lo = p0;
             if ((p0_hi - p0_lo) < TOLERANCE) break;
             double dfdp0 = eval_bw_dfdp0(a, pi, p0, A, B, C, D, E);
             new_p0 = p0 - f / dfdp0;
-         }   
+         }
 
          // Update the state-independent parameters.
          newp[0+i*(r+1)] = p0;
@@ -743,7 +741,7 @@ fprintf(stderr, "iter: %d\r", jahmm->iter);
          }
 
       }
-      
+
       // Check convergence
       double maxd = 0.0;
       for (size_t i = 0 ; i < m*(r+1) ; i++) {
@@ -767,21 +765,21 @@ fprintf(stderr, "\n");
 
    // Compute final emission probs in log space.
    unsigned int log_space_no_warn = 5;
-   zinm_prob(jahmm, index, log_space_no_warn, pem);
+   zinm_prob(zerone, index, log_space_no_warn, pem);
 
    free(index);
 
    // 'Q','p' and 'l' have been updated in-place.
-   jahmm->phi = phi;
-   jahmm->pem = pem;
+   zerone->phi = phi;
+   zerone->pem = pem;
 
    return;
 
 }
 
 
-jahmm_t *
-new_jahmm
+zerone_t *
+new_zerone
 (
    unsigned int   m,
    ChIP_t       * ChIP
@@ -791,7 +789,7 @@ new_jahmm
    if (ChIP == NULL) return NULL;
    unsigned int r = ChIP->r;
 
-   jahmm_t *new = calloc(1, sizeof(jahmm_t));
+   zerone_t *new = calloc(1, sizeof(zerone_t));
    double *newQ = malloc(m*m * sizeof(double));
    double *newp = malloc(m*(r+1) * sizeof(double));
    if (new == NULL || newQ == NULL || newp == NULL) return NULL;
@@ -807,22 +805,22 @@ new_jahmm
 
 
 void
-set_jahmm_par
+set_zerone_par
 (
-   jahmm_t      * jahmm,
-   double const * Q, 
+   zerone_t      * zerone,
+   double const * Q,
    double         a,
    double         pi,
    double const * p
 )
 {
 
-   const unsigned int m = jahmm->m;
-   const unsigned int r = jahmm->ChIP->r;
-   memcpy(jahmm->Q, Q, m*m * sizeof(double));
-   memcpy(jahmm->p, p, m*(r+1) * sizeof(double));
-   jahmm->a = a;
-   jahmm->pi = pi;
+   const unsigned int m = zerone->m;
+   const unsigned int r = zerone->ChIP->r;
+   memcpy(zerone->Q, Q, m*m * sizeof(double));
+   memcpy(zerone->p, p, m*(r+1) * sizeof(double));
+   zerone->a = a;
+   zerone->pi = pi;
 
    return;
 
@@ -853,22 +851,22 @@ new_ChIP
 }
 
 void
-destroy_jahmm_all
+destroy_zerone_all
 (
-   jahmm_t * jahmm
+   zerone_t * zerone
 )
 {
 
-   if (jahmm->ChIP != NULL) {
-      if (jahmm->ChIP->y != NULL) free(jahmm->ChIP->y);
-      free(jahmm->ChIP);
+   if (zerone->ChIP != NULL) {
+      if (zerone->ChIP->y != NULL) free(zerone->ChIP->y);
+      free(zerone->ChIP);
    }
-   if (jahmm->Q != NULL) free(jahmm->Q);
-   if (jahmm->p != NULL) free(jahmm->p);
-   if (jahmm->phi != NULL) free(jahmm->phi);
-   if (jahmm->pem != NULL) free(jahmm->pem);
-   if (jahmm->path != NULL) free(jahmm->path);
-   free(jahmm);
+   if (zerone->Q != NULL) free(zerone->Q);
+   if (zerone->p != NULL) free(zerone->p);
+   if (zerone->phi != NULL) free(zerone->phi);
+   if (zerone->pem != NULL) free(zerone->pem);
+   if (zerone->path != NULL) free(zerone->path);
+   free(zerone);
 
    return;
 

@@ -1,5 +1,5 @@
 #include "hmm.h"
-#include "jahmm.h"
+#include "zerone.h"
 #include "unittest.h"
 #include "utils.h"
 #include "zinb.h"
@@ -1331,8 +1331,8 @@ test_zinm_prob
    ChIP_t *ChIP = new_ChIP(m, 1, y, &n);
 
    double dummy[9] = {0};
-   jahmm_t *jahmm = new_jahmm(r, ChIP);
-   set_jahmm_par(jahmm, dummy, a, pi, p);
+   zerone_t *zerone = new_zerone(r, ChIP);
+   set_zerone_par(zerone, dummy, a, pi, p);
 
    int index[7] = {-1,-1,-1,-1,-1,-1,-1};
    double pem[21];
@@ -1341,7 +1341,7 @@ test_zinm_prob
    //--               Test output type 0               --//
    int out = 0;
    redirect_stderr();
-   zinm_prob(jahmm, index, out, pem);
+   zinm_prob(zerone, index, out, pem);
    unredirect_stderr();
 
    double expected_pem_1[21] = {
@@ -1368,7 +1368,7 @@ test_zinm_prob
    //--               Test output type 1               --//
    out = 1;
    redirect_stderr();
-   zinm_prob(jahmm, index, out, pem);
+   zinm_prob(zerone, index, out, pem);
    unredirect_stderr();
 
    double expected_pem_2[21] = {
@@ -1394,7 +1394,7 @@ test_zinm_prob
    //--               Test output type 2               --//
    out = 2;
    redirect_stderr();
-   zinm_prob(jahmm, index, out, pem);
+   zinm_prob(zerone, index, out, pem);
    unredirect_stderr();
 
    double expected_pem_3[21] = {
@@ -1421,8 +1421,8 @@ test_zinm_prob
    test_assert_stderr("warning: renormalizing 'p'\n");
 
    free(ChIP);
-   jahmm->ChIP = NULL;
-   destroy_jahmm_all(jahmm);
+   zerone->ChIP = NULL;
+   destroy_zerone_all(zerone);
 
    return;
 
@@ -1474,9 +1474,9 @@ test_bw_zinm
       .1612903, .1935484, .3225806, .3225806,
    };
    double Q[4] = { .8, .2, .2, .8 };
-   jahmm_t *jahmm = new_jahmm(2, ChIP);
-   set_jahmm_par(jahmm, Q, 3.4, 1.0, p);
-   bw_zinm(jahmm);
+   zerone_t *zerone = new_zerone(2, ChIP);
+   set_zerone_par(zerone, Q, 3.4, 1.0, p);
+   bw_zinm(zerone);
 
    double expected_Q[4] = {
       // transpose //
@@ -1484,12 +1484,12 @@ test_bw_zinm
       0.000000, 0.999999, 
    };
    for (size_t i = 0 ; i < 4 ; i++) {
-      test_assert(fabs(jahmm->Q[i] - expected_Q[i]) < 1e-6);
+      test_assert(fabs(zerone->Q[i] - expected_Q[i]) < 1e-6);
    }
 
    free(ChIP);
-   jahmm->ChIP = NULL;
-   destroy_jahmm_all(jahmm);
+   zerone->ChIP = NULL;
+   destroy_zerone_all(zerone);
 
    return;
 

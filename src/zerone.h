@@ -11,10 +11,10 @@
 #define TOLERANCE 1e-6
 
 struct ChIP_t;
-struct jahmm_t;
+struct zerone_t;
 
 typedef struct ChIP_t ChIP_t;
-typedef struct jahmm_t jahmm_t;
+typedef struct zerone_t zerone_t;
 
 
 struct ChIP_t {
@@ -24,7 +24,7 @@ struct ChIP_t {
    unsigned int    size[]; // size of the blocks //
 };
 
-struct jahmm_t {
+struct zerone_t {
    unsigned int    m;      // number of states //
    ChIP_t        * ChIP;   // observations //
    double        * Q;      // transitions //
@@ -38,16 +38,15 @@ struct jahmm_t {
    int             iter;   // number of BW iterations //
 };
 
-void      bw_zinm(jahmm_t *);
-void      destroy_jahmm_all(jahmm_t *);
-jahmm_t * do_jahmm(ChIP_t *);
-ChIP_t  * new_ChIP(unsigned int, unsigned int, int *,
-            const unsigned int *);
-jahmm_t * new_jahmm(unsigned int, ChIP_t *);
+void       bw_zinm(zerone_t *);
+void       destroy_zerone_all(zerone_t *);
+zerone_t * do_zerone(ChIP_t *);
+ChIP_t   * new_ChIP(unsigned int, unsigned int, int *, const unsigned int *);
+zerone_t * new_zerone(unsigned int, ChIP_t *);
 unsigned int nobs(const ChIP_t *);
-ChIP_t  * read_file(FILE *);
-void      set_jahmm_par(jahmm_t *, const double *, double,
-            double, const double *);
-void      update_trans(size_t, double *, const double *);
-void      zinm_prob(jahmm_t *, const int *, int, double *);
+ChIP_t   * read_file(FILE *);
+void       set_zerone_par(zerone_t *, const double *, double, double,
+                          const double *);
+void       update_trans(size_t, double *, const double *);
+void       zinm_prob(zerone_t *, const int *, int, double *);
 #endif
