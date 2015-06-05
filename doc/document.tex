@@ -72,14 +72,11 @@ dubious at first glance because the biological reality is intrinsically
 quantitative, but there are several good reasons to discretize ChIP-seq
 profiles: it makes the signal simpler to interpret from the human
 perspective, it simplifies downstream analyses and it allows to compare or
-combine profiles of different features. The last point is particularly
-relevant for integrating protein-genome interaction data with 
-other types of data, such as gene expression or genome conformation to
-name a few. This raises a challenge at the computational level because
-discretization has to be carried out uniformly for signals that may
-have very different properties. For instance compare the begabase scale
-domains of Lamin \citep{pmid18463634} to the 6 bp binding sites of typical
-transcription factors.
+combine profiles of different nature. This raises a challenge at the
+computational level because discretization has to be carried out uniformly
+for signals that may have very different properties. For instance compare
+the begabase scale domains of Lamin \citep{pmid18463634} to the 6 bp
+binding sites of typical transcription factors.
 
 Large consortia such as ENCODE have brought to light a more severe type
 of issue related to the quality of ChIP-seq data. Conflicts between
@@ -91,10 +88,35 @@ use a metric called IDR (Irreproducible Discovery Rate \cite{li2011}),
 which allows to weed
 out poorly reproducible signal. This approach is a significant step
 forward, but the IDR is undefined when more than two replicates are
-available. Besides, keeping only the reproducible ChIP peaks is not always
-the best option, as when one of the replicates has very low quality for
-instance. In summary, how to integrate ChIP-seq data from different sources
-and with variable qualities is still an open problem.
+available. Besides, keeping only the reproducible ChIP peaks is not
+always the best option, as when one of the replicates has very low quality
+for instance. In summary, how to integrate ChIP-seq data from different
+sources and with variable qualities is still an open problem.
+
+Here we propose an approach to discretize ChIP-seq data where conflict
+resolution and quality control are integrated in a tool that we called
+Zerone. The key idea of Zerone is to combine an arbitrary number of
+ChIP-seq replicates in a single discretized profile, where conflicts are
+resolved by maximizing the likelihood of the underlying statistical model.
+Following discretization, Zerone controls the quality of its output in
+order to detect potential anomalies, and when applicable rejects the
+output as a whole. Internally, the first step implements a Hidden Markov
+Model (HMM) with zero-inflated negative multinomial (ZINM) emissions, and
+the second implements a Support Vector Machine (SVM) trained using ENCODE
+ChIP-seq data. HMM-based discretization is agnostic to the shape of the
+signal (broad or peaky) and the ZINM distribution captures the essential
+features of the read count distribution in ChIP-seq data. These two
+properties provide a unified framework to discretize ChIP-seq data of
+different kinds.
+
+Zerone is designed for large volume pipelines aiming to combine many
+ChIP-seq profiles with little human intervention. To this end, it is
+compatible with the standard BAM and SAM formats \citep{pmid19505943},
+it produces congruent window-based outputs, and it can process hundreds
+of experiments per day on average hardware. We benchmarked Zerone against
+MACS \citep{pmid}, BayesPeak \citep{pmid} and JAMM \citep{pmid} on the core
+task of discretizing ChIP-seq profiles of CTCF, Pol2 and H3K36me3. Our
+results show that Zerone is competitive in terms of speed and accuracy.
 
 \section{Approach}
 Our strategy has two pillars. The first is a HMM with a robust multidimensional
