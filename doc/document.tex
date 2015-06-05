@@ -150,6 +150,18 @@ lysine 36 (H3K36me3) and RNA polymerase II (Pol II)--- that represent punctate,
 broad and mixed type signals respectively.
 
 \subsection{Emission model}
+It is natural to model the read counts in genomic windows by an unbounded
+discrete distribution. The Poisson distribution is an obvious candidate,
+but it is a poor choice because the variance of read counts is typically
+higher than the mean in ChIP-seq data. The reason is that windows are not
+homogeneous, which will increase the dispersion. More specifically, they
+are not equally PCR-prone and not equally mappable. The negative binomial
+distribution is thus a better choice because it allows some variations
+between windows. However, an additional issue is the repeated nature of
+genomes, which creates an excess of windows where reads cannot be mapped.
+Since these windows will always receive 0 reads, it is natural to model
+read counts as a zero-inflated negative binomial, \textit{i.e.} the mixture
+of a negative binomial distribution and a distribution concentrated at 0.
 %Describe the emission model and justify its choicebased on the observed
 %distribution of reads along the genome in ChIP-seq experiments.
 %describe how the model integrates data into a single discretized profile, give
