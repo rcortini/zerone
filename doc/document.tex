@@ -150,22 +150,55 @@ lysine 36 (H3K36me3) and RNA polymerase II (Pol II)--- that represent punctate,
 broad and mixed type signals respectively.
 
 \subsection{Emission model}
-It is natural to model the read counts in genomic windows by an unbounded
+It is natural to model read counts in genomic windows by an unbounded
 discrete distribution. The Poisson distribution is an obvious candidate,
 but it is a poor choice because the variance of read counts is typically
-higher than the mean in ChIP-seq data. The reason is that windows are not
-homogeneous, which will increase the dispersion. More specifically, they
+higher than the mean in ChIP-seq data. The reason is that windows are non
+homogeneous, which increases the dispersion. More specifically, windows
 are not equally PCR-prone and not equally mappable. The negative binomial
-distribution is thus a better choice because it allows some variations
-between windows. However, an additional issue is the repeated nature of
-genomes, which creates an excess of windows where reads cannot be mapped.
-Since these windows will always receive 0 reads, it is natural to model
-read counts as a zero-inflated negative binomial, \textit{i.e.} the mixture
-of a negative binomial distribution and a distribution concentrated at 0.
-%Describe the emission model and justify its choicebased on the observed
-%distribution of reads along the genome in ChIP-seq experiments.
-%describe how the model integrates data into a single discretized profile, give
-%a few examples.
+(NB) distribution is thus a better choice because it allows some variation
+between windows. However, genomes are fraught with repeats, which creates
+an excess of windows where reads cannot be mapped.  Since such windows
+will always have 0 read count, a natural choice for this distribution is
+the zero-inflated negative binomial (ZINB), \textit{i.e.} the mixture of
+a negative binomial distribution and a distribution concentrated at 0.
+
+The ZINB distribution has 3 parameters that can be fitted by maximum
+likelihood. Zerone uses a custom solver based on the Newton-Raphson
+method, which converges much faster than the popular routine
+\texttt{zeroinfl} from the R package \texttt{pscl} \citep{R}.
+Fig.~\ref{fig:ZINB_fit} shows that the ZINB distribution gives a better
+fit to ChIP-seq data than Poisson and NB distributions.
+
+\begin{figure}[!tpb]
+\centerline{\includegraphics[scale=0.55]{ZINB_fit.pdf}}
+% XX is wgEncodeSydhTfbsK562InputRawData.bed.gz %
+\caption{Using the ZINB distribution to model ChIP-seq data. Reads from
+the negative control dataset XX were mapped on the human genome and pooled
+in 300 bp windows after removing duplicates. The histogram of the read
+counts is shown in black (no immunoprecipitation was performed in this
+experiment, so this variation corresponds to the `baseline'). The
+histograms in gray scales show the maximum likelihood fit of the Poisson,
+Negative Binomial (NB) and Zero-Inflated Negative Binomial (ZINB)
+distributions. The fit of the Poisson distribution (light gray) is poor.
+The NB distribution (medium gray) gives a good fit at the tail, but not
+for windows with 0 and 1 read. The ZINB distribution (dark gray) gives
+a good fit over the whole range.
+}\label{fig:ZINB_fit}
+\end{figure}
+
+The NB distribution can be interpreted as a Gamma-Poisson process,
+which gives a straightforward extension to a multivariate
+distribution called the Negative Multinomial (NM) and to its
+corresponding zero-inflated version the Zero-Inflated Negative
+Multinomial (ZINM, see supplementary material for detail). In this model,
+windows have an intrinsic ChIP-seq bias due to their G+C content, 
+mappability and other inherent properties, which gives a baseline
+variation present in all ChIP-seq experiments performed in the same
+conditions. All the replicates of a ChIP-seq experiment can thus be
+combined with the negative controls in a single multivariate distribution
+with a number of paramters equal to $r+2$, where $r$ is the number of
+experiments.
 
 \subsection{Classifier training}
 After the analysis, Zerone returns information about the learned model, such as
