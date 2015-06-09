@@ -1,5 +1,7 @@
 #include "zerone.h"
 
+#define sq(x) ((x)*(x))
+
 void
 apologize
 (void)
@@ -402,7 +404,7 @@ read_file
 )
 {
 
-   ssize_t nread;
+   ssize_t nc;
    size_t nchar = 256;
    char *line = malloc(256 * sizeof(char));
    if (line == NULL) {
@@ -412,13 +414,13 @@ read_file
 
    // Count the lines of the file.
    size_t nobs = 0;
-   while ((nread = getline(&line, &nchar, inputf)) != -1) nobs++;
+   while ((nc = getline(&line, &nchar, inputf)) != -1) nobs++;
    rewind(inputf);
-   nobs--; // Discount the header.
+   nobs--; // Discard the header.
 
    // Read and parse the header separately.
-   nread = getline(&line, &nchar, inputf);
-   if (nread == -1) return NULL;
+   nc = getline(&line, &nchar, inputf);
+   if (nc == -1) return NULL;
 
    // Use the header to get the number of tokens 'ntok'.
 
@@ -430,21 +432,22 @@ read_file
 
    const size_t dim = k;
 
+   size_t hsz = 256;
+   unsigned int *histo = calloc(hsz, sizeof(int));
    int *y = malloc(nobs*dim * sizeof(int));
-   if (y == NULL) {
+   if (y == NULL || histo == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
       return NULL;
    }
 
-   histo_t *histo = new_histo();
    size_t current = -1;
    char prevblk[256] = {0};
    unsigned int lineno = 0;
 
-   for ( ; (nread = getline(&line, &nchar, inputf)) != -1 ; lineno++) {
+   for ( ; (nc = getline(&line, &nchar, inputf)) != -1 ; lineno++) {
 
       // Trim new line character.
-      if (line[nread-1] == '\n') line[nread-1] = '\0';
+      if (line[nc-1] == '\n') line[nc-1] = '\0';
 
       // Update block if needed.
       s = strchr(line, sep);
@@ -454,12 +457,21 @@ read_file
          return NULL;
       }
       *s = '\0';
+
       if (strcmp(line, prevblk) != 0) {
          strncpy(prevblk, line, 255);
          current++;
+         if (current >= hsz) {
+            hsz *= 2;
+            histo = realloc(histo, hsz * sizeof(int));
+            if (histo == NULL) {
+               fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+               return NULL;
+            }
+         }
       }
 
-      histo_push(&histo, current);
+      histo[current]++;
 
       // Gather values.
       char *e;
@@ -503,12 +515,7 @@ read_file
 
    free(line);
 
-   tab_t *tab = compress_histo(histo);
-   ChIP_t *ChIP = new_ChIP(dim, tab->size, y, tab->num);
-
-   free(histo);
-   free(tab);
-
+   ChIP_t *ChIP = new_ChIP(dim, current+1, y, histo);
    if (ChIP == NULL) return NULL;
    return ChIP;
 
