@@ -513,10 +513,12 @@ read_file
 
    }
 
-   free(line);
-
    ChIP_t *ChIP = new_ChIP(dim, current+1, y, histo);
    if (ChIP == NULL) return NULL;
+
+   free(histo);
+   free(line);
+
    return ChIP;
 
 }

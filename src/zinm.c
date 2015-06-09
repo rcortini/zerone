@@ -68,6 +68,12 @@ mle_nb
 {
 
    tab_t *tab = tabulate(x, nobs);
+   if (tab == NULL) {
+      fprintf(stderr, "error in %s(): %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return NULL;
+   }
+
    double a = nb_est_alpha(tab);
 
    // Return NULL if failed.
@@ -77,6 +83,7 @@ mle_nb
    zinb_par_t *par = calloc(1, sizeof(zinb_par_t));
    if (par == NULL) {
       fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
+      free(tab);
       return NULL;
    }
 
@@ -118,6 +125,11 @@ mle_zinb
 {
 
    tab_t *tab = tabulate(x, nobs);
+   if (tab == NULL) {
+      fprintf(stderr, "error in %s(): %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return NULL;
+   }
 
    double sum = 0.0;
    unsigned int nona = 0;
@@ -150,6 +162,7 @@ mle_zinb
    zinb_par_t *par = calloc(1, sizeof(zinb_par_t));
    if (par == NULL) {
       fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
+      free(tab);
       return NULL;
    }
 
@@ -515,7 +528,11 @@ tabulate
 {
 
    histo_t *histo = new_histo();
-   if (histo == NULL) return NULL;
+   if (histo == NULL) {
+      fprintf(stderr, "error in %s(): %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return NULL;
+   }
    for (size_t i = 0 ; i < nobs ; i++) {
       // Skip negative values (used for NA).
       if (x[i] < 0) continue;
