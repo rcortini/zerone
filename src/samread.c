@@ -111,7 +111,7 @@ read_count
    int bytesread;
    while((bytesread = samread(fp, (b = bam_init1()))) >= 0) {
       if (bytesread > 0 && b->core.tid != -1) {
-         int32_t pos = b->core.pos / BIN_SIZE + (b->core.pos % BIN_SIZE > 0);
+         int32_t pos = b->core.pos / BIN_SIZE;
          counter->bins[b->core.tid][pos]++;
       }
       bam_destroy1(b);
