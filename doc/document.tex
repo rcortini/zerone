@@ -52,7 +52,7 @@ source code and R scripts can be downloaded from
 
 \section{Introduction}
 One of the major challenges of biology is to understand how transcription
-factors and chromatin proteins coordinate genome-dependent processes 
+factors and chromatin proteins coordinate genome-dependent processes
 such as transcription, replication and repair. Massive research efforts
 are invested into collecting protein-genome interaction data in order
 to gain insight into the organization of the genome as a whole. Chromatin
@@ -75,7 +75,7 @@ perspective, it simplifies downstream analyses and it allows to compare or
 combine profiles of different nature. This raises a challenge at the
 computational level because discretization has to be carried out uniformly
 for signals that may have very different properties. For instance compare
-the begabase scale domains of Lamin \citep{pmid18463634} to the 6 bp
+the begabase scale domains of Lamin \citep{pmid18463634} to the 6~bp
 binding sites of typical transcription factors.
 
 Large consortia such as ENCODE have brought to light a more severe type
@@ -93,6 +93,7 @@ always the best option, as when one of the replicates has very low quality
 for instance. In summary, how to integrate ChIP-seq data from different
 sources and with variable qualities is still an open problem.
 
+%\section{Approach}
 Here we propose an approach to discretize ChIP-seq data where conflict
 resolution and quality control are integrated in a tool that we called
 Zerone. The key idea of Zerone is to combine an arbitrary number of
@@ -111,21 +112,13 @@ different kinds.
 
 Zerone is designed for large volume pipelines aiming to combine many
 ChIP-seq profiles with little human intervention. To this end, it is
-compatible with the standard BAM and SAM formats \citep{pmid19505943},
+compatible with the standard SAM and BAM formats \citep{pmid19505943},
 it produces congruent window-based outputs, and it can process hundreds
 of experiments per day on average hardware. We benchmarked Zerone against
-MACS \citep{pmid}, BayesPeak \citep{pmid} and JAMM \citep{pmid} on the core
+MACS \citep{pmid18798982}, BayesPeak \citep{pmid19772557} and
+JAMM \citep{pmid25223640} on the core
 task of discretizing ChIP-seq profiles of CTCF, Pol2 and H3K36me3. Our
 results show that Zerone is competitive in terms of speed and accuracy.
-
-\section{Approach}
-Our strategy has two pillars. The first is a HMM with a robust multidimensional
-emission model called zero-inflated negative multinomial, which allows us to
-merge data from different sources while resolving conflicts by maximum
-likelihood. The second is the surprisingly simple idea of training a classifier
-on the discretized output to detect failures. This strategy is in no way limited
-to ChIP-seq discretization and it may inspire computational biologists working
-on different problems.
 
 \begin{methods}
 \section{Methods}
@@ -134,9 +127,9 @@ on different problems.
 We used all the ChIP-seq profiles produced by the ENCODE consortium on the human
 myelogenous leukemia cell line K562. We did not make use of preprocessed mapped
 reads because they could have been mapped with different software and could
-therefore disagree on its results \citep{Szalkowski2011}. Instead, we mapped all
+therefore disagree on its results \citep{pmid21059603}. Instead, we mapped all
 the raw reads onto the hg19 assembly of the human genome with GEM
-\citep{Marco-Sola2012}, using the options \texttt{--unique-mapping} and
+\citep{pmid23103880}, using the options \texttt{--unique-mapping} and
 \texttt{-q ignore} of gem-mapper, version 1.376 (beta). The version of
 gem-indexer was 1.423 (beta). We preprocessed the data in the same
 way both for training the classifier and for benchmarking.
@@ -144,9 +137,9 @@ way both for training the classifier and for benchmarking.
 For training the classifier, we binned the mapped reads into 300~bp windows and
 saved the data in WIG format before discretization.
 
-For comparing Zerone against other discretizers, we analyzed three different
-ChIP-seq datasets ---CCCTC-binding factor (CTCF), tri-methylated histone H3 at
-lysine 36 (H3K36me3) and RNA polymerase II (Pol II)--- that represent punctate,
+For comparing Zerone against other discretizers, we analysed three different
+ChIP-seq datasets: CCCTC-binding factor (CTCF), tri-methylated histone H3 at
+lysine 36 (H3K36me3) and RNA polymerase II (Pol2)---that represent punctate,
 broad and mixed type signals respectively.
 
 \subsection{Emission model}
@@ -158,7 +151,7 @@ homogeneous, which increases the dispersion. More specifically, windows
 are not equally PCR-prone and not equally mappable. The negative binomial
 (NB) distribution is thus a better choice because it allows some variation
 between windows. However, genomes are fraught with repeats, which creates
-an excess of windows where reads cannot be mapped.  Since such windows
+an excess of windows where reads cannot be mapped. Since such windows
 will always have 0 read count, a natural choice for this distribution is
 the zero-inflated negative binomial (ZINB), \textit{i.e.} the mixture of
 a negative binomial distribution and a distribution concentrated at 0.
@@ -166,7 +159,8 @@ a negative binomial distribution and a distribution concentrated at 0.
 The ZINB distribution has 3 parameters that can be fitted by maximum
 likelihood. Zerone uses a custom solver based on the Newton-Raphson
 method, which converges much faster than the popular routine
-\texttt{zeroinfl} from the R package \texttt{pscl} \citep{R}.
+\texttt{zeroinfl} \citep{psclb} from the R \citep{R} package \texttt{pscl}
+\citep{pscla}.
 Fig.~\ref{fig:ZINB_fit} shows that the ZINB distribution gives a better
 fit to ChIP-seq data than Poisson and NB distributions.
 
@@ -175,7 +169,7 @@ fit to ChIP-seq data than Poisson and NB distributions.
 % XX is wgEncodeSydhTfbsK562InputRawData.bed.gz %
 \caption{Using the ZINB distribution to model ChIP-seq data. Reads from
 the negative control dataset XX were mapped on the human genome and pooled
-in 300 bp windows after removing duplicates. The histogram of the read
+in 300~bp windows after removing duplicates. The histogram of the read
 counts is shown in black (no immunoprecipitation was performed in this
 experiment, so this variation corresponds to the `baseline'). The
 histograms in gray scales show the maximum likelihood fit of the Poisson,
@@ -192,7 +186,7 @@ which gives a straightforward extension to a multivariate
 distribution called the Negative Multinomial (NM) and to its
 corresponding zero-inflated version the Zero-Inflated Negative
 Multinomial (ZINM, see supplementary material for detail). In this model,
-windows have an intrinsic ChIP-seq bias due to their G+C content, 
+windows have an intrinsic ChIP-seq bias due to their G+C content,
 mappability and other inherent properties, which gives a baseline
 variation present in all ChIP-seq experiments performed in the same
 conditions. All the replicates of a ChIP-seq experiment can thus be
@@ -204,7 +198,7 @@ experiments.
 After the analysis, Zerone returns information about the learned model, such as
 the estimated transition matrix, Viterbi path, and phi and p matrices. These
 features differ depending on the quality of the discretization and therefore we
-used them for training a SVM \citep{e1071}.
+used them for training a SVM \citep{Chang2011,e1071}.
 
 We built a dataset composed of 91 positive and 53 negative manually selected
 discretizations that the classifier should accept or discard, respectively.
@@ -212,11 +206,11 @@ For these positive and negative examples, we discretized experimental replicates
 together with their respective input control, and subsequently decided whether
 the discretizations were correct based on literature about the studied proteins.
 We also included in the dataset a number of aberrant negative examples obtained
-by discretizing false replicates (\emph{i.e.} profiles that were not replicates
-from one another but came from two different proteins, and should therefore
-disagree on which were the enriched loci) and flat profiles (\emph{i.e.} input
-profiles that were passed to Zerone as target profiles and should not contain
-real enrichments at all).
+by discretizing false replicates (\textit{i.e.} profiles that were not
+replicates from one another but came from two different proteins, and should
+therefore disagree on which were the enriched \textit{loci}) and flat profiles
+(\textit{i.e.} input profiles that were passed to Zerone as target profiles and
+should not contain real enrichments at all).
 
 We trained the SVM and selected the hyperparameters that maximized the
 prediction performance on test sets using a 10-fold cross-validation scheme. We
@@ -229,13 +223,11 @@ accepted or should be discarded.
 % Implementation of prediction function inside Zerone
 
 \subsection{Benchmark conditions}
-We benchmarked Zerone against several other ChIP-seq discretizers: MACS
-\citep{Zhang2008}, HPeak \citep{Qin2010}, ZINBA \citep{Rashid2011} and
-JAMM \citep{Ibrahim2014}. We chose to include MACS because it is the
-\emph{de facto} standard method for peak calling; HPeak because, as Zerone, it
-also makes use of a HMM to estimate the regions of enrichment; ZINBA because it
-assumes a similar read distribution, namely a zero-inflated negative binomial;
-and JAMM because it can perform joint analysis on experimental replicates.
+We chose to include MACS because it is the \textit{de facto} standard method
+for ChIP-seq peak calling; BayesPeak because, as Zerone,
+it also makes use of a HMM with ZINM emissions to estimate the regions of
+enrichment; and JAMM because it can perform joint analysis on experimental
+replicates.
 
 All the tests were performed on a 8-core Intel Xeon E5606 machine with 48~GB of
 DDR3-RAM at 1333~MHz.
@@ -249,20 +241,19 @@ DDR3-RAM at 1333~MHz.
 % that should be flagged as such.
 
 \subsection{Benchmark}
-Table \ref{Tab:perf} summarize the performace results of the analyses.
+%Table \ref{Tab:perf} summarize the performace results of the analyses.
 
-\begin{table}[!t]
-\processtable{Performance comparison between discretizers.
-\label{Tab:perf}}
-{\begin{tabular}{lll}\toprule
-\bf{Software} & \bf{Version} & \bf{Time spent (s)} \\\midrule
-HPeak & 2.1 & row1 \\
-JAMM & 1.0.7 & row2 \\
-MACS & 2.1.0 & row3 \\ %MACS callpeak
-Zerone & 1.0 & row4 \\
-ZINBA & 2.02.03 & row5 \\\botrule
-\end{tabular}}{Footnote}
-\end{table}
+%\begin{table}[!t]
+%\processtable{Performance comparison between discretizers.
+%\label{Tab:perf}}
+%{\begin{tabular}{lll}\toprule
+%\bf{Software} & \bf{Version} & \bf{Time spent (s)} \\\midrule
+%BayesPeak & 1.20.0 & row1 \\
+%JAMM & 1.0.7 & row2 \\
+%MACS & 2.1.0 & row3 \\ %MACS callpeak
+%Zerone & 1.0 & row4 \\\botrule
+%\end{tabular}}{Footnote}
+%\end{table}
 
 \section{Discussion and conclusion}
 
@@ -274,7 +265,7 @@ Competitiveness (State Training Subprogram: predoctoral fellowships for the
 training of PhD students (FPI) 2013).
 
 \bibliographystyle{natbib}
-\bibliography{document,e1071}
+\bibliography{document,extra}
 
 \end{document}
 
