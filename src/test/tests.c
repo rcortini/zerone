@@ -2,7 +2,8 @@
 #include "zerone.h"
 #include "unittest.h"
 #include "utils.h"
-#include "zinb.h"
+
+#include "zinm.c"
 
 void
 test_new_histo
