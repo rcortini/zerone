@@ -741,7 +741,7 @@ fprintf(stderr, "iter: %d\r", zerone->iter);
          // Update the state-independent parameters.
          newp[0+i*(r+1)] = p0;
          newp[1+i*(r+1)] = p0 * R;
-         // Now udpaate the state-dependent parameters.
+         // Now update the state-dependent parameters.
          double term1 = (D + a*A) / p0;
          double term2 = B * pi*a*pow(p0,a-1) / (pi*pow(p0,a)+1-pi);
          double normconst = (term1 + term2) / C;
