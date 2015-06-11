@@ -3,7 +3,7 @@
 #include "test_hmm.c"
 #include "test_utils.c"
 #include "test_zerone.c"
-#include "test_zinm.c"
+#include "test_zinb.c"
 
 int
 main(
@@ -33,6 +33,7 @@ main(
       {"zinm/mle_zinb",           test_mle_zinb},
       {"zinm/fail_mle_nb",        test_fail_mle_nb},
       {"zinm/fail_mle_zinb",      test_fail_mle_zinb},
+      {"zinm/err_handler",        test_err_handler},
       {"hmm/fwdb",                test_fwdb},
       {"hmm/fwdb (NAs)",          test_fwdb_NA},
       {"hmm/fwdb (underflow)",    test_underflow},

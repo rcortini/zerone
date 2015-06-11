@@ -1,7 +1,7 @@
 SRC_DIR= src
 INC_DIR= src
 LIB_DIR= lib
-OBJECT_FILES= zerone.o zinm.o hmm.o utils.o xxhash.o
+OBJECT_FILES= zerone.o zinb.o hmm.o utils.o xxhash.o
 SOURCE_FILES= main.c samread.c predict.c
 
 OBJECTS= $(addprefix $(SRC_DIR)/,$(OBJECT_FILES))

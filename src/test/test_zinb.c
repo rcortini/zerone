@@ -1,4 +1,4 @@
-#include "zinm.c"
+#include "zinb.c"
 
 void
 test_new_histo
@@ -384,7 +384,7 @@ test_mle_nb
    par = mle_nb(x1, 25);
    test_assert_critical(par != NULL);
    test_assert(fabs(par->a - 0.9237) < 1e-3);
-   test_assert(par->pi == 0.0);
+   test_assert(par->pi == 1.0);
    test_assert(fabs(par->p - 0.5237) < 1e-3);
    free(par);
 
@@ -394,7 +394,7 @@ test_mle_nb
    par = mle_nb(x2, 50);
    test_assert_critical(par != NULL);
    test_assert(fabs(par->a - 1.3436) < 1e-3);
-   test_assert(par->pi == 0.0);
+   test_assert(par->pi == 1.0);
    test_assert(fabs(par->p - 0.6267) < 1e-3);
    free(par);
 
@@ -404,7 +404,7 @@ test_mle_nb
    par = mle_nb(x3, 50);
    test_assert_critical(par != NULL);
    test_assert(fabs(par->a - 1.7969) < 1e-3);
-   test_assert(par->pi == 0.0);
+   test_assert(par->pi == 1.0);
    test_assert(fabs(par->p - 0.4221) < 1e-3);
    free(par);
 
@@ -414,7 +414,7 @@ test_mle_nb
    par = mle_nb(x4, 50);
    test_assert_critical(par != NULL);
    test_assert(fabs(par->a - 0.7073) < 1e-3);
-   test_assert(par->pi == 0.0);
+   test_assert(par->pi == 1.0);
    test_assert(fabs(par->p - 0.7021) < 1e-3);
    free(par);
 
@@ -441,7 +441,7 @@ test_mle_nb
    par = mle_nb(x5, 500);
    test_assert_critical(par != NULL);
    test_assert(fabs(par->a-3.0057) < 1e-3);
-   test_assert(par->pi == 0.0);
+   test_assert(par->pi == 1.0);
    test_assert(fabs(par->p-0.4854) < 1e-3);
    free(par);
 
@@ -494,12 +494,12 @@ test_fail_mle_nb
 (void)
 {
 
-   int dummy[] = {6,2,2,3,2,0,1,2,5,2};
+   int obs[] = {6,2,2,3,2,0,1,2,5,2};
    zinb_par_t *par = NULL;
 
    redirect_stderr();
    set_alloc_failure_countdown_to(0);
-   par = mle_nb(dummy, 10);
+   par = mle_nb(obs, 10);
    reset_alloc();
    unredirect_stderr();
    test_assert(par == NULL);
@@ -507,7 +507,7 @@ test_fail_mle_nb
 
    redirect_stderr();
    set_alloc_failure_countdown_to(1);
-   par = mle_nb(dummy, 10);
+   par = mle_nb(obs, 10);
    reset_alloc();
    unredirect_stderr();
    test_assert(par == NULL);
@@ -515,7 +515,7 @@ test_fail_mle_nb
 
    redirect_stderr();
    set_alloc_failure_countdown_to(2);
-   par = mle_nb(dummy, 10);
+   par = mle_nb(obs, 10);
    reset_alloc();
    unredirect_stderr();
    test_assert(par == NULL);
@@ -523,7 +523,7 @@ test_fail_mle_nb
    
    redirect_stderr();
    set_alloc_failure_countdown_to(3);
-   par = mle_nb(dummy, 10);
+   par = mle_nb(obs, 10);
    reset_alloc();
    unredirect_stderr();
    test_assert_critical(par != NULL);
@@ -535,18 +535,26 @@ test_fail_mle_nb
 
 }
 
-
 void
 test_fail_mle_zinb
 (void)
 {
 
-   int dummy[] = {6,2,2,3,2,0,1,2,5,2,0,0,0};
+   int obs[] = {6,2,2,3,2,0,1,2,5,2,0,0,0};
    zinb_par_t *par = NULL;
+
+   // Test memory allocation errors.
+   redirect_stderr();
+   set_alloc_failure_countdown_to(0);
+   par = mle_zinb(obs, 13);
+   reset_alloc();
+   unredirect_stderr();
+   test_assert(par == NULL);
+   test_assert(strncmp(caught_in_stderr(), "memory error", 12) == 0);
 
    redirect_stderr();
    set_alloc_failure_countdown_to(0);
-   par = mle_zinb(dummy, 13);
+   par = mle_nb(obs, 13);
    reset_alloc();
    unredirect_stderr();
    test_assert(par == NULL);
@@ -554,7 +562,15 @@ test_fail_mle_zinb
 
    redirect_stderr();
    set_alloc_failure_countdown_to(1);
-   par = mle_zinb(dummy, 13);
+   par = mle_zinb(obs, 13);
+   reset_alloc();
+   unredirect_stderr();
+   test_assert(par == NULL);
+   test_assert(strncmp(caught_in_stderr(), "memory error", 12) == 0);
+
+   redirect_stderr();
+   set_alloc_failure_countdown_to(1);
+   par = mle_nb(obs, 13);
    reset_alloc();
    unredirect_stderr();
    test_assert(par == NULL);
@@ -562,7 +578,15 @@ test_fail_mle_zinb
 
    redirect_stderr();
    set_alloc_failure_countdown_to(2);
-   par = mle_zinb(dummy, 13);
+   par = mle_zinb(obs, 13);
+   reset_alloc();
+   unredirect_stderr();
+   test_assert(par == NULL);
+   test_assert(strncmp(caught_in_stderr(), "memory error", 12) == 0);
+   
+   redirect_stderr();
+   set_alloc_failure_countdown_to(2);
+   par = mle_nb(obs, 13);
    reset_alloc();
    unredirect_stderr();
    test_assert(par == NULL);
@@ -570,14 +594,93 @@ test_fail_mle_zinb
    
    redirect_stderr();
    set_alloc_failure_countdown_to(3);
-   par = mle_zinb(dummy, 13);
+   par = mle_zinb(obs, 13);
    reset_alloc();
    unredirect_stderr();
    test_assert_critical(par != NULL);
    test_assert(strncmp(caught_in_stderr(), "$", 1) == 0);
-
    free(par);
 
+   redirect_stderr();
+   set_alloc_failure_countdown_to(3);
+   par = mle_nb(obs, 13);
+   reset_alloc();
+   unredirect_stderr();
+   test_assert_critical(par != NULL);
+   test_assert(strncmp(caught_in_stderr(), "$", 1) == 0);
+   free(par);
+
+   // Test fit failure.
+   int fail[] = {0,0,0,0,0,0};
+   redirect_stderr();
+   par = mle_nb(fail, 6);
+   unredirect_stderr();
+   test_assert(par == NULL);
+   test_assert(strcmp(caught_in_stderr(), "$") == 0);
+
+   free(par);
    return;
+
+}
+
+
+void
+dummy_handler
+(
+   const char * a,
+   const char * b,
+          int   c
+)
+{
+   fprintf(stderr, "dummy");
+}
+
+
+void
+test_err_handler
+(void)
+{
+
+   int obs[] = {6,2,2,3,2,0,1,2,5,2,0,0,0};
+   zinb_par_t *par = NULL;
+
+   set_zinb_err_handler(dummy_handler);
+
+   redirect_stderr();
+   set_alloc_failure_countdown_to(0);
+   par = mle_zinb(obs, 13);
+   reset_alloc();
+   unredirect_stderr();
+   test_assert(par == NULL);
+   test_assert(strcmp(caught_in_stderr(), "dummy") == 0);
+
+   redirect_stderr();
+   set_alloc_failure_countdown_to(0);
+   par = mle_zinb(obs, 13);
+   reset_alloc();
+   unredirect_stderr();
+   test_assert(par == NULL);
+   test_assert(strcmp(caught_in_stderr(), "dummy") == 0);
+
+   // Reset error handler.
+   set_zinb_err_handler(NULL);
+
+   redirect_stderr();
+   set_alloc_failure_countdown_to(0);
+   par = mle_zinb(obs, 13);
+   reset_alloc();
+   unredirect_stderr();
+   test_assert(par == NULL);
+   test_assert(strncmp(caught_in_stderr(), "memory error", 12) == 0);
+
+   redirect_stderr();
+   set_alloc_failure_countdown_to(0);
+   par = mle_nb(obs, 13);
+   reset_alloc();
+   unredirect_stderr();
+   test_assert(par == NULL);
+   test_assert(strncmp(caught_in_stderr(), "memory error", 12) == 0);
+
+   free(par);
 
 }
