@@ -20,7 +20,7 @@ $^{2}$Universitat Pompeu Fabra (UPF), Barcelona, Spain.}
 
 \maketitle
 
-\begin{abstract} % max 150 words recommended
+\begin{abstract}
 
 \section{Motivation:}
 Chromatin immunoprecipitation followed by high-throughput sequencing
@@ -142,10 +142,11 @@ saved the data in WIG format before discretization.
 For comparing Zerone against other discretizers, we analysed three different
 ChIP-seq datasets: CCCTC-binding factor (CTCF), tri-methylated histone H3 at
 lysine 36 (H3K36me3) and RNA polymerase II (Pol2)---that represent punctate,
-broad and mixed type signals respectively. Each dataset consisted an input
-progile and two replicate target profiles.
+broad and mixed type signals respectively. Each dataset consisted of an input
+profile and two replicate target profiles.
 
 \subsection{Emission model}
+\label{sub:emissions}
 It is natural to model read counts in genomic windows by an unbounded
 discrete distribution. The Poisson distribution is an obvious candidate,
 but it is a poor choice because the variance of read counts is typically
@@ -189,13 +190,48 @@ which gives a straightforward extension to a multivariate
 distribution called the Negative Multinomial (NM) and to its
 corresponding zero-inflated version the Zero-Inflated Negative
 Multinomial (ZINM, see supplementary material for detail). In this model,
-windows have an intrinsic ChIP-seq bias due to their G+C content,
+windows have an intrinsic ChIP-seq bias due to their sequence composition,
 mappability and other inherent properties, which gives a baseline
 variation present in all ChIP-seq experiments performed in the same
 conditions. All the replicates of a ChIP-seq experiment can thus be
-combined with the negative controls in a single multivariate distribution
-with a number of paramters equal to $r+2$, where $r$ is the number of
-experiments.
+combined with the negative controls in a single multivariate
+distribution.
+
+\subsection{Discretization}
+
+Discretization is performed by fitting a Hidden Markov Model (HMM)
+with ZINM emissions (see section \ref{sub:emissions}). The HMM has three
+states corresponding to ``low'', ``medium'' and ``high'' abundance of
+the given chromatin feature. We have observed that in many ChIP-seq
+profiles, the baseline signal shows block-wise variations of low amplitude
+but large size (typically 10-100 Kb). This will sometimes be the dominant
+signal and a two-state HMM will identify these blocks instead of the
+targets. Dedicating two states to fit the baseline is a way to make sure
+that the ``high'' state corresponds to the targets of the chromatin
+feature.
+
+Fitting is performed with the Baum-Welch algorithm \citep{baum1966},
+which is a special case of EM algorithm \citep{Dempster77maximumlikelihood}.
+Discrete variables take only a small number of distinct values, which
+allows to save computation time by hashing the observations. With this
+technique, we need to compute each value of the emission probabilities
+only once per cycle of the Baum-Welch algorithm. Transition parameters
+are updated through the forward-backward algorithm, and emission
+parameters are updated by solving maximum likelihood equations directly
+with the Newton-Raphson method (see supplementary material for detail.
+Approximately 3/4 of the computation time is spent in foward-backward
+cycles, and 1/4 in updating emission parameters (the time spent computing
+emission probabilities is insignificant). The algorithm stops when
+parameters reach a stable value, or after a limit number of cycles (100
+by default). The state calls are computed by finding the most likely
+segmentation given the value of the parameters through the Viterbi
+algorithm \citep{1054010}.
+
+The shape parameter and the mixture ratio of the ZINM distribution
+are fitted directly from the negative control profiles and they are
+considered constant throughout. Overall, the total number of estimated
+parameters is $3(r+1)$, where $r$ is the number of replicate experiments
+(excluding negative controls).
 
 \subsection{Classifier training}
 After the analysis, Zerone returns the paremeters of the learned model, such as
@@ -344,6 +380,7 @@ constant (vertical line at 300~bp).}\label{fig:peak_width}
 % RESULTS: describe the shapes of the data??? (positive similar, negative diff)
 
 \section{Discussion and conclusion}
+Some more text here.
 
 \section*{Acknowledgement}
 

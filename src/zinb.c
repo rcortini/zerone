@@ -1,10 +1,12 @@
-#include "zinm.h"
+#include "zinb.h"
 
 #define M_PI 3.14159265358979323846
 #define sq(x) ((x)*(x))
 
-// Declaration of private types. //
+#define handle_error() (*zinb_err_handler)(__FILE__, __func__, __LINE__)
 
+
+// Declaration of private types. //
 struct histo_t;
 struct tab_t;
 
@@ -24,8 +26,8 @@ struct tab_t {
 
 
 // Declaration of private functions. //
-
 tab_t   * compress_histo (histo_t *);
+void      default_warning (const char *, const char *, int);
 double    digamma (double);
 double    eval_nb_dfda (double, const tab_t *);
 double    eval_nb_f (double, const tab_t *);
@@ -41,6 +43,31 @@ histo_t * new_histo (void);
 tab_t   * tabulate (int *, unsigned int);
 double    trigamma (double);
 
+// Global variables. //
+zinb_err_handler_t zinb_err_handler = default_warning;
+
+
+// Error handling functions. //
+void
+default_warning
+(
+   const char * file,
+   const char * func,
+         int    line
+)
+{
+   fprintf(stderr, "memory error %s:%d (%s)\n", file, line, func);
+}
+
+
+void
+set_zinb_err_handler
+(
+   zinb_err_handler_t h
+)
+{
+   zinb_err_handler = (h == NULL) ? default_warning : h;
+}
 
 
 // High level exported functions 'mle_nb()' and 'mle_zinm()'.
@@ -53,7 +80,8 @@ mle_nb
 )
 // SYNOPSIS:
 //   Return the maximum likelihood estimate of the Negative Binomial
-//   distribution on the sample.
+//   distribution on the sample. Only positive integer values are
+//   counted, negative values (used for NA) are ignored.
 //
 // PARAMETERS:
 //   x: observed sample
@@ -67,16 +95,23 @@ mle_nb
 //   None.
 {
 
+   // NB: Negative values are excluded from tabulation.
    tab_t *tab = tabulate(x, nobs);
+   if (tab == NULL) return NULL;
+
    double a = nb_est_alpha(tab);
 
    // Return NULL if failed.
-   if (a < 0) return NULL;
+   if (a < 0 || a != a) {
+      free(tab);
+      return NULL;
+   }
 
    // Allocate return struct.
    zinb_par_t *par = calloc(1, sizeof(zinb_par_t));
    if (par == NULL) {
-      fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
+      free(tab);
+      handle_error();
       return NULL;
    }
 
@@ -91,6 +126,7 @@ mle_nb
 
    par->a = a;
    par->p = a / (a + (sum/nona));
+   par->pi = 1.0;
 
    return par;
 
@@ -104,7 +140,9 @@ mle_zinb
 )
 // SYNOPSIS:
 //   Return the maximum likelihood estimate of the Zero-Inflated
-//   Negative Binomial distribution on the sample.
+//   Negative Binomial distribution on the sample. Only positive
+//   integer values are counted, negative values (used for NA)
+//   are ignored.
 //
 // PARAMETERS:
 //   x: observed sample
@@ -118,6 +156,7 @@ mle_zinb
 {
 
    tab_t *tab = tabulate(x, nobs);
+   if (tab == NULL) return NULL;
 
    double sum = 0.0;
    unsigned int nona = 0;
@@ -126,7 +165,7 @@ mle_zinb
       nona += tab->num[i];
    }
 
-   // Extract the number of all-zero observaions.
+   // Extract the number of zero observaions.
    const unsigned int z0 = tab->val[0] == 0 ? tab->num[0] : 0;
 
    double deficit[11] = {0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1};
@@ -149,7 +188,8 @@ mle_zinb
 
    zinb_par_t *par = calloc(1, sizeof(zinb_par_t));
    if (par == NULL) {
-      fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
+      free(tab);
+      handle_error();
       return NULL;
    }
 
@@ -158,7 +198,8 @@ mle_zinb
    double max_loglik = -1.0/0.0;
    for (size_t i = 0 ; i < 12 ; i++) {
 
-      if (init_a[i] < 0) continue;  // Skip failures.
+      // Skip failures.
+      if (init_a[i] < 0 || init_a[i] != init_a[i]) continue;
 
       double a = init_a[i];
       double p = init_p[i];
@@ -203,12 +244,14 @@ mle_zinb
       double pi = (nobs-z0) / (1-pow(p,a)) / nobs;
       if (pi > 1) pi = 1.0;
       if (pi < 0) pi = 0.0;
+      // Compute the log-likelihood. The update of 'pi' above
+      // may yield a non optimal solution.
       double loglik = ll_zinb(a, p, pi, tab);
       if (loglik > max_loglik) {
          max_loglik = loglik;
          par->a = a;
-         par->pi = pi;
          par->p = p;
+         par->pi = pi;
       }
             
    }
@@ -472,13 +515,19 @@ nb_est_alpha
    double a_hi;
    if (eval_nb_f(a, tab) < 0) {
       a /= 2;
-      while (eval_nb_f(a, tab) < 0) a /= 2;
+      for (int i = 0 ; i < ZINM_MAXITER ; i++) {
+         if (eval_nb_f(a, tab) > 0) break;
+         a /= 2;
+      }
       a_lo = a;
       a_hi = a*2;
    }
    else {
       a *= 2;
-      while (eval_nb_f(a, tab) > 0) a *= 2;
+      for (int i = 0 ; i < ZINM_MAXITER ; i++) {
+         if (eval_nb_f(a, tab) < 0) break;
+         a *= 2;
+      }
       a_lo = a/2;
       a_hi = a;
    }
@@ -493,13 +542,14 @@ nb_est_alpha
          (a_lo + a_hi) / 2 :
          new_a;
       double f = eval_nb_f(a, tab);
-      if (f < 0) a_hi = a; else a_lo = a;
-      if ((a_hi - a_lo) < ZINM_TOL) break;
+      if   (f > 0) a_lo = a;
+      else         a_hi = a;
+      if ((a_hi - a_lo) < ZINM_TOL)  return a;
       double dfda = eval_nb_dfda(a, tab);
       new_a = a - f / dfda;
    }
 
-   return a;
+   return -1.0;
 
 }
 
@@ -515,7 +565,9 @@ tabulate
 {
 
    histo_t *histo = new_histo();
-   if (histo == NULL) return NULL;
+   if (histo == NULL) {
+      return NULL;
+   }
    for (size_t i = 0 ; i < nobs ; i++) {
       // Skip negative values (used for NA).
       if (x[i] < 0) continue;
@@ -539,7 +591,7 @@ new_histo
    size_t initsize = sizeof(histo_t) + HISTO_INIT_SIZE * sizeof(int);
    histo_t *new = calloc(1, initsize);
    if (new == NULL) {
-      fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
+      handle_error();
       return NULL;
    }
    new->size = HISTO_INIT_SIZE;
@@ -562,7 +614,7 @@ histo_push
       size_t newsize = 2*val * (sizeof(int));
       histo_t *new = realloc(histo, sizeof(histo_t) + newsize);
       if (new == NULL) {
-         fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
+         handle_error();
          return 1;
       }
       *histo_addr = histo = new;
@@ -589,7 +641,7 @@ compress_histo
    }
    tab_t *new = malloc(sizeof(tab_t) + 2*size * sizeof(int));
    if (new == NULL) {
-      fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
+      handle_error();
       return NULL;
    }
    new->size = size;
@@ -751,107 +803,3 @@ double trigamma(double x)
   }
   return result;
 }
-
-/*
-double
-mean
-(
-   const int *yz,
-   int n,
-   int r
-)
-// SYNOPSIS:                                                             
-//   Compute the mean of the first column of an integer array. To com-   
-//   pute the mean of another column, call as `mean(yz+1, n, r)`, where  
-//   1 is for column 2 etc.                                              
-//                                                                       
-// PARAMETERS:                                                           
-//   'yz': (r,n) the integer array                                       
-//   'n': row number of the array                                        
-//   'r': column number of the array                                     
-//                                                                       
-// RETURN:                                                               
-//   The mean as a 'double'.                                             
-{
-   double sum = 0.0;
-   int n_obs_no_NA = 0;
-
-   for (int k = 0 ; k < n ; k++) {
-      // Casting NA to integer gives -2147483648, which is the 
-      // largest negative value stored in 'int'. Here I test for
-      // NA by wrapping around.
-      if (yz[r*k] == INT_MIN) continue;
-      sum += yz[r*k];
-      n_obs_no_NA++;
-   }
-   // The result can be 0/0, which is 'nan'.
-   return sum / n_obs_no_NA;
-}
-*/
-
-/*
-int *
-histsum
-(
-   const int *yz,
-   int n,
-   int r
-)
-// SYNOPSIS:                                                             
-//   Compute the histogram of the row-wise sum of an integer array.      
-//                                                                       
-// INPUT:                                                                
-//   The presence of a negative value makes the whole row ignored.       
-//                                                                       
-// PARAMETERS:                                                           
-//   'yz': (r,n) the integer array                                       
-//   'n': row number of the array                                        
-//   'r': column number of the array                                     
-//                                                                       
-// RETURN:                                                               
-//   A pointer of 'int' to the histogram.                                
-{
-   int size = 1024;
-   int *counts = calloc(size, sizeof(int));
-   if (counts == NULL) {
-      fprintf(stderr, "memory error (hist 1)\n");
-      return NULL;
-   }
-
-   int maxval = 0;
-   for (int k = 0 ; k < n ; k++) {
-      int sum = 0;
-      for (int i = 0 ; i < r ; i++){
-         if (yz[i+k*r] < 0) {
-            sum = -1;
-            break;
-         }
-         sum += yz[i+k*r];
-      }
-      if (sum < 0) continue;
-      if (sum > maxval) maxval = sum;
-      if (sum > size-2) {
-         int newsize;
-         for (newsize = size ; sum > newsize-2 ; newsize *= 2);
-         int *newcounts = realloc(counts, newsize * sizeof(int));
-         if (newcounts == NULL) {
-            fprintf(stderr, "memory error (hist 2)\n");
-            return NULL;
-         }
-         else {
-            // Extra memory must be initialized to 0.
-            counts = newcounts;
-            for (int j = size ; j < newsize ; j++) counts[j] = 0;
-            size = newsize;
-         }
-      }
-      counts[sum]++;
-   }
-   // Add the sentinel.
-   counts[maxval+1] = -1;
-   return counts;
-
-}
-*/
-
-

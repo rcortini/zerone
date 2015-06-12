@@ -19,6 +19,7 @@
 struct zinb_part_t;
 
 typedef struct zinb_par_t zinb_par_t;
+typedef void (*zinb_err_handler_t) (const char *, const char *, int);
 
 struct zinb_par_t {
    double   a;
@@ -30,4 +31,7 @@ struct zinb_par_t {
 // ZINB distributions, and return the paramters.
 zinb_par_t * mle_nb   (int *, size_t);
 zinb_par_t * mle_zinb (int *, size_t);
+// Change the default error handler. Pass a NULL argument
+// to rest to default behavior.
+void         set_zinb_err_handler(zinb_err_handler_t);
 #endif

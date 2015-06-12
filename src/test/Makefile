@@ -4,16 +4,17 @@ vpath %.h ..
 vpath %.h lib
 
 P= runtests
-OBJECTS= zerone.o hmm.o utils.o xxhash.o tests.o libunittest.so
+OBJECTS= libunittest.so xxhash.o
 
 CC= gcc
+SOURCES= runtests.c
 INCLUDES= -I.. -Ilib
 COVERAGE= -fprofile-arcs -ftest-coverage
 CFLAGS= -std=gnu99 -g -Wall -O0 $(INCLUDES) $(COVERAGE)
 LDLIBS= -L`pwd` -Wl,-rpath=`pwd` -lm -lunittest
 
-$(P): $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) $(LDLIBS) -o $@
+$(P): $(OBJECTS) $(SOURCES)
+	$(CC) $(CFLAGS) $(SOURCES) $(OBJECTS) $(LDLIBS) -o $@
 
 clean:
 	rm -f $(P) $(OBJECTS) *.gcda *.gcno *.gcov gmon.out .inspect.gdb

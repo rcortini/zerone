@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "hmm.h"
 #include "utils.h"
-#include "zinm.h"
+#include "zinb.h"
 
 #ifndef _JAHMM_HEADER
 #define _JAHMM_HEADER
