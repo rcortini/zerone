@@ -5,8 +5,8 @@
 \begin{document}
 \firstpage{1}
 
-\title[ChIP-seq joint discretization with quality control]{Zerone: a ChIP-seq
-discretizer for multiple replicates with built-in quality control}
+\title[Combined ChIP-seq discretization and quality control]{Zerone:
+a ChIP-seq discretizer for multiple replicates with built-in quality control}
 \author[Cusc\'o \textit{et~al}]{Pol Cusc\'o\,$^{1,2}$ and Guillaume
 Filion\,$^{1,2}$\footnote{to whom correspondence should be addressed}}
 \address{$^{1}$Genome Architecture, Gene Regulation, Stem Cells and Cancer
@@ -23,7 +23,7 @@ $^{2}$Universitat Pompeu Fabra (UPF), Barcelona, Spain.}
 \begin{abstract} % max 150 words recommended
 
 \section{Motivation:}
-Chromatin immunoprecipitation followed by high-throughput sequencing (ChIP-seq)
+Chromatin immunoprecipitation followed by high-throughput sequencing
 is the standard method to investigate chromatin protein composition. As the
 number of community-available ChIP-seq profiles increases, it becomes more
 common to use data from different sources, which makes joint analysis
@@ -33,12 +33,12 @@ when they are produced by different laboratories.
 
 \section{Results:}
 Here we present Zerone, a ChIP-seq discretizer with built-in quality control.
-Zerone is powered by a Hidden Markov Model (HMM) with zero-inflated negative
+Zerone is powered by a Hidden Markov Model with zero-inflated negative
 multinomial emissions, which allows it to merge several replicates into a single
 discretized profile. To identify low quality or irreproducible data, we trained
-a Support Vector Machine (SVM) and integrated it as part of the discretization
+a Support Vector Machine and integrated it as part of the discretization
 process. Zerone identified low quality data with 95\% accuracy. In terms of
-performance, Zerone is approximately 5 times faster than MACS for a similar
+performance, Zerone is more than 4 times faster than MACS for a similar
 accuracy.
 
 \section{Availability:}
@@ -84,7 +84,7 @@ replicates are common, and
 sometimes laboratory effects are clearly detectable in the data,
 even when experimentalists use the same material and follow the same
 protocol (our unpublished observations). The most popular remedy is to
-use a metric called IDR (Irreproducible Discovery Rate \cite{li2011}),
+use a metric called IDR (Irreproducible Discovery Rate, \citealp{li2011}),
 which allows to weed
 out poorly reproducible signal. This approach is a significant step
 forward, but the IDR is undefined when more than two replicates are
@@ -117,7 +117,7 @@ it produces congruent window-based outputs, and it can process hundreds
 of experiments per day on average hardware. We benchmarked Zerone against
 MACS \citep{pmid18798982}, BayesPeak \citep{pmid19772557} and
 JAMM \citep{pmid25223640} on the core
-task of discretizing ChIP-seq profiles of CTCF, Pol2 and H3K36me3. Our
+task of discretizing ChIP-seq profiles of CTCF, H3K36me3 and Pol2 . Our
 results show that Zerone is competitive in terms of speed and accuracy.
 
 \begin{methods}
@@ -132,7 +132,9 @@ the raw reads onto the hg19 assembly of the human genome with GEM
 \citep{pmid23103880}, using the options \texttt{--unique-mapping} and
 \texttt{-q ignore} of gem-mapper, version 1.376 (beta). The version of
 gem-indexer was 1.423 (beta). We preprocessed the data in the same
-way both for training the classifier and for benchmarking.
+way both for training the classifier and for benchmarking. We also used the
+same genome assembly to generate the datasets used in the benchmarks (see
+Section \ref{results}).
 
 For training the classifier, we binned the mapped reads into 300~bp windows and
 saved the data in WIG format before discretization.
@@ -140,7 +142,8 @@ saved the data in WIG format before discretization.
 For comparing Zerone against other discretizers, we analysed three different
 ChIP-seq datasets: CCCTC-binding factor (CTCF), tri-methylated histone H3 at
 lysine 36 (H3K36me3) and RNA polymerase II (Pol2)---that represent punctate,
-broad and mixed type signals respectively.
+broad and mixed type signals respectively. Each dataset consisted an input
+progile and two replicate target profiles.
 
 \subsection{Emission model}
 It is natural to model read counts in genomic windows by an unbounded
@@ -195,10 +198,10 @@ with a number of paramters equal to $r+2$, where $r$ is the number of
 experiments.
 
 \subsection{Classifier training}
-After the analysis, Zerone returns information about the learned model, such as
-the estimated transition matrix, Viterbi path, and phi and p matrices. These
+After the analysis, Zerone returns the paremeters of the learned model, such as
+the estimated transition matrix and the Viterbi path. These
 features differ depending on the quality of the discretization and therefore we
-used them for training a SVM \citep{Chang2011,e1071}.
+used them for training an SVM \citep{Chang2011,e1071}.
 
 We built a dataset composed of 91 positive and 53 negative manually selected
 discretizations that the classifier should accept or discard, respectively.
@@ -218,42 +221,127 @@ then implemented a prediction function in Zerone that used the model trained by
 the SVM to classify the discretizations and suggest whether they could be
 accepted or should be discarded.
 
-% RESULTS: Performance on test sets (around 95% on 10-fold cross-validation)
-% RESULTS:  describe the shapes of the data???
-% Implementation of prediction function inside Zerone
-
 \subsection{Benchmark conditions}
-We chose to include MACS because it is the \textit{de facto} standard method
-for ChIP-seq peak calling; BayesPeak because, as Zerone,
-it also makes use of a HMM with ZINM emissions to estimate the regions of
-enrichment; and JAMM because it can perform joint analysis on experimental
-replicates.
+We decided to include MACS \texttt{callpeak} (version 2.1.0.20140616) in
+the comparisons because it is the \textit{de facto} standard method
+for ChIP-seq peak calling; BayesPeak (version 1.20.0) because, as Zerone,
+it makes use of an HMM with ZINB emissions to estimate the regions of
+enrichment; and JAMM (version 1.0.7rev1) because it can perform joint
+analysis on experimental replicates.
 
-All the tests were performed on a 8-core Intel Xeon E5606 machine with 48~GB of
-DDR3-RAM at 1333~MHz.
+All tests were performed on an 8-core Intel Xeon E5606 machine with 48~GB of
+DDR3-RAM at 1333~MHz. All programs were run with default options and on a
+single core.
 
 \end{methods}
 
-\section{Results}
+\section{Results}\label{results}
 
-% give an example where using Zerone highlighted inconsistencies in published
+% give an EXAMPLE where using Zerone highlighted inconsistencies in published
 % ChIP-seq ENCODE data, allowing us to detect noisy and non-replicating profiles
 % that should be flagged as such.
 
 \subsection{Benchmark}
-%Table \ref{Tab:perf} summarize the performace results of the analyses.
+\subsubsection{Speed and memory consumption.}
+We compared the running time of the different programs on discretizing three
+similar sized datasets that represent the three major types of ChIP-seq signal
+usually observed. The top row of Fig.~\ref{fig:times} shows that Zerone is
+the fastest algorithm, being a few orders of magnitude faster than BayesPeak
+and JAMM, and a few times faster than MACS. This makes Zerone suitable for
+usage in large volume pipelines. All programs behave in a similar
+way on all three datasets in terms of running time.
 
-%\begin{table}[!t]
-%\processtable{Performance comparison between discretizers.
-%\label{Tab:perf}}
-%{\begin{tabular}{lll}\toprule
-%\bf{Software} & \bf{Version} & \bf{Time spent (s)} \\\midrule
-%BayesPeak & 1.20.0 & row1 \\
-%JAMM & 1.0.7 & row2 \\
-%MACS & 2.1.0 & row3 \\ %MACS callpeak
-%Zerone & 1.0 & row4 \\\botrule
-%\end{tabular}}{Footnote}
-%\end{table}
+% TODO: add memory footprint at the bottom of the figure.
+\begin{figure}[!tpb]
+\centerline{\includegraphics[scale=0.5]{running_times.pdf}}
+\caption{Running times and memory footprint of the different discretizers
+on the three ChIP-seq datasets.
+For programs that only allow single-profile discretization
+(\textit{i.e.} BayesPeak and MACS), mean values are shown.
+Note the logarithmic scale.
+}\label{fig:times}
+\end{figure}
+
+There is currently no gold standard for benchmarking ChIP-seq discretizers
+ability to call biologically relevant regions of enrichment.% Therefore, the
+
+\subsubsection{Identification of CTCF binding sites.}
+CTCF binding sites are characterized by a specific 20~bp sequence that is
+highly conserved in vertebrates. In humans, nearly 80\% of these sites contain
+the consensus motif \citep{pmid17382889}.
+In order to determine the capacity of the different programs to call peaks of
+CTCF binding, we compared the discretized profiles against a dataset of CTCF
+binding motifs. We used FIMO \citep{pmid21330290} (MEME suite version 4.10.1,
+\citealp{pmid19458158}) to generate such dataset from the human CTCF motif
+obtained from the JASPAR database (version 5.0{\textunderscore}ALPHA,
+\citealp{pmid24194598}). The CTCF motif dataset contained 85,690 entries.
+
+Table \ref{tab:ctcf} shows that, overall, Zerone is comparable to BayesPeak
+and to the widely used MACS in terms of $F_{1}$ score, and performs much
+better than JAMM, the other software capable of combined analysis.
+
+\begin{table}[!t]
+\processtable{Summary of peak calling on the CTCF dataset.
+The table lists the total number of peaks found by the different
+programs, how many of those peaks contained at least one CTCF motif, and the
+correspondent precision, recall and $F_{1}$ score relative to the CTCF motif
+dataset.
+\label{tab:ctcf}}
+{\begin{tabular}{lrrccc}
+        \toprule
+        \textbf{Software} & \textbf{Total} & \textbf{Motif} &
+        \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
+        \midrule
+        BayesPeak$^{(1)}$ & 45,316 & 25,228 & 0.56 & 0.29 & 0.39 \\
+        BayesPeak$^{(2)}$ & 45,154 & 23,428 & 0.52 & 0.27 & 0.36 \\
+        JAMM & 264,410 & 31,709 & 0.12 & 0.37 & 0.18 \\
+        MACS$^{(1)}$ & 48,358 & 26,449 & 0.55 & 0.31 & 0.39 \\
+        MACS$^{(2)}$ & 41,030 & 23,542 & 0.57 & 0.27 & 0.37 \\
+        Zerone & 99,532 & 30,972 & 0.31 & 0.36 & 0.33 \\
+        \botrule
+\end{tabular}}{
+The numbers in parentheses indicate the results on the two replicates
+by separate.}
+\end{table}
+
+% ctcf venn diagrams?
+%\begin{figure}[!tpb]
+%\centerline{\includegraphics[scale=0.4]{ctcf_overlap.pdf}}
+%\caption{Nice image, buy maybe superfluous.}\label{fig:venn}
+%\end{figure}
+
+%\subsubsection{H3K36me3}
+
+\subsubsection{Pol2 binding around transcription start sites.}
+Pol2 profiles illustrate a characteristic binding pattern composed by a peaky
+signal part near the transcription start site (TSS) and a broad type part
+downstream of it \citep{pmid}. This represents the frequencies
+at which Pol2 is poised or actively transcribing, respectively,
+in the cell population \citep{pmid}.
+
+% figure: distance to tss (histogram or just % within a range??)
+% with genomicranges distancetonearest cite
+
+A distance of 0 means that the TSS is contained within the boundaries of the
+peak. Therefore, an implementation that systematically produces wider peaks
+will tend to reduce the average distance to the TSS. We thougth that this could
+be the case of Zerone due to its windowing approach
+(see Fig.~\ref{fig:peak_width}),
+but realized that the peaks produced by the other discretizers had a mean
+size of 325, 136 and 255~bp (BayesPeak, JAMM and MACS, respectively), which
+was about the range of the default 300~bp windows used by Zerone. Moreover,
+the window size in Zerone can be defined by the user.
+% TODO: implement BIN_SIZE as an option (default=300).
+
+\begin{figure}[!tpb]
+\centerline{\includegraphics[scale=0.5]{peak_width.pdf}}
+\caption{Distribution of peak widths obtained by the different software.
+Since Zerone is a window-based discretizer, the with of the regions is kept
+constant (vertical line at 300~bp).}\label{fig:peak_width}
+\end{figure}
+
+% RESULTS: Performance on test sets (around 95% on 10-fold cross-validation)
+% RESULTS: describe the shapes of the data??? (positive similar, negative diff)
 
 \section{Discussion and conclusion}
 
@@ -297,7 +385,7 @@ training of PhD students (FPI) 2013).
 %\end{tabular}}{This is a footnote}
 %\end{table}
 
-%\begin{figure}[!tpb]%figure1
+%\begin{figure}[!tpb]
 %%\centerline{\includegraphics{fig01.eps}}
 %\caption{Caption, caption.}\label{fig:01}
 %\end{figure}

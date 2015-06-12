@@ -1,3 +1,5 @@
+all: document.pdf
+
 document.pdf: document.tex document.bib
 	pdflatex document.tex
 	bibtex document.aux
