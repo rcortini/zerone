@@ -7,7 +7,7 @@
 #include <string.h>
 #include "xxhash.h"
 
-#ifndef _ZINM_UTILS_HEADER
-#define _ZINM_UTILS_HEADER
+#ifndef _ZINB_UTILS_HEADER
+#define _ZINB_UTILS_HEADER
 int indexts (int, int, const int *, int *);
 #endif
