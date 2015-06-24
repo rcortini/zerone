@@ -7,13 +7,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef _ZINM_HEADER
-#define _ZINM_HEADER
+#ifndef _ZINB_HEADER
+#define _ZINB_HEADER
 
 // Control parameters.
 #define HISTO_INIT_SIZE 128
-#define ZINM_MAXITER 32
-#define ZINM_TOL 1e-6
+#define ZINB_MAXITER 32
+#define ZINB_TOL 1e-6
 
 
 struct zinb_part_t;
