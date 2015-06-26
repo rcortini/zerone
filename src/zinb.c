@@ -211,7 +211,7 @@ mle_zinb
       double g = eval_zinb_g(a, p, tab);
 
       // Newton-Raphson iterations.
-      while ((grad = f*f+g*g) > sq(ZINM_TOL) && iter++ < ZINM_MAXITER) {
+      while ((grad = f*f+g*g) > sq(ZINB_TOL) && iter++ < ZINB_MAXITER) {
 
          double dfda, dfdp, dgda, dgdp;
          dfda = dgdp = eval_zinb_dfda(a, p, nobs-z0);
@@ -229,7 +229,7 @@ mle_zinb
          f = eval_zinb_f(a+da, p+dp, nobs-z0, sum);
          g = eval_zinb_g(a+da, p+dp, tab);
          // Backtrack if necessary.
-         for (int j = 0 ; j < ZINM_MAXITER && f*f+g*g > grad ; j++) {
+         for (int j = 0 ; j < ZINB_MAXITER && f*f+g*g > grad ; j++) {
             da /= 2;
             dp /= 2;
             f = eval_zinb_f(a+da, p+dp, nobs-z0, sum);
@@ -515,7 +515,7 @@ nb_est_alpha
    double a_hi;
    if (eval_nb_f(a, tab) < 0) {
       a /= 2;
-      for (int i = 0 ; i < ZINM_MAXITER ; i++) {
+      for (int i = 0 ; i < ZINB_MAXITER ; i++) {
          if (eval_nb_f(a, tab) > 0) break;
          a /= 2;
       }
@@ -524,7 +524,7 @@ nb_est_alpha
    }
    else {
       a *= 2;
-      for (int i = 0 ; i < ZINM_MAXITER ; i++) {
+      for (int i = 0 ; i < ZINB_MAXITER ; i++) {
          if (eval_nb_f(a, tab) < 0) break;
          a *= 2;
       }
@@ -537,14 +537,14 @@ nb_est_alpha
 
    // Newton-Raphson iterations.
    double new_a = (a_lo + a_hi) / 2;
-   for (int i = 0 ; i < ZINM_MAXITER ; i++) {
+   for (int i = 0 ; i < ZINB_MAXITER ; i++) {
       a = (new_a < a_lo || new_a > a_hi) ?
          (a_lo + a_hi) / 2 :
          new_a;
       double f = eval_nb_f(a, tab);
       if   (f > 0) a_lo = a;
       else         a_hi = a;
-      if ((a_hi - a_lo) < ZINM_TOL)  return a;
+      if ((a_hi - a_lo) < ZINB_TOL)  return a;
       double dfda = eval_nb_dfda(a, tab);
       new_a = a - f / dfda;
    }
