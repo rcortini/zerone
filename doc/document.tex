@@ -93,7 +93,6 @@ always the best option, as when one of the replicates has very low quality
 for instance. In summary, how to integrate ChIP-seq data from different
 sources and with variable qualities is still an open problem.
 
-%\section{Approach}
 Here we propose an approach to discretize ChIP-seq data where conflict
 resolution and quality control are integrated in a tool that we called
 Zerone. The key idea of Zerone is to combine an arbitrary number of
@@ -122,28 +121,6 @@ results show that Zerone is competitive in terms of speed and accuracy.
 
 \begin{methods}
 \section{Methods}
-
-\subsection{Datasets and preprocessing}
-We used all the ChIP-seq profiles produced by the ENCODE consortium on the human
-myelogenous leukemia cell line K562. We did not make use of preprocessed mapped
-reads because they could have been mapped with different software and could
-therefore disagree on its results \citep{pmid21059603}. Instead, we mapped all
-the raw reads onto the hg19 assembly of the human genome with GEM
-\citep{pmid23103880}, using the options \texttt{--unique-mapping} and
-\texttt{-q ignore} of gem-mapper, version 1.376 (beta). The version of
-gem-indexer was 1.423 (beta). We preprocessed the data in the same
-way both for training the classifier and for benchmarking. We also used the
-same genome assembly to generate the datasets used in the benchmarks (see
-Section \ref{results}).
-
-For training the classifier, we binned the mapped reads into 300~bp windows and
-saved the data in WIG format before discretization.
-
-For comparing Zerone against other discretizers, we analysed three different
-ChIP-seq datasets: CCCTC-binding factor (CTCF), tri-methylated histone H3 at
-lysine 36 (H3K36me3) and RNA polymerase II (Pol2)---that represent punctate,
-broad and mixed type signals respectively. Each dataset consisted of an input
-profile and two replicate target profiles.
 
 \subsection{Emission model}
 \label{sub:emissions}
@@ -198,8 +175,7 @@ combined with the negative controls in a single multivariate
 distribution.
 
 \subsection{Discretization}
-
-Discretization is performed by fitting a Hidden Markov Model (HMM)
+Discretization is performed by fitting an HMM
 with ZINM emissions (see section \ref{sub:emissions}). The HMM has three
 states corresponding to ``low'', ``medium'' and ``high'' abundance of
 the given chromatin feature. We have observed that in many ChIP-seq
@@ -218,7 +194,7 @@ technique, we need to compute each value of the emission probabilities
 only once per cycle of the Baum-Welch algorithm. Transition parameters
 are updated through the forward-backward algorithm, and emission
 parameters are updated by solving maximum likelihood equations directly
-with the Newton-Raphson method (see supplementary material for detail.
+with the Newton-Raphson method (see supplementary material for detail).
 Approximately 3/4 of the computation time is spent in foward-backward
 cycles, and 1/4 in updating emission parameters (the time spent computing
 emission probabilities is insignificant). The algorithm stops when
@@ -233,7 +209,77 @@ considered constant throughout. Overall, the total number of estimated
 parameters is $3(r+1)$, where $r$ is the number of replicate experiments
 (excluding negative controls).
 
-\subsection{Classifier training}
+\subsection{Classifier}
+Discretization will be performed regardless of the quality of the
+experimental data being analyzed. Features like depth of coverage,
+signal-to-noise ratio, technical biases or, specially and most importantly,
+dicrepancies among replicates, can have an impact on how acurately enriched
+regions are detected. Therefore, a method to separate valid discretizations
+from unreliable ones is needed.
+
+We came up with the simple idea of training a classifier with examples of
+satisfactory and unsatisfactory discretizations (See section \ref{sub:training}
+for details). At first, a linear classifier like logistic regression seemed
+useful, but its performance on both training and tests sets was insuficient,
+not going below an error rate of 10\% (data not shown) even in representative,
+and big enough training sets. Inquiring into the possible reasons for this
+limitation we observed that some discretizations of both classes overlaped
+in their feature space (Fig.~\ref{fig:pca}) and it was not possible to separate
+them by means of a linear classifier.
+
+\begin{figure}[!tpb]
+\centerline{\includegraphics[scale=0.5]{pca.pdf}}
+\caption{Principal Component Analysis of the training dataset.
+Training examples labeled as positive (dark circles) appear to be similar to
+each other, while negative examples (light crosses) show notable differences
+between them and with respect to positive examples. There exist though a
+certain degree of overlap between the two groups that crates an
+``ambiguous zone'', at least in this projection.
+}\label{fig:pca}
+\end{figure}
+
+We thought we needed an algorithm capable of producing more complex, nonlinear
+hypotheses in order to capture the relationships between features that
+differentiated good from bad discretizations.
+
+At first, an artificial neural network seemed appropriate, but they are prone
+to overfitting. Choosing the number of hidden layers, the number of neurons
+in each layer and the cost functions makes the hyperparameter space
+exaggeratedly vast to search it efficiently.
+
+Istead, we used an SVM. SVMs address the classification problem from a
+different perspective, they are fast to train, require only one hyperparameter
+to be fit, guarantee the lowest overfitting upper bound and, if the training
+data is mapped to a kernel space, they can also perform nonlinear
+classification, in which case the fit may depend on additional hyperparameters.
+
+In our case, we chose a radial basis function kernel that require to fit one
+additional hyperparameter. After the training, our classifier achieved, in this
+case, a 95\% of accuracy on test sets.
+
+\subsection{Datasets and preprocessing}
+We used all the ChIP-seq profiles produced by the ENCODE consortium on the human
+myelogenous leukemia cell line K562. We did not make use of preprocessed mapped
+reads because they could have been mapped with different software and could
+therefore disagree on its results \citep{pmid21059603}. Instead, we mapped all
+the raw reads onto the hg19 assembly of the human genome with GEM
+\citep{pmid23103880}, using the options \texttt{--unique-mapping} and
+\texttt{-q ignore} of gem-mapper, version 1.376 (beta). The version of
+gem-indexer was 1.423 (beta). We preprocessed the data in the same
+way both for training the classifier and for benchmarking. We also used the
+same genome assembly to generate the datasets used in the benchmarks (see
+Section \ref{sec:results}).
+
+For training the classifier, we binned the mapped reads into 300~bp windows and
+saved the data in WIG format before discretization.
+
+For comparing Zerone against other discretizers, we analysed three different
+ChIP-seq datasets: CCCTC-binding factor (CTCF), tri-methylated histone H3 at
+lysine 36 (H3K36me3) and RNA polymerase II (Pol2)---that represent punctate,
+broad and mixed type signals respectively. Each dataset consisted of an input
+profile and two replicate target profiles.
+
+\subsection{Classifier training}\label{sub:training}
 After the analysis, Zerone returns the paremeters of the learned model, such as
 the estimated transition matrix and the Viterbi path. These
 features differ depending on the quality of the discretization and therefore we
@@ -271,7 +317,8 @@ single core.
 
 \end{methods}
 
-\section{Results}\label{results}
+\section{Results}
+\label{sec:results}
 
 % give an EXAMPLE where using Zerone highlighted inconsistencies in published
 % ChIP-seq ENCODE data, allowing us to detect noisy and non-replicating profiles
@@ -281,21 +328,24 @@ single core.
 \subsubsection{Speed and memory consumption.}
 We compared the running time of the different programs on discretizing three
 similar sized datasets that represent the three major types of ChIP-seq signal
-usually observed. The top row of Fig.~\ref{fig:times} shows that Zerone is
-the fastest algorithm, being a few orders of magnitude faster than BayesPeak
-and JAMM, and a few times faster than MACS. This makes Zerone suitable for
-usage in large volume pipelines. All programs behave in a similar
+usually observed. In our tests Zerone was the fastest algorithm
+(Fig.~\ref{fig:perf}, top row), being a few orders of magnitude faster than
+BayesPeak and JAMM, and a few times faster than MACS. This makes Zerone
+suitable for usage in large volume pipelines. All programs behaved in a similar
 way on all three datasets in terms of running time.
 
-% TODO: add memory footprint at the bottom of the figure.
+In terms of memory footprint, both Zerone and MACS were comparable, while
+BayesPeak and JAMM demanded a few times times more memory (Fig.~\ref{fig:perf},
+bottom row).
+
 \begin{figure}[!tpb]
-\centerline{\includegraphics[scale=0.5]{running_times.pdf}}
+\centerline{\includegraphics[scale=0.5]{performance.pdf}}
 \caption{Running times and memory footprint of the different discretizers
 on the three ChIP-seq datasets.
 For programs that only allow single-profile discretization
 (\textit{i.e.} BayesPeak and MACS), mean values are shown.
-Note the logarithmic scale.
-}\label{fig:times}
+Note the logarithmic scale in the running times.
+}\label{fig:perf}
 \end{figure}
 
 There is currently no gold standard for benchmarking ChIP-seq discretizers
@@ -325,15 +375,15 @@ dataset.
 \label{tab:ctcf}}
 {\begin{tabular}{lrrccc}
         \toprule
-        \textbf{Software} & \textbf{Total} & \textbf{Motif} &
+        \textbf{Software}  & \textbf{Total}  & \textbf{Motif} &
         \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
         \midrule
-        BayesPeak$^{(1)}$ & 45,316 & 25,228 & 0.56 & 0.29 & 0.39 \\
-        BayesPeak$^{(2)}$ & 45,154 & 23,428 & 0.52 & 0.27 & 0.36 \\
-        JAMM & 264,410 & 31,709 & 0.12 & 0.37 & 0.18 \\
-        MACS$^{(1)}$ & 48,358 & 26,449 & 0.55 & 0.31 & 0.39 \\
-        MACS$^{(2)}$ & 41,030 & 23,542 & 0.57 & 0.27 & 0.37 \\
-        Zerone & 99,532 & 30,972 & 0.31 & 0.36 & 0.33 \\
+        BayesPeak$^{(1)}$ &  45,316 & 25,228 & 0.56 & 0.29 & 0.39 \\
+        BayesPeak$^{(2)}$ &  45,154 & 23,428 & 0.52 & 0.27 & 0.36 \\
+        JAMM              & 264,410 & 31,709 & 0.12 & 0.37 & 0.18 \\
+        MACS$^{(1)}$      &  48,358 & 26,449 & 0.55 & 0.31 & 0.39 \\
+        MACS$^{(2)}$      &  41,030 & 23,542 & 0.57 & 0.27 & 0.37 \\
+        Zerone            &  99,532 & 30,972 & 0.31 & 0.36 & 0.33 \\
         \botrule
 \end{tabular}}{
 The numbers in parentheses indicate the results on the two replicates
@@ -426,12 +476,3 @@ training of PhD students (FPI) 2013).
 %%\centerline{\includegraphics{fig01.eps}}
 %\caption{Caption, caption.}\label{fig:01}
 %\end{figure}
-%
-%\begin{figure}[!tpb]%figure2
-%%\centerline{\includegraphics{fig02.eps}}
-%\caption{Caption, caption.}\label{fig:02}
-%\end{figure}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% please remove the " % " symbol from \centerline{\includegraphics{fig01.eps}}
-% as it may ignore the figures.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
