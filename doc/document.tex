@@ -218,7 +218,7 @@ regions are detected. Therefore, a method to separate valid discretizations
 from unreliable ones is needed.
 
 We came up with the simple idea of training a classifier with examples of
-satisfactory and unsatisfactory discretizations (See section \ref{sub:training}
+satisfactory and unsatisfactory discretizations (see section \ref{sub:training}
 for details). At first, a linear classifier like logistic regression seemed
 useful, but its performance on both training and tests sets was insuficient,
 not going below an error rate of 10\% (data not shown) even in representative,
@@ -247,13 +247,14 @@ to overfitting. Choosing the number of hidden layers, the number of neurons
 in each layer and the cost functions makes the hyperparameter space
 exaggeratedly vast to search it efficiently.
 
-Istead, we used an SVM. SVMs address the classification problem from a
-different perspective, they are fast to train, require only one hyperparameter
-to be fit, guarantee the lowest overfitting upper bound and, if the training
-data is mapped to a kernel space, they can also perform nonlinear
+Istead, we used an SVM, an algorithm that addresses the classification problem
+from a different perspective: it separates the two classes with the maximum
+possible margin, which guarantees the lowest overfitting upper bound. Also,
+they are fast to train, require only one hyperparameter to be fit and, if the
+training data is mapped to a kernel space, they can also perform nonlinear
 classification, in which case the fit may depend on additional hyperparameters.
 
-In our case, we chose a radial basis function kernel that require to fit one
+In our case, we chose a radial basis function kernel that requires to fit one
 additional hyperparameter. After the training, our classifier achieved, in this
 case, a 95\% of accuracy on test sets.
 
@@ -279,11 +280,16 @@ lysine 36 (H3K36me3) and RNA polymerase II (Pol2)---that represent punctate,
 broad and mixed type signals respectively. Each dataset consisted of an input
 profile and two replicate target profiles.
 
+To make the comparisons fair, we merged all contiguous windows that were called
+as enriched by Zerone, in the same way the other programs do. Otherwise, the
+number of enriched regions in the genome would be higher and Zerone performance
+would look poorer than the actual.
+
 \subsection{Classifier training}\label{sub:training}
 After the analysis, Zerone returns the paremeters of the learned model, such as
-the estimated transition matrix and the Viterbi path. These
-features differ depending on the quality of the discretization and therefore we
-used them for training an SVM \citep{Chang2011,e1071}.
+the estimated transition matrix and the Viterbi path. These features differ
+depending on the quality of the discretization and therefore we used them for
+training the SVM \citep{Chang2011,e1071}.
 
 We built a dataset composed of 91 positive and 53 negative manually selected
 discretizations that the classifier should accept or discard, respectively.
@@ -312,8 +318,8 @@ enrichment; and JAMM (version 1.0.7rev1) because it can perform joint
 analysis on experimental replicates.
 
 All tests were performed on an 8-core Intel Xeon E5606 machine with 48~GB of
-DDR3-RAM at 1333~MHz. All programs were run with default options and on a
-single core.
+DDR3-RAM at 1333~MHz. All programs were run on a single core with the default
+options.
 
 \end{methods}
 
@@ -324,15 +330,14 @@ single core.
 % ChIP-seq ENCODE data, allowing us to detect noisy and non-replicating profiles
 % that should be flagged as such.
 
-\subsection{Benchmark}
-\subsubsection{Speed and memory consumption.}
+\subsection{Speed and memory consumption}
 We compared the running time of the different programs on discretizing three
 similar sized datasets that represent the three major types of ChIP-seq signal
-usually observed. In our tests Zerone was the fastest algorithm
-(Fig.~\ref{fig:perf}, top row), being a few orders of magnitude faster than
-BayesPeak and JAMM, and a few times faster than MACS. This makes Zerone
-suitable for usage in large volume pipelines. All programs behaved in a similar
-way on all three datasets in terms of running time.
+usually observed. In our tests Zerone was the fastest algorithm, being a few
+orders of magnitude faster than BayesPeak and JAMM, and a few times faster than
+MACS (Fig.~\ref{fig:perf}, top row). This makes Zerone suitable for usage in
+large volume pipelines. All programs behaved in a similar way on all three
+datasets in terms of running time.
 
 In terms of memory footprint, both Zerone and MACS were comparable, while
 BayesPeak and JAMM demanded a few times times more memory (Fig.~\ref{fig:perf},
@@ -348,8 +353,10 @@ Note the logarithmic scale in the running times.
 }\label{fig:perf}
 \end{figure}
 
+\subsection{Discretization benchmark}
 There is currently no gold standard for benchmarking ChIP-seq discretizers
-ability to call biologically relevant regions of enrichment.% Therefore, the
+ability to call biologically relevant regions of enrichment. Therefore, we used
+different strategies for comparing the different types of signals analyzed.
 
 \subsubsection{Identification of CTCF binding sites.}
 CTCF binding sites are characterized by a specific 20~bp sequence that is
@@ -362,9 +369,10 @@ binding motifs. We used FIMO \citep{pmid21330290} (MEME suite version 4.10.1,
 obtained from the JASPAR database (version 5.0{\textunderscore}ALPHA,
 \citealp{pmid24194598}). The CTCF motif dataset contained 85,690 entries.
 
-Table \ref{tab:ctcf} shows that, overall, Zerone is comparable to BayesPeak
-and to the widely used MACS in terms of $F_{1}$ score, and performs much
-better than JAMM, the other software capable of combined analysis.
+Table \ref{tab:ctcf} shows that Zerone outperforms its competitors: it has one
+of the highest recall scores, comparable to that of JAMM, the other software
+capable of combined analysis, while achieving the highest precision among the
+evaluated programs.
 
 \begin{table}[!t]
 \processtable{Summary of peak calling on the CTCF dataset.
@@ -383,20 +391,20 @@ dataset.
         JAMM              & 264,410 & 31,709 & 0.12 & 0.37 & 0.18 \\
         MACS$^{(1)}$      &  48,358 & 26,449 & 0.55 & 0.31 & 0.39 \\
         MACS$^{(2)}$      &  41,030 & 23,542 & 0.57 & 0.27 & 0.37 \\
-        Zerone            &  99,532 & 30,972 & 0.31 & 0.36 & 0.33 \\
+        Zerone            &  50,792 & 30,972 & 0.61 & 0.36 & 0.45 \\
         \botrule
 \end{tabular}}{
 The numbers in parentheses indicate the results on the two replicates
 by separate.}
 \end{table}
 
-% ctcf venn diagrams?
-%\begin{figure}[!tpb]
-%\centerline{\includegraphics[scale=0.4]{ctcf_overlap.pdf}}
-%\caption{Nice image, buy maybe superfluous.}\label{fig:venn}
-%\end{figure}
+\subsubsection{H3K36me3-enriched domains.}
 
-%\subsubsection{H3K36me3}
+
+\begin{figure}[!tpb]
+    \centerline{\includegraphics[scale=0.5]{histone_venn_gray.pdf}}
+\caption{Caption, caption.}\label{fig:venn}
+\end{figure}
 
 \subsubsection{Pol2 binding around transcription start sites.}
 Pol2 profiles illustrate a characteristic binding pattern composed by a peaky
@@ -405,29 +413,14 @@ downstream of it \citep{pmid}. This represents the frequencies
 at which Pol2 is poised or actively transcribing, respectively,
 in the cell population \citep{pmid}.
 
+To compare the behavior of the different discretizers, we determined how the
+peaks were distributed around TSSs.
+
 % figure: distance to tss (histogram or just % within a range??)
 % with genomicranges distancetonearest cite
 
-A distance of 0 means that the TSS is contained within the boundaries of the
-peak. Therefore, an implementation that systematically produces wider peaks
-will tend to reduce the average distance to the TSS. We thougth that this could
-be the case of Zerone due to its windowing approach
-(see Fig.~\ref{fig:peak_width}),
-but realized that the peaks produced by the other discretizers had a mean
-size of 325, 136 and 255~bp (BayesPeak, JAMM and MACS, respectively), which
-was about the range of the default 300~bp windows used by Zerone. Moreover,
-the window size in Zerone can be defined by the user.
 % TODO: implement BIN_SIZE as an option (default=300).
-
-\begin{figure}[!tpb]
-\centerline{\includegraphics[scale=0.5]{peak_width.pdf}}
-\caption{Distribution of peak widths obtained by the different software.
-Since Zerone is a window-based discretizer, the with of the regions is kept
-constant (vertical line at 300~bp).}\label{fig:peak_width}
-\end{figure}
-
 % RESULTS: Performance on test sets (around 95% on 10-fold cross-validation)
-% RESULTS: describe the shapes of the data??? (positive similar, negative diff)
 
 \section{Discussion and conclusion}
 Some more text here.
