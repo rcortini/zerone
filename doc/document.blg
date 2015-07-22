@@ -1,0 +1,70 @@
+This is BibTeX, Version 0.99d (TeX Live 2013/Debian)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: document.aux
+The style file: natbib.bst
+Database file #1: document.bib
+Database file #2: extra.bib
+Repeated entry---line 14 of file extra.bib
+ : @article{li2011
+ :                ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 57 of file extra.bib
+ : @article{Chang2011
+ :                   ,
+I'm skipping whatever remains of this entry
+Warning--I didn't find a database entry for "pmid24349523"
+Warning--I didn't find a database entry for "pmid24173036"
+Warning--I didn't find a database entry for "pmid18463634"
+Warning--I didn't find a database entry for "pmid19505943"
+Warning--I didn't find a database entry for "pmid18798982"
+Warning--I didn't find a database entry for "pmid19772557"
+Warning--I didn't find a database entry for "pmid25223640"
+Warning--I didn't find a database entry for "pmid21059603"
+Warning--I didn't find a database entry for "pmid23103880"
+Warning--I didn't find a database entry for "pmid17382889"
+Warning--I didn't find a database entry for "pmid21330290"
+Warning--I didn't find a database entry for "pmid19458158"
+Warning--I didn't find a database entry for "pmid24194598"
+Warning--I didn't find a database entry for "pmid"
+You've used 9 entries,
+            2378 wiz_defined-function locations,
+            601 strings with 5790 characters,
+and the built_in function-call counts, 4013 in all, are:
+= -- 402
+> -- 207
+< -- 6
++ -- 59
+- -- 59
+* -- 348
+:= -- 709
+add.period$ -- 41
+call.type$ -- 9
+change.case$ -- 53
+chr.to.int$ -- 9
+cite$ -- 9
+duplicate$ -- 168
+empty$ -- 255
+format.name$ -- 72
+if$ -- 790
+int.to.chr$ -- 1
+int.to.str$ -- 0
+missing$ -- 6
+newline$ -- 49
+num.names$ -- 36
+pop$ -- 54
+preamble$ -- 1
+purify$ -- 56
+quote$ -- 0
+skip$ -- 116
+stack$ -- 0
+substring$ -- 224
+swap$ -- 35
+text.length$ -- 1
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 81
+warning$ -- 0
+while$ -- 37
+width$ -- 0
+write$ -- 120
+(There were 2 error messages)
