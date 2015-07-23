@@ -209,23 +209,38 @@ considered constant throughout. Overall, the total number of estimated
 parameters is $3(r+1)$, where $r$ is the number of replicate experiments
 (excluding negative controls).
 
-\subsection{Classifier}
-Discretization will be performed regardless of the quality of the
-experimental data being analyzed. Features like depth of coverage,
-signal-to-noise ratio, technical biases or, specially and most importantly,
-dicrepancies among replicates, can have an impact on how acurately enriched
-regions are detected. Therefore, a method to separate valid discretizations
-from unreliable ones is needed.
+\subsection{Classification and training}\label{sub:training}
+We used a machine learning strategy to identify discretization
+failures. We first prepared a high confidence dataset where the
+output of Zerone was labelled positive (success) or negative (failure).
+We discretized 144 replicated ChIP-seq experiments (\textit{i.e.}
+144 different features), together with their respective input control.
+We labelled the output for the discretization as positive (91 cases)
+or negative (53 cases), based visual inspection and on the available
+literature about the chromatin features. The most common cases of
+poor data quality in ChIP-seq correspond to low signal to noise ratio
+(for instance when the antibody is unspecific), and lack of
+repdroducibility between replicates (for instance when samples are
+swapped). To cover these cases, we included in the trusted set
+a number of cases obtained by discretizing non replicates
+(\textit{e.g.} CTCF and Pol2) and controls without
+immuno-precipitation.
 
-We came up with the simple idea of training a classifier with examples of
-satisfactory and unsatisfactory discretizations (see section \ref{sub:training}
-for details). At first, a linear classifier like logistic regression seemed
-useful, but its performance on both training and tests sets was insuficient,
-not going below an error rate of 10\% (data not shown) even in representative,
-and big enough training sets. Inquiring into the possible reasons for this
-limitation we observed that some discretizations of both classes overlaped
-in their feature space (Fig.~\ref{fig:pca}) and it was not possible to separate
-them by means of a linear classifier.
+To identify discretization failures, we used the paremeters of the
+fitted HMM.  Based on the transition matrix, the emission paramaters,
+the Viterbi Path and the posterior probabilities [CHECK THAT THE LATTER
+IS TRUE], we computed 19 features expected to vary with the quality
+of the discretization, and we used them to train a classifier.
+
+Our first attempts with logistic regression suggested that linear
+classifiers are unable to properly separate these two classes because
+they overlap in the feature space (Fig.~\ref{fig:pca}). To obtain more
+complex, nonlinear separation, we used a Support Vector Machine
+(SVM, \cite{Chang2011,e1071}), as this approach guarantees the lowest
+overfitting upper bound and allows nonlinear classification by mapping
+the training data to a kernel space. Also, SVMs are fast to train and
+they require only one hyperparameter to be fitted, which were
+advantages over other approaches such as neural networks.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{pca.pdf}}
@@ -238,78 +253,39 @@ certain degree of overlap between the two groups that crates an
 }\label{fig:pca}
 \end{figure}
 
-We thought we needed an algorithm capable of producing more complex, nonlinear
-hypotheses in order to capture the relationships between features that
-differentiated good from bad discretizations.
-
-At first, an artificial neural network seemed appropriate, but they are prone
-to overfitting. Choosing the number of hidden layers, the number of neurons
-in each layer and the cost functions makes the hyperparameter space
-exaggeratedly vast to search it efficiently.
-
-Istead, we used an SVM, an algorithm that addresses the classification problem
-from a different perspective: it separates the two classes with the maximum
-possible margin, which guarantees the lowest overfitting upper bound. Also,
-they are fast to train, require only one hyperparameter to be fit and, if the
-training data is mapped to a kernel space, they can also perform nonlinear
-classification, in which case the fit may depend on additional hyperparameters.
-
-In our case, we chose a radial basis function kernel that requires to fit one
-additional hyperparameter. After the training, our classifier achieved, in this
-case, a 95\% of accuracy on test sets.
+We trained the SVM with a radial basis function kernel and
+selected the hyperparameters that maximized the prediction
+performance on test sets using a 10-fold cross-validation scheme.
+The prediction accuracy on the trusted set was 95\%.
+We then implemented a prediction function in Zerone that used the
+model trained by the SVM to classify the discretizations and
+suggest whether they should be accepted or discarded.
 
 \subsection{Datasets and preprocessing}
-We used all the ChIP-seq profiles produced by the ENCODE consortium on the human
-myelogenous leukemia cell line K562. We did not make use of preprocessed mapped
-reads because they could have been mapped with different software and could
-therefore disagree on its results \citep{pmid21059603}. Instead, we mapped all
-the raw reads onto the hg19 assembly of the human genome with GEM
-\citep{pmid23103880}, using the options \texttt{--unique-mapping} and
-\texttt{-q ignore} of gem-mapper, version 1.376 (beta). The version of
-gem-indexer was 1.423 (beta). We preprocessed the data in the same
-way both for training the classifier and for benchmarking. We also used the
-same genome assembly to generate the datasets used in the benchmarks (see
-Section \ref{sec:results}).
+We used all the ChIP-seq profiles produced by the ENCODE consortium
+on the human myelogenous leukemia cell line K562. We did not make use
+of preprocessed mapped reads because they could have been mapped with
+different software and could therefore disagree on its results
+\citep{pmid21059603}. Instead, we mapped all the raw reads onto the
+hg19 assembly of the human genome with GEM \citep{pmid23103880}, using
+the options \texttt{--unique-mapping} and \texttt{-q ignore} of gem-mapper,
+version 1.376 (beta). The version of gem-indexer was 1.423 (beta). We
+preprocessed the data in the same way both for training the classifier
+and for benchmarking. We also used the same genome assembly to generate
+the datasets used in the benchmarks (see Section \ref{sec:results}).
 
-For training the classifier, we binned the mapped reads into 300~bp windows and
-saved the data in WIG format before discretization.
+For training the classifier, we binned the mapped reads into 300~bp
+windows and saved the data in WIG format before discretization.
 
-For comparing Zerone against other discretizers, we analysed three different
+
+
+\subsection{Benchmark conditions}
+To compare Zerone to other discretizers, we analysed three different
 ChIP-seq datasets: CCCTC-binding factor (CTCF), tri-methylated histone H3 at
 lysine 36 (H3K36me3) and RNA polymerase II (Pol2)---that represent punctate,
 broad and mixed type signals respectively. Each dataset consisted of an input
 profile and two replicate target profiles.
 
-To make the comparisons fair, we merged all contiguous windows that were called
-as enriched by Zerone, in the same way the other programs do. Otherwise, the
-number of enriched regions in the genome would be higher and Zerone performance
-would look poorer than the actual.
-
-\subsection{Classifier training}\label{sub:training}
-After the analysis, Zerone returns the paremeters of the learned model, such as
-the estimated transition matrix and the Viterbi path. These features differ
-depending on the quality of the discretization and therefore we used them for
-training the SVM \citep{Chang2011,e1071}.
-
-We built a dataset composed of 91 positive and 53 negative manually selected
-discretizations that the classifier should accept or discard, respectively.
-For these positive and negative examples, we discretized experimental replicates
-together with their respective input control, and subsequently decided whether
-the discretizations were correct based on literature about the studied proteins.
-We also included in the dataset a number of aberrant negative examples obtained
-by discretizing false replicates (\textit{i.e.} profiles that were not
-replicates from one another but came from two different proteins, and should
-therefore disagree on which were the enriched \textit{loci}) and flat profiles
-(\textit{i.e.} input profiles that were passed to Zerone as target profiles and
-should not contain real enrichments at all).
-
-We trained the SVM and selected the hyperparameters that maximized the
-prediction performance on test sets using a 10-fold cross-validation scheme. We
-then implemented a prediction function in Zerone that used the model trained by
-the SVM to classify the discretizations and suggest whether they could be
-accepted or should be discarded.
-
-\subsection{Benchmark conditions}
 We decided to include MACS \texttt{callpeak} (version 2.1.0.20140616) in
 the comparisons because it is the \textit{de facto} standard method
 for ChIP-seq peak calling; BayesPeak (version 1.20.0) because, as Zerone,
