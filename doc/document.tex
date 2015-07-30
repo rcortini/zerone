@@ -261,6 +261,31 @@ We then implemented a prediction function in Zerone that used the
 model trained by the SVM to classify the discretizations and
 suggest whether they should be accepted or discarded.
 
+%\subsection{Classifier training}\label{sub:training}
+%After the analysis, Zerone returns the paremeters of the learned model, such as
+%the estimated transition matrix and the Viterbi path. These features differ
+%depending on the quality of the discretization and therefore we used them for
+%training the SVM \citep{Chang2011,e1071}.
+%
+%We built a dataset composed of 91 positive and 53 negative manually selected
+%discretizations that the classifier should accept or discard, respectively.
+%For these positive and negative examples, we discretized experimental replicates
+%together with their respective input control, and subsequently decided whether
+%the discretizations were correct based on literature about the studied proteins.
+%% TODO: change A NUMBER by an *actual* number in both cases.
+%We also included in the dataset A NUMBER of aberrant negative examples obtained
+%by discretizing false replicates (\textit{i.e.} profiles that were not
+%replicates from one another but came from two different proteins, and should
+%therefore disagree on which were the enriched \textit{loci}) and flat profiles
+%(\textit{i.e.} input profiles that were passed to Zerone as target profiles and
+%should not contain real enrichments at all).
+%
+%We trained the SVM and selected the hyperparameters that maximized the
+%prediction performance on test sets using a 10-fold cross-validation scheme. We
+%then implemented a prediction function in Zerone that used the model trained by
+%the SVM to classify the discretizations and suggest whether they could be
+%accepted or should be discarded.
+
 \subsection{Datasets and preprocessing}
 We used all the ChIP-seq profiles produced by the ENCODE consortium
 on the human myelogenous leukemia cell line K562. We did not make use
@@ -277,14 +302,17 @@ the datasets used in the benchmarks (see Section \ref{sec:results}).
 For training the classifier, we binned the mapped reads into 300~bp
 windows and saved the data in WIG format before discretization.
 
-
-
 \subsection{Benchmark conditions}
 To compare Zerone to other discretizers, we analysed three different
 ChIP-seq datasets: CCCTC-binding factor (CTCF), tri-methylated histone H3 at
 lysine 36 (H3K36me3) and RNA polymerase II (Pol2)---that represent punctate,
 broad and mixed type signals respectively. Each dataset consisted of an input
 profile and two replicate target profiles.
+
+To make the comparisons fair, we merged all contiguous windows that were called
+as enriched by Zerone, in the same way the other programs do. Otherwise, the
+number of enriched regions in the genome would be higher and Zerone performance
+would look poorer than the actual.
 
 We decided to include MACS \texttt{callpeak} (version 2.1.0.20140616) in
 the comparisons because it is the \textit{de facto} standard method
