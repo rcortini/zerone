@@ -209,7 +209,8 @@ considered constant throughout. Overall, the total number of estimated
 parameters is $3(r+1)$, where $r$ is the number of replicate experiments
 (excluding negative controls).
 
-\subsection{Classification and training}\label{sub:training}
+\subsection{Classification and training}
+\label{sub:training}
 We used a machine learning strategy to identify discretization
 failures. We first prepared a high confidence dataset where the
 output of Zerone was labelled positive (success) or negative (failure).
@@ -218,18 +219,19 @@ We discretized 144 replicated ChIP-seq experiments (\textit{i.e.}
 We labelled the output for the discretization as positive (91 cases)
 or negative (53 cases), based visual inspection and on the available
 literature about the chromatin features. The most common cases of
-poor data quality in ChIP-seq correspond to low signal to noise ratio
-(for instance when the antibody is unspecific), and lack of
-repdroducibility between replicates (for instance when samples are
+poor data quality in ChIP-seq correspond to low signal-to-noise ratio
+(\textit{e.g.} when the antibody is unspecific), and lack of
+repdroducibility between replicates (\textit{e.g.} when samples are
 swapped). To cover these cases, we included in the trusted set
-a number of cases obtained by discretizing non replicates
+a number of cases obtained by discretizing non-replicates
 (\textit{e.g.} CTCF and Pol2) and controls without
 immuno-precipitation.
+%% NOTE: there were a total of 802 non-replicate and flat discretizations
 
 To identify discretization failures, we used the paremeters of the
-fitted HMM.  Based on the transition matrix, the emission paramaters,
-the Viterbi Path and the posterior probabilities [CHECK THAT THE LATTER
-IS TRUE], we computed 19 features expected to vary with the quality
+fitted HMM. Based on the transition matrix, the emission paramaters,
+the Viterbi Path and the posterior probabilities,
+we computed 19 features expected to vary with the quality
 of the discretization, and we used them to train a classifier.
 
 Our first attempts with logistic regression suggested that linear
@@ -248,7 +250,7 @@ advantages over other approaches such as neural networks.
 Training examples labeled as positive (dark circles) appear to be similar to
 each other, while negative examples (light crosses) show notable differences
 between them and with respect to positive examples. There exist though a
-certain degree of overlap between the two groups that crates an
+certain degree of overlap between the two groups that creates an
 ``ambiguous zone'', at least in this projection.
 }\label{fig:pca}
 \end{figure}
@@ -260,31 +262,6 @@ The prediction accuracy on the trusted set was 95\%.
 We then implemented a prediction function in Zerone that used the
 model trained by the SVM to classify the discretizations and
 suggest whether they should be accepted or discarded.
-
-%\subsection{Classifier training}\label{sub:training}
-%After the analysis, Zerone returns the paremeters of the learned model, such as
-%the estimated transition matrix and the Viterbi path. These features differ
-%depending on the quality of the discretization and therefore we used them for
-%training the SVM \citep{Chang2011,e1071}.
-%
-%We built a dataset composed of 91 positive and 53 negative manually selected
-%discretizations that the classifier should accept or discard, respectively.
-%For these positive and negative examples, we discretized experimental replicates
-%together with their respective input control, and subsequently decided whether
-%the discretizations were correct based on literature about the studied proteins.
-%% TODO: change A NUMBER by an *actual* number in both cases.
-%We also included in the dataset A NUMBER of aberrant negative examples obtained
-%by discretizing false replicates (\textit{i.e.} profiles that were not
-%replicates from one another but came from two different proteins, and should
-%therefore disagree on which were the enriched \textit{loci}) and flat profiles
-%(\textit{i.e.} input profiles that were passed to Zerone as target profiles and
-%should not contain real enrichments at all).
-%
-%We trained the SVM and selected the hyperparameters that maximized the
-%prediction performance on test sets using a 10-fold cross-validation scheme. We
-%then implemented a prediction function in Zerone that used the model trained by
-%the SVM to classify the discretizations and suggest whether they could be
-%accepted or should be discarded.
 
 \subsection{Datasets and preprocessing}
 We used all the ChIP-seq profiles produced by the ENCODE consortium
@@ -406,7 +383,7 @@ by separate.}
 
 
 \begin{figure}[!tpb]
-    \centerline{\includegraphics[scale=0.5]{histone_venn_gray.pdf}}
+    \centerline{\includegraphics[scale=0.5]{histone_venn_color.pdf}}
 \caption{Caption, caption.}\label{fig:venn}
 \end{figure}
 

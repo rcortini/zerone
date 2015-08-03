@@ -7,26 +7,26 @@
 
 
 // Declaration of private types. //
-struct histo_t;
-struct tab_t;
-
-typedef struct histo_t histo_t;
-typedef struct tab_t tab_t;
-
-struct histo_t {
-   size_t size;
-   unsigned int num[];
-};
-
-struct tab_t {
-   size_t size;
-   unsigned int *num;
-   unsigned int val[];
-};
+//struct histo_t;
+//struct tab_t;
+//
+//typedef struct histo_t histo_t;
+//typedef struct tab_t tab_t;
+//
+//struct histo_t {
+//   size_t size;
+//   unsigned int num[];
+//};
+//
+//struct tab_t {
+//   size_t size;
+//   unsigned int *num;
+//   unsigned int val[];
+//};
 
 
 // Declaration of private functions. //
-tab_t   * compress_histo (histo_t *);
+//tab_t   * compress_histo (histo_t *);
 void      default_warning (const char *, const char *, int);
 double    digamma (double);
 double    eval_nb_dfda (double, const tab_t *);
@@ -36,10 +36,10 @@ double    eval_zinb_dfdp (double, double, unsigned int, double);
 double    eval_zinb_dgda (double, double, const tab_t *);
 double    eval_zinb_f (double, double, unsigned int, double);
 double    eval_zinb_g (double, double, const tab_t *);
-int       histo_push (histo_t **, size_t);
+//int       histo_push (histo_t **, size_t);
 double    ll_zinb (double, double, double, const tab_t *);
 double    nb_est_alpha (tab_t *);
-histo_t * new_histo (void);
+//histo_t * new_histo (void);
 tab_t   * tabulate (int *, unsigned int);
 double    trigamma (double);
 
@@ -89,7 +89,7 @@ mle_nb
 //
 // RETURN:
 //   A 'zinb_par_t' pointer with estimated paraters. Note that the
-//   mixture parameter is always set to 1.0. 
+//   mixture parameter is always set to 1.0.
 //
 // SIDE EFFECTS:
 //   None.
@@ -253,7 +253,7 @@ mle_zinb
          par->p = p;
          par->pi = pi;
       }
-            
+
    }
 
    free(tab);
@@ -431,7 +431,7 @@ eval_zinb_dgda
    const tab_t  * tab
 )
 {
-   
+
    // Convenience variables.
    const unsigned int *val = tab->val;
    const unsigned int *num = tab->num;
@@ -748,7 +748,7 @@ digamma
     B Schneider,
     Trigamma Function,
     Algorithm AS 121,
-    Applied Statistics, 
+    Applied Statistics,
     Volume 27, Number 1, page 97-99, 1978.
 
     From http://www.psc.edu/~burkardt/src/dirichlet/dirichlet.f
