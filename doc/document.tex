@@ -238,7 +238,7 @@ Our first attempts with logistic regression suggested that linear
 classifiers are unable to properly separate these two classes because
 they overlap in the feature space (Fig.~\ref{fig:pca}). To obtain more
 complex, nonlinear separation, we used a Support Vector Machine
-(SVM, \cite{Chang2011,e1071}), as this approach guarantees the lowest
+(SVM, \citealp{Chang2011,e1071}), as this approach guarantees the lowest
 overfitting upper bound and allows nonlinear classification by mapping
 the training data to a kernel space. Also, SVMs are fast to train and
 they require only one hyperparameter to be fitted, which were
@@ -380,12 +380,21 @@ by separate.}
 \end{table}
 
 \subsubsection{H3K36me3-enriched domains.}
+Unlike in the previous case, there is no known consensus sequence to determine
+the location of histone modifications.
 
-
+% TODO: add disk labels
 \begin{figure}[!tpb]
-    \centerline{\includegraphics[scale=0.5]{histone_venn_color.pdf}}
-\caption{Caption, caption.}\label{fig:venn}
+\centerline{\includegraphics[scale=0.5]{histone_venn_color_names.pdf}}
+\caption{Enriched genomic windows called by the
+different software. Circle size represents the enriched portion of the genome
+according to each of the programs, and the overlap between circles approximates
+the amount of windows found enriched by two or more programs.}\label{fig:venn}
 \end{figure}
+
+Even when there is not
+The bodies of active genes are enriched in the histone mark H3K36me3
+\citep{pmid16122420,pmid23739122}.
 
 \subsubsection{Pol2 binding around transcription start sites.}
 Pol2 profiles illustrate a characteristic binding pattern composed by a peaky
@@ -400,11 +409,9 @@ peaks were distributed around TSSs.
 % figure: distance to tss (histogram or just % within a range??)
 % with genomicranges distancetonearest cite
 
-% TODO: implement BIN_SIZE as an option (default=300).
 % RESULTS: Performance on test sets (around 95% on 10-fold cross-validation)
 
 \section{Discussion and conclusion}
-Some more text here.
 
 \section*{Acknowledgement}
 

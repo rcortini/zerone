@@ -13,3 +13,9 @@ src/test/runtests
 src/test/H3K9ac.txt
 src/test/RXRA.txt
 src/test/.inspect.gdb
+doc/document.aux
+doc/document.bbl
+doc/document.bib
+doc/document.blg
+doc/document.pdf
+doc/pmid.xml

@@ -5,45 +5,45 @@ The style file: natbib.bst
 Database file #1: document.bib
 Database file #2: extra.bib
 Warning--I didn't find a database entry for "pmid"
-You've used 22 entries,
+You've used 24 entries,
             2378 wiz_defined-function locations,
-            670 strings with 8641 characters,
-and the built_in function-call counts, 11792 in all, are:
-= -- 1018
-> -- 877
-< -- 6
-+ -- 265
-- -- 265
-* -- 1213
-:= -- 2129
-add.period$ -- 105
-call.type$ -- 22
-change.case$ -- 132
-chr.to.int$ -- 22
-cite$ -- 22
-duplicate$ -- 421
-empty$ -- 680
-format.name$ -- 293
-if$ -- 2272
+            682 strings with 9114 characters,
+and the built_in function-call counts, 12984 in all, are:
+= -- 1108
+> -- 982
+< -- 7
++ -- 298
+- -- 298
+* -- 1342
+:= -- 2351
+add.period$ -- 114
+call.type$ -- 24
+change.case$ -- 144
+chr.to.int$ -- 24
+cite$ -- 24
+duplicate$ -- 459
+empty$ -- 745
+format.name$ -- 328
+if$ -- 2498
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 19
-newline$ -- 114
-num.names$ -- 88
-pop$ -- 128
+missing$ -- 21
+newline$ -- 124
+num.names$ -- 96
+pop$ -- 138
 preamble$ -- 1
-purify$ -- 135
+purify$ -- 147
 quote$ -- 0
-skip$ -- 268
+skip$ -- 292
 stack$ -- 0
-substring$ -- 639
-swap$ -- 82
+substring$ -- 702
+swap$ -- 89
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 198
+type$ -- 216
 warning$ -- 0
-while$ -- 88
+while$ -- 96
 width$ -- 0
-write$ -- 289
+write$ -- 315
 (There was 1 warning)

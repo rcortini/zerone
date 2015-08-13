@@ -62,6 +62,11 @@ Kim, T.~H., Abdullaev, Z.~K., Smith, A.~D., Ching, K.~A., Loukinov, D.~I.,
   the human genome.}
 \newblock {\em {Cell}\/}, {\bf 128}(6), 1231--45.
 
+\bibitem[Kimura(2013)Kimura]{pmid23739122}
+Kimura, H. (2013).
+\newblock {Histone modifications for human epigenome analysis.}
+\newblock {\em {J. Hum. Genet.}}, {\bf 58}(7), 439--45.
+
 \bibitem[Li {\em et~al.}(2009)Li, Handsaker, Wysoker, Fennell, Ruan, Homer,
   Marth, Abecasis, and and]{pmid19505943}
 Li, H., Handsaker, B., Wysoker, A., Fennell, T., Ruan, J., Homer, N., Marth,
@@ -103,6 +108,15 @@ Meyer, D., Dimitriadou, E., Hornik, K., Weingessel, A., and Leisch, F. (2014).
 Park, D., Lee, Y., Bhupindersingh, G., and Iyer, V.~R. (2013).
 \newblock {Widespread misinterpretable ChIP-seq bias in yeast.}
 \newblock {\em {PLoS ONE}\/}, {\bf 8}(12), e83506.
+
+\bibitem[Pokholok {\em et~al.}(2005)Pokholok, Harbison, Levine, Cole, Hannett,
+  Lee, Bell, Walker, Rolfe, Herbolsheimer, Zeitlinger, Lewitter, Gifford, and
+  Young]{pmid16122420}
+Pokholok, D.~K., Harbison, C.~T., Levine, S., Cole, M., Hannett, N.~M., Lee,
+  T.~I., Bell, G.~W., Walker, K., Rolfe, P.~A., Herbolsheimer, E., Zeitlinger,
+  J., Lewitter, F., Gifford, D.~K., and Young, R.~A. (2005).
+\newblock {Genome-wide map of nucleosome acetylation and methylation in yeast.}
+\newblock {\em {Cell}\/}, {\bf 122}(4), 517--27.
 
 \bibitem[{R Core Team}(2014){R Core Team}]{R}
 {R Core Team} (2014).
