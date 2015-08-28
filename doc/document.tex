@@ -381,20 +381,41 @@ by separate.}
 
 \subsubsection{H3K36me3-enriched domains.}
 Unlike in the previous case, there is no known consensus sequence to determine
-the location of histone modifications.
+the location of histone modifications. However, it is known that the bodies of
+active genes are enriched in H3K36me3 \citep{pmid16122420,pmid23739122}.
+Therefore, the genes that contain peaks or windows determined as enriched in
+H3K36me3 by the different discretizers should be more expressed than the
+background. Fig.~\ref{fig:expr} shows that the expression levels of regions
+detected as enriched in H3K36me3 by Zerone are indeed higher than the ones of
+non-enriched regions. Zerone detects as not enriched windows with lower
+expression than other programs (Fig.~\ref{fig:expr}, left), consistent with
+having the highest recall score as discussed above. Together with JAMM, Zerone
+is able to detect as enriched windows that are more expressed than the ones
+found by the other software (Fig.~\ref{fig:expr}, right). This last observation
+is consistent with the fact that JAMM and Zerone have the highest precision
+scores when discretizing the CTCF dataset. Overall, the behavior of the tested
+software on the H3K36me3 dataset is similar to the observed in the previously
+analyzed CTCF dataset.
 
-% TODO: add disk labels
 \begin{figure}[!tpb]
-\centerline{\includegraphics[scale=0.5]{histone_venn_color_names.pdf}}
-\caption{Enriched genomic windows called by the
-different software. Circle size represents the enriched portion of the genome
-according to each of the programs, and the overlap between circles approximates
-the amount of windows found enriched by two or more programs.}\label{fig:venn}
+\centerline{\includegraphics[scale=0.5]{histone_expr.pdf}}
+\caption{Left: mean expression levels of genomic windows not enriched in
+H3K36me3, as determined by the different discretizers. Right: mean fold change
+in gene expression of enriched windows relative to non-enriched ones.}
+\label{fig:expr}
 \end{figure}
 
-Even when there is not
-The bodies of active genes are enriched in the histone mark H3K36me3
-\citep{pmid16122420,pmid23739122}.
+% TODO: Talk about overlap between discretizers.
+\ref{fig:venn}
+
+\begin{figure}[!tpb]
+\centerline{\includegraphics[scale=0.5]{histone_venn_color_names.pdf}}
+\caption{Enriched genomic windows called by the different software. Circle size
+represents the enriched portion of the genome according to each of the programs,
+and the overlap between circles approximates the amount of windows found
+enriched by two or more programs. Note the almost complete overlap between the
+BayesPeak discretizations on the two replicates.}\label{fig:venn}
+\end{figure}
 
 \subsubsection{Pol2 binding around transcription start sites.}
 Pol2 profiles illustrate a characteristic binding pattern composed by a peaky
