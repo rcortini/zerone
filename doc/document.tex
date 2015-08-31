@@ -236,7 +236,7 @@ of the discretization, and we used them to train a classifier.
 
 Our first attempts with logistic regression suggested that linear
 classifiers are unable to properly separate these two classes because
-they overlap in the feature space (Fig.~\ref{fig:pca}). To obtain more
+they overlap in the feature space (Fig.~\ref{fig:pca_color}). To obtain more
 complex, nonlinear separation, we used a Support Vector Machine
 (SVM, \citealp{Chang2011,e1071}), as this approach guarantees the lowest
 overfitting upper bound and allows nonlinear classification by mapping
@@ -245,14 +245,14 @@ they require only one hyperparameter to be fitted, which were
 advantages over other approaches such as neural networks.
 
 \begin{figure}[!tpb]
-\centerline{\includegraphics[scale=0.5]{pca.pdf}}
+\centerline{\includegraphics[scale=0.5]{pca_color.pdf}}
 \caption{Principal Component Analysis of the training dataset.
-Training examples labeled as positive (dark circles) appear to be similar to
-each other, while negative examples (light crosses) show notable differences
+Training examples labeled as positive (red circles) appear to be similar to
+each other, while negative examples (grey crosses) show notable differences
 between them and with respect to positive examples. There exist though a
 certain degree of overlap between the two groups that creates an
 ``ambiguous zone'', at least in this projection.
-}\label{fig:pca}
+}\label{fig:pca_color}
 \end{figure}
 
 We trained the SVM with a radial basis function kernel and
