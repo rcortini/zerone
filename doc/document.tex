@@ -224,8 +224,7 @@ poor data quality in ChIP-seq correspond to low signal-to-noise ratio
 repdroducibility between replicates (\textit{e.g.} when samples are
 swapped). To cover these cases, we included in the trusted set
 a number of cases obtained by discretizing non-replicates
-(\textit{e.g.} CTCF and Pol2) and controls without
-immuno-precipitation.
+(\textit{e.g.} CTCF and Pol2) and controls without immuno-precipitation.
 %% NOTE: there were a total of 802 non-replicate and flat discretizations
 
 To identify discretization failures, we used the paremeters of the
@@ -389,24 +388,32 @@ background. Fig.~\ref{fig:expr} shows that the expression levels of regions
 detected as enriched in H3K36me3 by Zerone are indeed higher than the ones of
 non-enriched regions. Zerone detects as not enriched windows with lower
 expression than other programs (Fig.~\ref{fig:expr}, left), consistent with
-having the highest recall score as discussed above. Together with JAMM, Zerone
-is able to detect as enriched windows that are more expressed than the ones
-found by the other software (Fig.~\ref{fig:expr}, right). This last observation
-is consistent with the fact that JAMM and Zerone have the highest precision
-scores when discretizing the CTCF dataset. Overall, the behavior of the tested
-software on the H3K36me3 dataset is similar to the observed in the previously
-analyzed CTCF dataset.
+having the highest precision score as discussed above (Table~\ref{tab:ctcf}).
+However, both JAMM and Zerone appear to detect as enriched windows with a lower
+mean read count (Fig.~\ref{fig:expr}, center), which seems to contradict the
+previous finding that these discretizers have the highest recall scores when
+analyzing the CTCF dataset (Table~\ref{tab:ctcf}). This effect can be explained
+by the fact that Zerone is able to detect more enriched windows: other
+programs are only able to detect the peaks with the highest intensity and
+therefore the mean read count in enriched windows could be overestimated
+(Fig.~\ref{fig:expr}, right).
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{histone_expr.pdf}}
 \caption{Left: mean expression levels of genomic windows not enriched in
-H3K36me3, as determined by the different discretizers. Right: mean fold change
-in gene expression of enriched windows relative to non-enriched ones.}
+H3K36me3, as determined by the different discretizers. Center: mean fold change
+in gene expression of enriched windows relative to non-enriched ones. Right:
+percentage of the genome covered by windows detected as enriched. Mean value
+of the replicates is shown for BayesPeak and MACS.}
 \label{fig:expr}
 \end{figure}
 
-% TODO: Talk about overlap between discretizers.
-\ref{fig:venn}
+Interestingly, the majority of the enriched windows are detected by most
+programs. This can be visualized in the Venn diagram of Fig.~\ref{fig:venn},
+where Zerone is shown to be able to detect most of the windows detected by other
+software, while discovering new enriched windows not found by the others, which
+is consistent with the previous observations (Table~\ref{tab:ctcf} and
+Fig.~\ref{fig:expr})
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{histone_venn_color_names.pdf}}
