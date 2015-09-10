@@ -74,9 +74,6 @@ profiles: it makes the signal simpler to interpret from the human
 perspective, it simplifies downstream analyses and it allows to compare or
 combine profiles of different nature. This raises a challenge at the
 computational level because discretization has to be carried out uniformly
-for signals that may have very different properties. For instance compare
-the begabase scale domains of Lamin \citep{pmid18463634} to the 6~bp
-binding sites of typical transcription factors.
 
 Large consortia such as ENCODE have brought to light a more severe type
 of issue related to the quality of ChIP-seq data. Conflicts between
@@ -89,9 +86,11 @@ which allows to weed
 out poorly reproducible signal. This approach is a significant step
 forward, but the IDR is undefined when more than two replicates are
 available. Besides, keeping only the reproducible ChIP peaks is not
-always the best option, as when one of the replicates has very low quality
-for instance. In summary, how to integrate ChIP-seq data from different
-sources and with variable qualities is still an open problem.
+always the best option. If one of the replicates is mislabelled,
+for instance, it is more appropriate to reject the dataset than to keep
+the common ChIP peaks. In summary, how to integrate ChIP-seq data
+from different sources and with variable qualities is still an open
+problem.
 
 Here we propose an approach to discretize ChIP-seq data where conflict
 resolution and quality control are integrated in a tool that we called
@@ -116,7 +115,7 @@ it produces congruent window-based outputs, and it can process hundreds
 of experiments per day on average hardware. We benchmarked Zerone against
 MACS \citep{pmid18798982}, BayesPeak \citep{pmid19772557} and
 JAMM \citep{pmid25223640} on the core
-task of discretizing ChIP-seq profiles of CTCF, H3K36me3 and Pol2 . Our
+task of discretizing ChIP-seq profiles of CTCF, H3K36me3 and Pol2. Our
 results show that Zerone is competitive in terms of speed and accuracy.
 
 \begin{methods}
@@ -312,24 +311,27 @@ options.
 
 \subsection{Speed and memory consumption}
 We compared the running time of the different programs on discretizing three
-similar sized datasets that represent the three major types of ChIP-seq signal
-usually observed. In our tests Zerone was the fastest algorithm, being a few
-orders of magnitude faster than BayesPeak and JAMM, and a few times faster than
-MACS (Fig.~\ref{fig:perf}, top row). This makes Zerone suitable for usage in
-large volume pipelines. All programs behaved in a similar way on all three
-datasets in terms of running time.
+datasets of similar size that represent the three major types of ChIP-seq signal
+usually observed. The CTCF signal consists of sharp peaks at the transcription
+factor binding site, the Pol2 signal consists of both peaks at promoters and
+potentially broad domains on transcribed genes, and H3K36me3 consists of broad
+domains. On these tests Zerone was the fastest algorithm (Fig.~\ref{fig:perf},
+top row). For Zerone, the running time was substantially lower than for BayesPeak
+and JAMM, and 5-10 times lower than for MACS. In terms of memory footprint,
+Zerone and MACS were comparable, while BayesPeak and JAMM demanded more memory
+(Fig.~\ref{fig:perf}, bottom row).
 
-In terms of memory footprint, both Zerone and MACS were comparable, while
-BayesPeak and JAMM demanded a few times times more memory (Fig.~\ref{fig:perf},
-bottom row).
+Part of the benchmark is confounded by the fact that BayesPeak and MACS do
+not allow discretization from multiple inputs. On real pipelines, these tools
+would demand more time for the same number of CPU and memory. Overall, the
+performance of Zerone makes it suitable for usage in large volume pipelines. 
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{performance.pdf}}
-\caption{Running times and memory footprint of the different discretizers
-on the three ChIP-seq datasets.
-For programs that only allow single-profile discretization
-(\textit{i.e.} BayesPeak and MACS), mean values are shown.
-Note the logarithmic scale in the running times.
+\caption{Running times and peak memory footprint of the different discretizers
+on the three ChIP-seq datasets. For programs that only allow single-profile
+discretization (\textit{i.e.} BayesPeak and MACS), mean values (and not the
+sum) are shown. Note the logarithmic scale in the running times.
 }\label{fig:perf}
 \end{figure}
 
@@ -344,8 +346,8 @@ highly conserved in vertebrates. In humans, nearly 80\% of these sites contain
 the consensus motif \citep{pmid17382889}.
 In order to determine the capacity of the different programs to call peaks of
 CTCF binding, we compared the discretized profiles against a dataset of CTCF
-binding motifs. We used FIMO \citep{pmid21330290} (MEME suite version 4.10.1,
-\citealp{pmid19458158}) to generate such dataset from the human CTCF motif
+binding motifs. We used FIMO \citep{pmid21330290} from the MEME suite version
+4.10.1 \citep{pmid19458158}, to generate such dataset from the human CTCF motif
 obtained from the JASPAR database (version 5.0{\textunderscore}ALPHA,
 \citealp{pmid24194598}). The CTCF motif dataset contained 85,690 entries.
 
@@ -377,6 +379,22 @@ dataset.
 The numbers in parentheses indicate the results on the two replicates
 by separate.}
 \end{table}
+
+
+\subsubsection{Pol2 binding around transcription start sites.}
+Pol2 profiles illustrate a characteristic binding pattern composed by a peaky
+signal part near the transcription start site (TSS) and a broad type part
+downstream of it \citep{pmid}. This represents the frequencies
+at which Pol2 is poised or actively transcribing, respectively,
+in the cell population \citep{pmid}.
+
+To compare the behavior of the different discretizers, we determined how the
+peaks were distributed around TSSs.
+
+% figure: distance to tss (histogram or just % within a range??)
+% with genomicranges distancetonearest cite
+
+% RESULTS: Performance on test sets (around 95% on 10-fold cross-validation)
 
 \subsubsection{H3K36me3-enriched domains.}
 Unlike in the previous case, there is no known consensus sequence to determine
@@ -423,22 +441,6 @@ and the overlap between circles approximates the amount of windows found
 enriched by two or more programs. Note the almost complete overlap between the
 BayesPeak discretizations on the two replicates.}\label{fig:venn}
 \end{figure}
-
-\subsubsection{Pol2 binding around transcription start sites.}
-Pol2 profiles illustrate a characteristic binding pattern composed by a peaky
-signal part near the transcription start site (TSS) and a broad type part
-downstream of it \citep{pmid}. This represents the frequencies
-at which Pol2 is poised or actively transcribing, respectively,
-in the cell population \citep{pmid}.
-
-To compare the behavior of the different discretizers, we determined how the
-peaks were distributed around TSSs.
-
-% figure: distance to tss (histogram or just % within a range??)
-% with genomicranges distancetonearest cite
-
-% RESULTS: Performance on test sets (around 95% on 10-fold cross-validation)
-
 \section{Discussion and conclusion}
 
 \section*{Acknowledgement}
