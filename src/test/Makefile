@@ -4,10 +4,10 @@ vpath %.h ..
 vpath %.h lib
 
 P= runtests
-OBJECTS= libunittest.so xxhash.o
 
 CC= gcc
 SOURCES= runtests.c
+OBJECTS= libunittest.so xxhash.o
 INCLUDES= -I.. -Ilib
 COVERAGE= -fprofile-arcs -ftest-coverage
 CFLAGS= -std=gnu99 -g -Wall -O0 $(INCLUDES) $(COVERAGE)

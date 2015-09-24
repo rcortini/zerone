@@ -119,7 +119,7 @@ zscale
    return sfeat;
 }
 
-int
+double
 predict
 (
    double * feat,
@@ -145,7 +145,8 @@ predict
    for (int i = 0; i < NSV; i++) label += coefs[i] * kvals[i];
 
    // Add the intercept term of the hyperplane before returning.
-  return (label - RHO) + 0.65 > 0 ? 1 : -1;
+   //return (label - RHO) + 0.65 > 0 ? 1 : -1;
+   return (label - RHO) + 0.65;
 
    // The +0.65 before returning moves the decision boundary
    // towards the negative space by that proportion of the margin width.

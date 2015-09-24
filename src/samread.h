@@ -1,10 +1,8 @@
+#include "zerone.h"
+
 #ifndef _PARSE_H
 #define _PARSE_H
 #define _GNU_SOURCE
-
-#include <string.h>
-#include "../lib/sam.h"
-#include "zerone.h"
 
 #define BIN_SIZE 300
 

@@ -39,12 +39,6 @@ int main(int argc, char **argv) {
    zerone_t *zerone = do_zerone(ChIP);
    if (zerone == NULL) return 1;
 
-   // Print results (Viretbi path and phi matrix).
-   for (size_t i = 0 ; i < nobs(ChIP) ; i++) {
-      fprintf(stdout, "%d\t%f\t%f\t%f\n", zerone->path[i],
-            zerone->phi[0+i*m], zerone->phi[1+i*m], zerone->phi[2+i*m]);
-   }
-
    // Quality control.
    char * centerfn = "/home/pcusco/Zerone/classifier/SVM_18x1_center.csv";
    char * scalefn  = "/home/pcusco/Zerone/classifier/SVM_18x1_scale.csv";
@@ -63,8 +57,25 @@ int main(int argc, char **argv) {
    double * feat = extractfeats(ChIP, zerone);
    double * sfeat = zscale(feat, center, scale);
 
-   char * advice = predict(sfeat, sv, coefs) >= 0 ? "accept" : "reject";
-   fprintf(stderr, "advice: %s discretization.\n", advice);
+   double QCscore = predict(sfeat, sv, coefs);
+   fprintf(stdout, "# QC score: %.3f\n", QCscore);
+   fprintf(stdout, "# advice: %s discretization.\n",
+         QCscore >= 0 ? "accept" : "reject");
+  
+   // Print results (Viretbi path and phi matrix).
+   for (size_t i = 0 ; i < nobs(ChIP) ; i++) {
+// The commented lines below print the output together with
+// the data used for discretization.
+//      fprintf(stdout, "%d\t%f\t%f\t%f", zerone->path[i],
+//            zerone->phi[0+i*m], zerone->phi[1+i*m], zerone->phi[2+i*m]);
+//      for (int j = 0 ; j < ChIP->r ; j++) {
+//         fprintf(stdout, "\t%d", ChIP->y[j+i*ChIP->r]);
+//      }
+//      fprintf(stdout, "\n");
+      fprintf(stdout, "%d\t%f\t%f\t%f\n", zerone->path[i],
+            zerone->phi[0+i*m], zerone->phi[1+i*m], zerone->phi[2+i*m]);
+   }
+
 
 //char * featsfn = "/home/pcusco/zerone/classifier/SVM_946x18_features.csv";
 //char * labelsfn = "/home/pcusco/zerone/classifier/SVM_946x1_labels.csv";

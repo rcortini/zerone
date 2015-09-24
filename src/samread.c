@@ -1,4 +1,10 @@
+#include <string.h>
+#include "bgzf.h"
+#include "sam.h"
 #include "samread.h"
+
+// Declaration of local functions.
+counter_t * read_count (const char *);
 
 int
 is_sam
@@ -69,6 +75,7 @@ read_sam
    free(size);
 
    return ChIP;
+
 }
 
 counter_t *
@@ -77,49 +84,77 @@ read_count
    const char * fn
 )
 {
-   samfile_t * fp = samopen(fn, "r", NULL);
+
+   bam_hdr_t * h = NULL;
+   BGZF * fp = NULL;
+   bam1_t * b = NULL;
+   counter_t * counter = NULL;
+
+   // Open .bam file and get header.
+   fp = bgzf_open(fn, "r");
+   if (fp == NULL) {
+      fprintf(stderr, "cannot open file %s\n", fn);
+      goto clean_and_return;
+   }
+
+   h = bam_hdr_read(fp);
+   if (h == NULL) {
+      bgzf_close(fp);
+      goto clean_and_return;
+   }
 
    // Initialize counter_t.
-   counter_t * counter = malloc(sizeof(counter_t));
+   counter = malloc(sizeof(counter_t));
    if (counter == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-      return NULL;
+      goto clean_and_return;
    }
-   int32_t n_ref = fp->header->n_targets;
+
+   int32_t n_ref = h->n_targets;
    counter->n_ref  = n_ref;
    counter->n_bins = malloc(n_ref * sizeof(int32_t));
    counter->bins   = malloc(n_ref * sizeof(int32_t *));
+
    if (counter->n_bins == NULL || counter->bins == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-      return NULL;
+      goto clean_and_return;
    }
 
    // Initialize bins of counter_t.
    for (int i = 0; i < n_ref; i++) {
-      uint32_t tlen = fp->header->target_len[i];
+      uint32_t tlen = h->target_len[i];
       tlen = tlen / BIN_SIZE + (tlen % BIN_SIZE > 0);
       counter->n_bins[i] = tlen;
       counter->bins[i] = calloc(tlen, sizeof(int32_t));
       if (counter->bins[i] == NULL) {
          fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-         return NULL;
+         goto clean_and_return;
       }
    }
 
    // Count the number of alignments per bin.
-   bam1_t * b;
+   b = bam_init1();
+   if (b == NULL) {
+      fprintf(stderr, "bam! error %s:%d\n", __FILE__, __LINE__);
+      goto clean_and_return;
+   }
+
    int bytesread;
-   while((bytesread = samread(fp, (b = bam_init1()))) >= 0) {
+   while((bytesread = bam_read1(fp, b)) >= 0) {
       if (bytesread > 0 && b->core.tid != -1) {
          int32_t pos = b->core.pos / BIN_SIZE;
          counter->bins[b->core.tid][pos]++;
       }
-      bam_destroy1(b);
    }
 
-   samclose(fp);
+clean_and_return:
+   // TODO: clean 'bins'.
+   if (b != NULL) bam_destroy1(b);
+   if (h != NULL) bam_hdr_destroy(h);
+   if (fp != NULL) bgzf_close(fp);
 
    return counter;
+
 }
 
 void
