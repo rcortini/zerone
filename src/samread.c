@@ -24,16 +24,17 @@ read_sam
    unsigned int    nfiles
 )
 {
-   ChIP_t * ChIP = NULL; // return pointer.
-   unsigned int * size = NULL; // size of the blocks.
-   int * y = NULL; // Data counts.
+   ChIP_t * ChIP = NULL;       // Return pointer.
+   unsigned int * size = NULL; // Size of the blocks.
+   int * y = NULL;             // Data counts.
    
    // Build the counter_t's from which to build the final ChIP_t.
    counter_t * counters[nfiles];
    for (int i = 0; i < nfiles; i++) {
       counters[i] = read_count(fn[i]);
       if (counters[i] == NULL) {
-         // Error message emitted by 'read_count()'.
+         fprintf(stderr, "error in function '%s()' %s:%d\n",
+               __func__, __FILE__, __LINE__);
          goto clean_and_return;
       }
    }

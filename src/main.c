@@ -23,6 +23,10 @@ int main(int argc, char **argv) {
       unsigned int nfiles = 0;
       for (int i = 1; i < argc; i++) samfiles[nfiles++] = argv[i];
       ChIP = read_sam(samfiles, nfiles);
+      if (ChIP == NULL) {
+         fprintf(stderr, "error wile reading input\n");
+         return 1;
+      }
 
    } else if (argc == 2 && !any_sam) {
       FILE *inputf = fopen(argv[1], "r");
