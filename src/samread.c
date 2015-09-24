@@ -3,6 +3,7 @@
 #include "sam.h"
 #include "samread.h"
 
+
 // Declaration of local functions.
 counter_t * read_count (const char *);
 
@@ -23,31 +24,41 @@ read_sam
    unsigned int    nfiles
 )
 {
+   ChIP_t * ChIP = NULL; // return pointer.
+   unsigned int * size = NULL; // size of the blocks.
+   int * y = NULL; // Data counts.
+   
    // Build the counter_t's from which to build the final ChIP_t.
    counter_t * counters[nfiles];
-   for (int i = 0; i < nfiles; i++) counters[i] = read_count(fn[i]);
+   for (int i = 0; i < nfiles; i++) {
+      counters[i] = read_count(fn[i]);
+      if (counters[i] == NULL) {
+         // Error message emitted by 'read_count()'.
+         goto clean_and_return;
+      }
+   }
 
    // Define the number of blocks.
    unsigned int nb = counters[0]->n_ref;
    for (int i = 1; i < nfiles; i++) {
       if (counters[i]->n_ref != nb) {
          fprintf(stderr, "%s\n", "files have discordant dimensions");
-         return NULL;
+         goto clean_and_return;
       }
    }
 
    // Define the size of each block.
-   unsigned int * size = malloc(nb * sizeof(unsigned int));
+   size = malloc(nb * sizeof(unsigned int));
    if (size == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-      return NULL;
+      goto clean_and_return;
    }
    for (int i = 0; i < nb; i++) {
       size[i] = counters[0]->n_bins[i];
       for (int j = 1; j < nfiles; j++) {
          if (counters[j]->n_bins[i] != size[i]) {
             fprintf(stderr, "%s\n", "files have discordant dimensions");
-            return NULL;
+            goto clean_and_return;
          }
       }
    }
@@ -55,10 +66,10 @@ read_sam
    // Build the observations vector.
    int nobs = 0;
    for (int i = 0; i < nb; i++) nobs += size[i];
-   int * y = malloc(nfiles * nobs * sizeof(int));
+   y = malloc(nfiles * nobs * sizeof(int));
    if (y == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-      return NULL;
+      goto clean_and_return;
    }
    unsigned int offset = 0;
    for (int i = 0; i < nb; i++) {
@@ -69,10 +80,19 @@ read_sam
       }
    }
 
-   ChIP_t * ChIP = new_ChIP((unsigned int)nfiles, nb, y, size);
+   ChIP = new_ChIP((unsigned int)nfiles, nb, y, size);
+   if (ChIP == NULL) {
+      fprintf(stderr, "error in function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+   }
 
-   for (int i = 0; i < nfiles; i++) destroy_counter(counters[i]);
-   free(size);
+clean_and_return:
+   if (size != NULL) free(size);
+   for (int i = 0; i < nfiles; i++) {
+      if (counters[i] != NULL) destroy_counter(counters[i]);
+   }
+   // Clean 'y' only if something went wrong.
+   if (ChIP == NULL) free(y);
 
    return ChIP;
 
@@ -85,9 +105,9 @@ read_count
 )
 {
 
+   bam1_t * b = NULL;
    bam_hdr_t * h = NULL;
    BGZF * fp = NULL;
-   bam1_t * b = NULL;
    counter_t * counter = NULL;
 
    // Open .bam file and get header.
@@ -99,7 +119,13 @@ read_count
 
    h = bam_hdr_read(fp);
    if (h == NULL) {
-      bgzf_close(fp);
+      fprintf(stderr, "cannot read header of file %s\n", fn);
+      goto clean_and_return;
+   }
+
+   b = bam_init1();
+   if (b == NULL) {
+      fprintf(stderr, "bam! error %s:%d\n", __FILE__, __LINE__);
       goto clean_and_return;
    }
 
@@ -112,11 +138,13 @@ read_count
 
    int32_t n_ref = h->n_targets;
    counter->n_ref  = n_ref;
-   counter->n_bins = malloc(n_ref * sizeof(int32_t));
-   counter->bins   = malloc(n_ref * sizeof(int32_t *));
+   counter->n_bins = calloc(n_ref, sizeof(int32_t));
+   counter->bins   = calloc(n_ref, sizeof(int32_t *));
 
    if (counter->n_bins == NULL || counter->bins == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      destroy_counter(counter);
+      counter = NULL;
       goto clean_and_return;
    }
 
@@ -128,17 +156,13 @@ read_count
       counter->bins[i] = calloc(tlen, sizeof(int32_t));
       if (counter->bins[i] == NULL) {
          fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+         destroy_counter(counter);
+         counter = NULL;
          goto clean_and_return;
       }
    }
 
    // Count the number of alignments per bin.
-   b = bam_init1();
-   if (b == NULL) {
-      fprintf(stderr, "bam! error %s:%d\n", __FILE__, __LINE__);
-      goto clean_and_return;
-   }
-
    int bytesread;
    while((bytesread = bam_read1(fp, b)) >= 0) {
       if (bytesread > 0 && b->core.tid != -1) {
@@ -148,7 +172,6 @@ read_count
    }
 
 clean_and_return:
-   // TODO: clean 'bins'.
    if (b != NULL) bam_destroy1(b);
    if (h != NULL) bam_hdr_destroy(h);
    if (fp != NULL) bgzf_close(fp);
@@ -163,8 +186,12 @@ destroy_counter
    counter_t * counter
 )
 {
-   for (int i = 0; i < counter->n_ref; i++) free(counter->bins[i]);
-   free(counter->n_bins);
-   free(counter->bins);
+   if (counter->bins != NULL) {
+      for (int i = 0; i < counter->n_ref; i++) {
+         if (counter->bins[i] != NULL) free(counter->bins[i]);
+      }
+      free(counter->bins);
+   }
+   if (counter->n_bins != NULL) free(counter->n_bins);
    free(counter);
 }

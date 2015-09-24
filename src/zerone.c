@@ -848,7 +848,11 @@ new_ChIP
 
    size_t extra = nb * sizeof(unsigned int);
    ChIP_t *new = calloc(1, sizeof(ChIP_t) + extra);
-   if (new == NULL) return NULL;
+   if (new == NULL) {
+      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return NULL;
+   }
 
    new->r = r;
    new->nb = nb;
