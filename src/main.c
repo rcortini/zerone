@@ -1,28 +1,52 @@
 #include "predict.h"
 #include <stdio.h>
-#include "samread.h"
+#include "parsam.h"
+#include "parse.h"
 #include "zerone.h"
+
+#define has_map(a) strcmp(".map", (a) + strlen(a) - 4) == 0
+#define has_sam(a) strcmp(".sam", (a) + strlen(a) - 4) == 0
+#define has_bam(a) strcmp(".bam", (a) + strlen(a) - 4) == 0
 
 int main(int argc, char **argv) {
 
    // Read files and build ChIP structure.
    int any_sam = 0;
    int all_sam = 1;
+   // Are input files sam/bam?
    for (int i = 1; i < argc; i++) {
-      if (is_sam(argv[i])) any_sam = 1;
+      if (has_sam(argv[i]) || has_bam(argv[i])) any_sam = 1;
       else all_sam = 0;
    }
 
+   int any_gem = 0;
+   int all_gem = 1;
+   // Are input files gem?
+   for (int i = 1; i < argc; i++) {
+      if (has_map(argv[i])) any_gem = 1;
+      else all_gem = 0;
+   }
+
    ChIP_t *ChIP = NULL;
-   if (any_sam && !all_sam) {
+   if ((any_sam && !all_sam) || (any_gem && !all_gem)) {
       fprintf(stderr, "%s\n", "different file formats.");
       return 1;
 
    } else if (any_sam && all_sam) {
       char * samfiles[argc-1];
-      unsigned int nfiles = 0;
-      for (int i = 1; i < argc; i++) samfiles[nfiles++] = argv[i];
+      const unsigned int nfiles = argc-1;
+      for (int i = 1; i < argc; i++) samfiles[i-1] = argv[i];
       ChIP = read_sam(samfiles, nfiles);
+      if (ChIP == NULL) {
+         fprintf(stderr, "error wile reading input\n");
+         return 1;
+      }
+
+   } else if (any_gem && all_gem) {
+      char * gemfiles[argc-1];
+      const unsigned int nfiles = argc-1;
+      for (int i = 1; i < argc; i++) gemfiles[i-1] = argv[i];
+      ChIP = read_gem((const char **) gemfiles, nfiles);
       if (ChIP == NULL) {
          fprintf(stderr, "error wile reading input\n");
          return 1;

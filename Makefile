@@ -3,8 +3,9 @@ P= zerone
 SRC_DIR= src
 INC_DIR= src
 
-OBJECT_FILES= bgzf.o sam.o hfile.o hmm.o utils.o xxhash.o zerone.o zinb.o 
-SOURCE_FILES= main.c samread.c predict.c
+OBJECT_FILES= bgzf.o sam.o hfile.o hmm.o utils.o xxhash.o zerone.o \
+      zinb.o parsam.o parse.o
+SOURCE_FILES= main.c predict.c
 
 OBJECTS= $(addprefix $(SRC_DIR)/,$(OBJECT_FILES))
 SOURCES= $(addprefix $(SRC_DIR)/,$(SOURCE_FILES))

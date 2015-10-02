@@ -2,8 +2,9 @@
 // Paste the source of the tests.
 #include "test_hmm.c"
 #include "test_utils.c"
-#include "test_zerone.c"
 #include "test_zinb.c"
+#include "test_parse.c"
+#include "test_zerone.c"
 
 int
 main(
@@ -44,6 +45,13 @@ main(
       {"hmm/block_viterbi (NAs)", test_block_viterbi_NA},
       {"hmm/update_trans",        test_update_trans},
       {"hmm/bw_zinm",             test_bw_zinm},
+      {"parse/add",               test_add},
+      {"parse/djb2",              test_djb2},
+      {"parse/lookup_or_insert",  test_lookup_or_insert},
+      {"parse/stress_hash",       test_stress_hash},
+      {"parse/merge_hashes",      test_merge_hashes},
+      {"parse/read_and_count",    test_read_and_count},
+      {"parse/read_gem",          test_read_gem},
       {"zerone/read_file",        test_read_file},
       {"zerone/eval_bw_f",        test_eval_bw_f},
       {NULL, NULL}

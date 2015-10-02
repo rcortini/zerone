@@ -1,21 +1,25 @@
 #include <string.h>
 #include "bgzf.h"
 #include "sam.h"
-#include "samread.h"
+#include "parsam.h"
 
+#define SUCCESS 1
+#define FAILURE 0
+
+#define BIN_SIZE 300
+
+struct counter_t {
+   int32_t    n_ref;    // # of chromosomes
+   int32_t  * n_bins;   // # of bins
+   int32_t ** bins;     // read count per bin
+};
+
+typedef struct counter_t counter_t;
 
 // Declaration of local functions.
 counter_t * read_count (const char *);
+void destroy_counter (counter_t *);
 
-int
-is_sam
-(
-   const char * fn
-)
-{
-   return strcmp(".sam", fn + strlen(fn) - 4) == 0 ||
-          strcmp(".bam", fn + strlen(fn) - 4) == 0;
-}
 
 ChIP_t *
 read_sam
