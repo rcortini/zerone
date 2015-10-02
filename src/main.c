@@ -67,28 +67,32 @@ int main(int argc, char **argv) {
    zerone_t *zerone = do_zerone(ChIP);
    if (zerone == NULL) return 1;
 
+   // XXX Broken on any computer of the planet except one. XXX //
+   // XXX Better put the data directly in the file. XXX
+   
+//   char * centerfn = "/home/pcusco/Zerone/classifier/SVM_18x1_center.csv";
+//   char * scalefn  = "/home/pcusco/Zerone/classifier/SVM_18x1_scale.csv";
+//   char * svfn     = "/home/pcusco/Zerone/classifier/SVM_200x18_sv.csv";
+//   char * coefsfn  = "/home/pcusco/Zerone/classifier/SVM_200x1_coefs.csv";
+
+//   double * coefs  = readmatrix(coefsfn, NSV, 1);
+//   double * center = readmatrix(centerfn, DIM, 1);
+//   double * scale  = readmatrix(scalefn, DIM, 1);
+//   double * sv     = readmatrix(svfn, NSV, DIM);
+//   if (coefs == NULL || center == NULL || scale == NULL || sv == NULL) {
+//      fprintf(stderr, "could not read SVM file\n");
+//      return 1;
+//   }
+//
    // Quality control.
-   char * centerfn = "/home/pcusco/Zerone/classifier/SVM_18x1_center.csv";
-   char * scalefn  = "/home/pcusco/Zerone/classifier/SVM_18x1_scale.csv";
-   char * svfn     = "/home/pcusco/Zerone/classifier/SVM_200x18_sv.csv";
-   char * coefsfn  = "/home/pcusco/Zerone/classifier/SVM_200x1_coefs.csv";
 
-   double * coefs  = readmatrix(coefsfn, NSV, 1);
-   double * center = readmatrix(centerfn, DIM, 1);
-   double * scale  = readmatrix(scalefn, DIM, 1);
-   double * sv     = readmatrix(svfn, NSV, DIM);
-   if (coefs == NULL || center == NULL || scale == NULL || sv == NULL) {
-      fprintf(stderr, "could not read SVM file\n");
-      return 1;
-   }
+//   double * feat = extractfeats(ChIP, zerone);
+//   double * sfeat = zscale(feat, center, scale);
 
-   double * feat = extractfeats(ChIP, zerone);
-   double * sfeat = zscale(feat, center, scale);
-
-   double QCscore = predict(sfeat, sv, coefs);
-   fprintf(stdout, "# QC score: %.3f\n", QCscore);
-   fprintf(stdout, "# advice: %s discretization.\n",
-         QCscore >= 0 ? "accept" : "reject");
+//   double QCscore = predict(sfeat, sv, coefs);
+//   fprintf(stdout, "# QC score: %.3f\n", QCscore);
+//   fprintf(stdout, "# advice: %s discretization.\n",
+//         QCscore >= 0 ? "accept" : "reject");
   
    // Print results (Viretbi path and phi matrix).
    for (size_t i = 0 ; i < nobs(ChIP) ; i++) {
@@ -123,14 +127,15 @@ int main(int argc, char **argv) {
 //}
 //fprintf(stderr, "sum: %d\n", sum);
 
-   free(center);
-   free(scale);
-   free(sv);
-   free(coefs);
-   free(feat);
-   free(sfeat);
+//   free(center);
+//   free(scale);
+//   free(sv);
+//   free(coefs);
+//   free(feat);
+//   free(sfeat);
 
    destroy_zerone_all(zerone); // Also frees ChIP.
 
    return 0;
+
 }

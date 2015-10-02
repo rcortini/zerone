@@ -223,6 +223,8 @@ read_and_count
 {
 
    int status = SUCCESS;
+
+   char *buff = NULL;
    FILE *fp = NULL;
 
    // Create new hash for each file (it is the return value).
@@ -242,7 +244,7 @@ read_and_count
    }
 
    size_t bsz = 64;
-   char *buff = malloc(bsz * sizeof(char));
+   buff = malloc(bsz * sizeof(char));
    if (buff == NULL) {
       fprintf(stderr, "memory error\n");
       status = FAILURE;
