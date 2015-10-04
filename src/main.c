@@ -4,7 +4,8 @@
 #include "parse.h"
 #include "zerone.h"
 
-#define has_map(a) strcmp(".map", (a) + strlen(a) - 4) == 0
+#define has_map(a) strcmp(".map", (a) + strlen(a) - 4) == 0 || \
+   strcmp(".map.gz", (a) + strlen(a) - 7) == 0 ||
 #define has_sam(a) strcmp(".sam", (a) + strlen(a) - 4) == 0
 #define has_bam(a) strcmp(".bam", (a) + strlen(a) - 4) == 0
 

@@ -1,6 +1,8 @@
+#include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <zlib.h>
 #include "zerone.h"
 
 #define SUCCESS 1
@@ -15,6 +17,13 @@
 // Shortcut to acces position of hash table.
 #define h(a) djb2(a) % HSIZE
 
+// Size of the buffer for gzip decompression.
+#define CHUNK 16384
+
+// Macro to check all applicable zlib errors.
+#define is_zerr(a) ((a) == Z_NEED_DICT || (a) == Z_DATA_ERROR \
+      || (a) == Z_MEM_ERROR)
+
 // Type declarations.
 struct hash_t;
 struct link_t;
@@ -23,6 +32,7 @@ struct rod_t;
 typedef struct link_t link_t;
 typedef struct rod_t rod_t;
 typedef link_t * hash_t;
+typedef ssize_t (*reader_t)(char **, size_t *, FILE *);
 
 
 // Type definitions.
@@ -44,9 +54,11 @@ struct rod_t {
 int add (rod_t **, uint32_t);
 void destroy_hash(hash_t *);
 uint32_t djb2 (const char *);
+int is_gzipped(FILE *);
 link_t * lookup_or_insert (const char *, hash_t *);
 ChIP_t * merge_hashes(hash_t **, int);
 hash_t * read_and_count (const char *);
+ssize_t readgzline (char **, size_t *, FILE *);
 
 
 //  -- Definitions of exported functions  --- //
@@ -243,6 +255,9 @@ read_and_count
       goto clean_and_return;
    }
 
+   // Check if file is gzipped.
+   reader_t reader = is_gzipped(fp) ? readgzline : getline;
+
    size_t bsz = 64;
    buff = malloc(bsz * sizeof(char));
    if (buff == NULL) {
@@ -251,8 +266,10 @@ read_and_count
       goto clean_and_return;
    }
 
+   errno = 0;
+
    ssize_t bytesread;
-   while ((bytesread = getline(&buff, &bsz, fp)) > -1) {
+   while ((bytesread = reader(&buff, &bsz, fp)) > -1) {
       // Get last field of the line.
       char *map = strrchr(buff, '\t');
       if (map++ == NULL) {
@@ -301,9 +318,16 @@ read_and_count
 
    }
 
+   // XXX Perhaps this will go in the getline functions. XXX //
+   if (errno) {
+      fprintf(stderr, "input error in function '%s()'\n", __func__);
+      status = FAILURE;
+      goto clean_and_return;
+   }
+
 clean_and_return:
-   if (buff != NULL) free(buff);
-   if (fp != NULL) fclose(fp);
+   free(buff);
+   fclose(fp);
 
    if (status == FAILURE) {
       destroy_hash(hashtab);
@@ -395,4 +419,153 @@ destroy_hash
       }
    }
    free(hashtab);
+}
+
+
+int
+is_gzipped
+(
+   FILE *fp
+)
+{
+   // Get first two bytes.
+   char c1 = getc(fp);
+   char c2 = getc(fp);
+   // Put them back.
+   ungetc(c2, fp);
+   ungetc(c1, fp);
+
+   return c1 == '\x1f' && c2 == '\x8b';
+
+}
+
+
+ssize_t
+readgzline
+(
+   char ** buff,
+   size_t * bsz,
+   FILE *  gzfile
+)
+// The function is absolutely not re-entrant.
+{
+
+   static z_stream strm;
+   static unsigned char *start;
+
+   // 'sentinel' is always 'out + CHUNK - strm.avail_out'.
+   static unsigned char *sentinel;
+   static unsigned char out[CHUNK];
+   static unsigned char in[CHUNK];
+
+   int zstat;
+
+   // Set to 0 upon first call.
+   static int is_initialized;
+
+   // Set 'buff' to NULL to interrupt inflation.
+   if (is_initialized && buff == NULL) {
+      (void) inflateEnd(&strm);
+      is_initialized = 0;
+      return -1;
+   }
+
+   if (!is_initialized) {
+
+      // Allocate inflate state.
+      strm.zalloc = Z_NULL;
+      strm.zfree = Z_NULL;
+      strm.opaque = Z_NULL;
+      strm.next_in = Z_NULL;
+      strm.avail_in = 0;
+      strm.avail_out = CHUNK;
+
+      start = out;
+      sentinel = out; // 'out + CHUNK - strm.avail_out'.
+
+      zstat = inflateInit2(&strm, 16+MAX_WBITS);
+      if (zstat != Z_OK) goto exit_io_error;
+
+      is_initialized = 1;
+      
+   }
+
+   // Try getting newline character from buffer.
+   // If not found, 'end' will point to the sentinel.
+   unsigned char *end = memchr(start, '\n', sentinel - start);
+
+   if (end == NULL) {
+
+      // No hit: we need to feed the buffer.
+      // First we shift 'out' as much as possible.
+      memmove(out, start, sentinel - start);
+
+      strm.avail_out += (start - out);
+      strm.next_out = out + (sentinel - start);
+
+      // Then refill 'out' with data from 'in'.
+      zstat = inflate(&strm, Z_SYNC_FLUSH);
+      if (is_zerr(zstat)) goto exit_io_error;
+
+      if (strm.avail_out > 0) {
+
+         // If 'out' is not full, read in more data.
+         strm.avail_in = fread(in, 1, CHUNK, gzfile);
+         if (ferror(gzfile)) goto exit_io_error;
+         strm.next_in = in;
+
+         // Inflate again to fill 'out'.
+         zstat = inflate(&strm, Z_SYNC_FLUSH);
+         if (is_zerr(zstat)) goto exit_io_error;
+
+      }
+
+      // Unless errors occurred, 'start' now points
+      // to the beginning of 'out' and 'sentinel'
+      // points to the end of inflated data.
+
+      start = out;
+      sentinel = out + CHUNK - strm.avail_out;
+
+      // We can run the search again.
+      end = memchr(start, '\n', sentinel - start);
+
+   }
+
+   if (end == NULL) {
+      // No newline character. Check if input file is
+      // read in full. If not, something went wrong.
+      if (zstat == Z_STREAM_END) {
+         (void) inflateEnd(&strm);
+         is_initialized = 0;
+         return -1;
+      }
+      else goto exit_io_error;
+   }
+   else {
+      // The newline character was found. Copy line
+      // to write buffer and return read bytes.
+      int nbytes = end - start + 1;
+
+      if (*bsz < nbytes + 1) {
+         size_t newbsz = 2*nbytes;
+         char *tmp = realloc(*buff, newbsz);
+         if (tmp == NULL) abort();
+         *buff = tmp;
+         *bsz = newbsz;
+      }
+
+      memcpy(*buff, start, nbytes);
+      (*buff)[nbytes] = '\0';
+
+      start = end+1;
+      return nbytes;
+   }
+
+exit_io_error:
+   (void) inflateEnd(&strm);
+   is_initialized = 0;
+   errno = EIO;
+   return -2;
+
 }

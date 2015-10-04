@@ -51,6 +51,8 @@ main(
       {"parse/stress_hash",       test_stress_hash},
       {"parse/merge_hashes",      test_merge_hashes},
       {"parse/read_and_count",    test_read_and_count},
+      {"parse/readgzline",        test_readgzline},
+      {"parse/readgzline_err",    test_readgzline_err},
       {"parse/read_gem",          test_read_gem},
       {"zerone/read_file",        test_read_file},
       {"zerone/eval_bw_f",        test_eval_bw_f},

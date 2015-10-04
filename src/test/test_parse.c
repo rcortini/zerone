@@ -239,6 +239,106 @@ test_read_and_count
 }
 
 void
+test_readgzline
+(void)
+{
+
+   FILE *fp = fopen("test_file_bad1.map.gz", "r");
+
+   if (fp == NULL) {
+      fprintf(stderr, "error in test function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return;
+   }
+
+   size_t bsz = 32;
+   char *buff = malloc(bsz * sizeof(char));
+
+   if (buff == NULL) {
+      fprintf(stderr, "error in test function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return;
+   }
+
+   test_assert_critical(readgzline(&buff, &bsz, fp) > 0);
+   test_assert(strncmp((char *) buff,
+            "SRR574805.4 ROCKFORD:3:1:1728:956/1", 35) == 0);
+
+   test_assert_critical(readgzline(&buff, &bsz, fp) > 0);
+   test_assert(strncmp((char *) buff,
+            "SRR574805.6 ROCKFORD:3:1:2065:964/1", 35) == 0);
+
+   test_assert(readgzline(&buff, &bsz, fp) == -1);
+
+   fclose(fp);
+   free(buff);
+
+}
+
+void
+test_readgzline_err
+(void)
+{
+
+   FILE *fp = NULL;
+      
+   fp = fopen("test_file_bad1.map", "r");
+
+   if (fp == NULL) {
+      fprintf(stderr, "error in test function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return;
+   }
+
+   size_t bsz = 32;
+   char *buff = malloc(bsz * sizeof(char));
+
+   if (buff == NULL) {
+      fprintf(stderr, "error in test function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return;
+   }
+
+   test_assert(readgzline(&buff, &bsz, fp) == -2);
+
+   fclose(fp);
+
+   // Check that the error did not mess up
+   // the internal state of 'readgzline'.
+   fp = fopen("test_file_bad1.map.gz", "r");
+
+   if (fp == NULL) {
+      fprintf(stderr, "error in test function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return;
+   }
+
+   test_assert_critical(readgzline(&buff, &bsz, fp) > 0);
+   test_assert(strncmp((char *) buff,
+            "SRR574805.4 ROCKFORD:3:1:1728:956/1", 35) == 0);
+
+   // Interrupt inflation (to prevent memory leak).
+   test_assert_critical(readgzline(NULL, &bsz, fp) == -1);
+
+   fclose(fp);
+
+   fp = fopen("test_file_corrupt.map.gz", "r");
+
+   if (fp == NULL) {
+      fprintf(stderr, "error in test function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return;
+   }
+
+   test_assert(readgzline(&buff, &bsz, fp) == -2);
+
+   fclose(fp);
+   free(buff);
+
+}
+
+
+void
 test_read_gem
 (void)
 {
@@ -248,6 +348,23 @@ test_read_gem
    const char *fnames[] = {"test_file_good.map", "test_file_good.map"};
 
    ChIP = read_gem(fnames, 2);
+   test_assert_critical(ChIP != NULL);
+   test_assert(ChIP->r == 2);
+   test_assert(ChIP->nb == 3);
+   test_assert(ChIP->size[0] == 445385);
+   test_assert(ChIP->size[1] == 317504);
+   test_assert(ChIP->size[2] == 55024);
+
+   // Manually destroy 'ChIP'.
+   free(ChIP->y);
+   free(ChIP);
+   ChIP = NULL;
+
+   // Same test with gzipped files.
+   const char *fnames_gz[] = {"test_file_good.map.gz",
+      "test_file_good.map.gz"};
+
+   ChIP = read_gem(fnames_gz, 2);
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);
