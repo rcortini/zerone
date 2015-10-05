@@ -1,21 +1,154 @@
-#include "predict.h"
+/*
+** Copyright 2014 Guillaume Filion, Eduard Valera Zorita and Pol Cusco.
+**
+** File authors:
+**  Guillaume Filion     (guillaume.filion@gmail.com)
+**  Eduard Valera Zorita (polcusco@gmail.com)
+**
+** License: 
+**  This program is free software: you can redistribute it and/or modify
+**  it under the terms of the GNU General Public License as published by
+**  the Free Software Foundation, either version 3 of the License, or
+**  (at your option) any later version.
+**
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU General Public License for more details.
+**
+**  You should have received a copy of the GNU General Public License
+**  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**
+*/
+
 #include <stdio.h>
+#include <getopt.h>
+#include "predict.h"
 #include "parsam.h"
 #include "parse.h"
 #include "zerone.h"
 
+#define VERSION "zerone-v1.0"
+
+#define MAXNARGS 255
+
 #define has_map(a) strcmp(".map", (a) + strlen(a) - 4) == 0 || \
-   strcmp(".map.gz", (a) + strlen(a) - 7) == 0 ||
+   strcmp(".map.gz", (a) + strlen(a) - 7) == 0
 #define has_sam(a) strcmp(".sam", (a) + strlen(a) - 4) == 0
 #define has_bam(a) strcmp(".bam", (a) + strlen(a) - 4) == 0
 
+
+const char *USAGE =
+"\n"
+"Usage:"
+"  zerone [options] <input file 1> ... <input file n>\n"
+"\n"
+"    -0 --baseline <input file> given file is a baseline control\n"
+"    -v --version: display version and exit\n";
+
+void say_usage(void) { fprintf(stderr, "%s\n", USAGE); }
+void say_version(void) { fprintf(stderr, VERSION "\n"); }
+
+
+//  -------  Definitions of local (helper) functions  ------- //
+
+void
+parse_fname
+(
+   char ** names,
+   char *  value,
+   int  *  offset
+)
+// Several file names may be passed as comma-separated values.
+{
+   
+
+   char *token;
+   while ((token = strsep(&value, ",")) != NULL) {
+      if (*offset >= MAXNARGS) {
+         fprintf(stderr, "too many arguments\n");
+         exit(EXIT_FAILURE);
+      }
+      names[*offset] = strndup(token, 256);
+      if (names[*offset] == NULL) {
+         fprintf(stderr, "memory error\n");
+         exit(EXIT_FAILURE);
+      }
+      (*offset)++;
+   }
+
+   return;
+
+}
+
+
 int main(int argc, char **argv) {
+
+   // Input file names (mock and ChIP).
+   char *mock_fnames[MAXNARGS] = {0};
+   char *ChIP_fnames[MAXNARGS] = {0};
+
+   int n_mock_files = 0;
+   int n_ChIP_files = 0;
+
+   while(1) {
+      int option_index = 0;
+      static struct option long_options[] = {
+         {"mock",     required_argument,  0, '0'},
+         {"help",     no_argument,        0, 'h'},
+         {"version",  no_argument,        0, 'v'},
+         {0, 0, 0, 0}
+      };
+
+      int c = getopt_long(argc, argv, "0:hv",
+            long_options, &option_index);
+
+      // Done parsing //
+      if (c == -1) break;
+
+      switch (c) {
+      case '0':
+         parse_fname(mock_fnames, optarg, &n_mock_files);
+         break;
+
+      case 'h':
+         say_usage();
+         return EXIT_SUCCESS;
+
+      case 'v':
+         say_version();
+         return EXIT_SUCCESS;
+
+      default:
+         // Cannot parse. //
+         say_usage();
+         return EXIT_FAILURE;
+
+      }
+
+   }
+
+   // Now parse positional arguments (file names).
+   while (optind < argc) {
+      parse_fname(ChIP_fnames, argv[optind++], &n_ChIP_files);
+   }
+
+
+   fprintf(stderr, "ChIP files:\n");
+   for (int i = 0 ; i < n_ChIP_files ; i++) {
+      fprintf(stderr, "%s\n", ChIP_fnames[i]);
+   }
+   fprintf(stderr, "\nmock files:\n");
+   for (int i = 0 ; i < n_mock_files ; i++) {
+      fprintf(stderr, "%s\n", mock_fnames[i]);
+   }
+   fprintf(stderr, "\n");
 
    // Read files and build ChIP structure.
    int any_sam = 0;
    int all_sam = 1;
    // Are input files sam/bam?
-   for (int i = 1; i < argc; i++) {
+   for (int i = 1 ; i < argc ; i++) {
       if (has_sam(argv[i]) || has_bam(argv[i])) any_sam = 1;
       else all_sam = 0;
    }
@@ -23,7 +156,7 @@ int main(int argc, char **argv) {
    int any_gem = 0;
    int all_gem = 1;
    // Are input files gem?
-   for (int i = 1; i < argc; i++) {
+   for (int i = 1 ; i < argc ; i++) {
       if (has_map(argv[i])) any_gem = 1;
       else all_gem = 0;
    }
@@ -136,6 +269,11 @@ int main(int argc, char **argv) {
 //   free(sfeat);
 
    destroy_zerone_all(zerone); // Also frees ChIP.
+
+   for (int i = 0 ; i < MAXNARGS ; i++) {
+      free(mock_fnames[i]);
+      free(ChIP_fnames[i]);
+   }
 
    return 0;
 
