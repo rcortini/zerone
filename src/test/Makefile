@@ -4,14 +4,14 @@ vpath %.h ..
 vpath %.h lib
 
 P= runtests
-OBJECTS= libunittest.so xxhash.o
 
 CC= gcc
 SOURCES= runtests.c
+OBJECTS= libunittest.so xxhash.o
 INCLUDES= -I.. -Ilib
 COVERAGE= -fprofile-arcs -ftest-coverage
 CFLAGS= -std=gnu99 -g -Wall -O0 $(INCLUDES) $(COVERAGE)
-LDLIBS= -L`pwd` -Wl,-rpath=`pwd` -lm -lunittest
+LDLIBS= -L`pwd` -Wl,-rpath=`pwd` -lunittest -lz -lm
 
 $(P): $(OBJECTS) $(SOURCES)
 	$(CC) $(CFLAGS) $(SOURCES) $(OBJECTS) $(LDLIBS) -o $@
@@ -33,4 +33,4 @@ debug: $(P)
 
 valgrind: $(P)
 	#valgrind --vgdb=yes --vgdb-error=0 ./$(P) --debug
-	valgrind --leak-check=full ./$(P) --debug
+	valgrind --leak-check=full --show-leak-kinds=all ./$(P) --debug

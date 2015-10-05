@@ -18,4 +18,4 @@
 double * readmatrix(char *, int, int);
 double * extractfeats(ChIP_t *, zerone_t *);
 double * zscale(double *, double *, double *);
-int      predict(double *, double *, double *);
+double   predict(double *, double *, double *);
