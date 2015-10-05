@@ -356,10 +356,9 @@ evaluated programs.
 
 \begin{table}[!t]
 \processtable{Summary of peak calling on the CTCF dataset.
-The table lists the total number of peaks found by the different
-programs, how many of those peaks contained at least one CTCF motif, and the
-correspondent precision, recall and $F_{1}$ score relative to the CTCF motif
-dataset.
+The table lists the total number of peaks found by the different programs, how
+many of those peaks contained at least one CTCF motif, and the correspondent
+precision, recall and $F_{1}$ score relative to the CTCF motif dataset.
 \label{tab:ctcf}}
 {\begin{tabular}{lrrccc}
         \toprule
@@ -373,9 +372,8 @@ dataset.
         MACS$^{(2)}$      &  41,030 & 23,542 & 0.57 & 0.27 & 0.37 \\
         Zerone            &  50,792 & 30,972 & 0.61 & 0.36 & 0.45 \\
         \botrule
-\end{tabular}}{
-The numbers in parentheses indicate the results on the two replicates
-by separate.}
+\end{tabular}}{The numbers in parentheses indicate the results on the two
+replicates by separate.}
 \end{table}
 
 \subsubsection{H3K36me3-enriched domains.}
@@ -384,19 +382,20 @@ the location of histone modifications. However, it is known that the bodies of
 active genes are enriched in H3K36me3 \citep{pmid16122420,pmid23739122}.
 Therefore, the genes that contain peaks or windows determined as enriched in
 H3K36me3 by the different discretizers should be more expressed than the
-background. Fig.~\ref{fig:expr} shows that the expression levels of regions
-detected as enriched in H3K36me3 by Zerone are indeed higher than the ones of
-non-enriched regions. Zerone detects as not enriched windows with lower
-expression than other programs (Fig.~\ref{fig:expr}, left), consistent with
-having the highest precision score as discussed above (Table~\ref{tab:ctcf}).
-However, both JAMM and Zerone appear to detect as enriched windows with a lower
-mean read count (Fig.~\ref{fig:expr}, center), which seems to contradict the
-previous finding that these discretizers have the highest recall scores when
-analyzing the CTCF dataset (Table~\ref{tab:ctcf}). This effect can be explained
-by the fact that Zerone is able to detect more enriched windows: other
-programs are only able to detect the peaks with the highest intensity and
-therefore the mean read count in enriched windows could be overestimated
-(Fig.~\ref{fig:expr}, right).
+background.
+
+Fig.~\ref{fig:expr} shows that the expression levels of regions detected as
+enriched in H3K36me3 by Zerone are indeed higher than the ones of non-enriched
+regions. Zerone detects as not enriched windows with lower expression than other
+programs (Fig.~\ref{fig:expr}, left), consistent with having the highest
+precision score as discussed above (Table~\ref{tab:ctcf}). However, both JAMM
+and Zerone appear to detect as enriched windows with a lower mean read count
+(Fig.~\ref{fig:expr}, center), which seems to contradict the previous finding
+that these discretizers have the highest recall scores when analyzing the CTCF
+dataset (Table~\ref{tab:ctcf}). This effect can be explained by the fact that
+Zerone is able to detect more enriched windows: other programs are only able to
+detect the peaks with the highest intensity and therefore the mean read count in
+enriched windows could be overestimated (Fig.~\ref{fig:expr}, right).
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{histone_expr.pdf}}
@@ -425,21 +424,33 @@ BayesPeak discretizations on the two replicates.}\label{fig:venn}
 \end{figure}
 
 \subsubsection{Pol2 binding around transcription start sites.}
-Pol2 profiles illustrate a characteristic binding pattern composed by a peaky
-signal part near the transcription start site (TSS) and a broad type part
-downstream of it \citep{pmid}. This represents the frequencies
-at which Pol2 is poised or actively transcribing, respectively,
-in the cell population \citep{pmid}.
-
+% Pol2 is on TSSs
 To compare the behavior of the different discretizers, we determined how the
 peaks were distributed around TSSs.
 
-% figure: distance to tss (histogram or just % within a range??)
-% with genomicranges distancetonearest cite
+\begin{table}[!t]
+\processtable{Summary of peak calling on the Pol2 dataset.
+As in Table \ref{tab:ctcf},  The table lists the total number of peaks found by the different programs, how
+many of those peaks contained at least one TSS, and the correspondent precision,
+recall and $F_{1}$ score relative to the Pol2 dataset.
+\label{tab:tss}}
+{\begin{tabular}{lrrccc}
+        \toprule
+        \textbf{Software}  & \textbf{Total}  & \textbf{TSS} &
+        \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
+        \midrule
+        BayesPeak$^{(1)}$ & 208,809 & 2,722 & 0.01 & 0.06 & 0.03 \\
+        BayesPeak$^{(2)}$ & 203,438 & 2,603 & 0.01 & 0.05 & 0.03 \\
+        JAMM              & 209,882 & 6,761 & 0.03 & 0.21 & 0.11 \\
+        MACS$^{(1)}$      &  51,313 & 6,845 & 0.13 & 0.22 & 0.27 \\
+        MACS$^{(2)}$      &  49,034 & 6,546 & 0.13 & 0.21 & 0.26 \\
+        Zerone            &  23,976 & 6,926 & 0.29 & 0.24 & 0.36 \\
+        \botrule
+\end{tabular}}{The numbers in parentheses indicate the results on the two
+replicates by separate.}
+\end{table}
 
-% RESULTS: Performance on test sets (around 95% on 10-fold cross-validation)
-
-\section{Discussion and conclusion}
+\section{Discussion and conclusions}
 
 \section*{Acknowledgement}
 
@@ -447,41 +458,10 @@ peaks were distributed around TSSs.
 P.C. fellowship is partly financed by the Spanish Ministry of Economy and
 Competitiveness (State Training Subprogram: predoctoral fellowships for the
 training of PhD students (FPI) 2013).
+We acknowledge support of the Spanish Ministry of Economy and Competitiveness,
+`Centro de Excelencia Severo Ochoa 2013-2017', SEV-2012-0208.
 
 \bibliographystyle{natbib}
 \bibliography{document,extra}
 
 \end{document}
-
-%\begin{equation}
-%\label{eq:01}
-%\sum x+ y =Z
-%\end{equation}
-
-%\begin{enumerate}
-%\item this is item, use enumerate
-%\item this is item, use enumerate
-%\item this is item, use enumerate
-%\end{enumerate}
-
-%\begin{itemize}
-%\item for bulleted list, use itemize
-%\item for bulleted list, use itemize
-%\item for bulleted list, use itemize
-%\end{itemize}
-
-%\begin{table}[!t]
-%\processtable{This is table caption\label{Tab:01}}
-%{\begin{tabular}{llll}\toprule
-%head1 & head2 & head3 & head4\\\midrule
-%row1 & row1 & row1 & row1\\
-%row2 & row2 & row2 & row2\\
-%row3 & row3 & row3 & row3\\
-%row4 & row4 & row4 & row4\\\botrule
-%\end{tabular}}{This is a footnote}
-%\end{table}
-
-%\begin{figure}[!tpb]
-%%\centerline{\includegraphics{fig01.eps}}
-%\caption{Caption, caption.}\label{fig:01}
-%\end{figure}
