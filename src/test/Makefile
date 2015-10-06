@@ -7,7 +7,7 @@ P= runtests
 
 CC= gcc
 SOURCES= runtests.c
-OBJECTS= libunittest.so xxhash.o
+OBJECTS= libunittest.so xxhash.o sam.o bgzf.o hfile.o
 INCLUDES= -I.. -Ilib
 COVERAGE= -fprofile-arcs -ftest-coverage
 CFLAGS= -std=gnu99 -g -Wall -O0 $(INCLUDES) $(COVERAGE)

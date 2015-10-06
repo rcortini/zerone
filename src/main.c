@@ -21,21 +21,12 @@
 **
 */
 
+
 #include <stdio.h>
 #include <getopt.h>
 #include "predict.h"
-#include "parsam.h"
 #include "parse.h"
 #include "zerone.h"
-
-#define VERSION "zerone-v1.0"
-
-#define MAXNARGS 255
-
-#define has_map(a) strcmp(".map", (a) + strlen(a) - 4) == 0 || \
-   strcmp(".map.gz", (a) + strlen(a) - 7) == 0
-#define has_sam(a) strcmp(".sam", (a) + strlen(a) - 4) == 0
-#define has_bam(a) strcmp(".bam", (a) + strlen(a) - 4) == 0
 
 
 const char *USAGE =
@@ -46,11 +37,27 @@ const char *USAGE =
 "    -0 --baseline <input file> given file is a baseline control\n"
 "    -v --version: display version and exit\n";
 
+
+
+#define VERSION "zerone-v1.0"
+#define MAXNARGS 255
+
+
+// Useful macros.
+#define has_map(a) strcmp(".map", (a) + strlen(a) - 4) == 0 || \
+   strcmp(".map.gz", (a) + strlen(a) - 7) == 0
+#define has_sam(a) strcmp(".sam", (a) + strlen(a) - 4) == 0
+#define has_bam(a) strcmp(".bam", (a) + strlen(a) - 4) == 0
+
+
+typedef ChIP_t * (*parser_t) (char **, char **);
+
+
+
+//  -----------  Definitions of local one-liners  ----------- //
 void say_usage(void) { fprintf(stderr, "%s\n", USAGE); }
 void say_version(void) { fprintf(stderr, VERSION "\n"); }
 
-
-//  -------  Definitions of local (helper) functions  ------- //
 
 void
 parse_fname
@@ -85,12 +92,13 @@ parse_fname
 int main(int argc, char **argv) {
 
    // Input file names (mock and ChIP).
-   char *mock_fnames[MAXNARGS] = {0};
-   char *ChIP_fnames[MAXNARGS] = {0};
+   char *mock_fnames[MAXNARGS+1] = {0};
+   char *ChIP_fnames[MAXNARGS+1] = {0};
 
    int n_mock_files = 0;
    int n_ChIP_files = 0;
 
+   // Parse options.
    while(1) {
       int option_index = 0;
       static struct option long_options[] = {
@@ -103,7 +111,7 @@ int main(int argc, char **argv) {
       int c = getopt_long(argc, argv, "0:hv",
             long_options, &option_index);
 
-      // Done parsing //
+      // Done parsing named options. //
       if (c == -1) break;
 
       switch (c) {
@@ -133,73 +141,22 @@ int main(int argc, char **argv) {
       parse_fname(ChIP_fnames, argv[optind++], &n_ChIP_files);
    }
 
+   // Process input files.
+   ChIP_t *ChIP = parse_input_files(mock_fnames, ChIP_fnames);
 
-   fprintf(stderr, "ChIP files:\n");
-   for (int i = 0 ; i < n_ChIP_files ; i++) {
-      fprintf(stderr, "%s\n", ChIP_fnames[i]);
-   }
-   fprintf(stderr, "\nmock files:\n");
-   for (int i = 0 ; i < n_mock_files ; i++) {
-      fprintf(stderr, "%s\n", mock_fnames[i]);
-   }
-   fprintf(stderr, "\n");
-
-   // Read files and build ChIP structure.
-   int any_sam = 0;
-   int all_sam = 1;
-   // Are input files sam/bam?
-   for (int i = 1 ; i < argc ; i++) {
-      if (has_sam(argv[i]) || has_bam(argv[i])) any_sam = 1;
-      else all_sam = 0;
-   }
-
-   int any_gem = 0;
-   int all_gem = 1;
-   // Are input files gem?
-   for (int i = 1 ; i < argc ; i++) {
-      if (has_map(argv[i])) any_gem = 1;
-      else all_gem = 0;
-   }
-
-   ChIP_t *ChIP = NULL;
-   if ((any_sam && !all_sam) || (any_gem && !all_gem)) {
-      fprintf(stderr, "%s\n", "different file formats.");
-      return 1;
-
-   } else if (any_sam && all_sam) {
-      char * samfiles[argc-1];
-      const unsigned int nfiles = argc-1;
-      for (int i = 1; i < argc; i++) samfiles[i-1] = argv[i];
-      ChIP = read_sam(samfiles, nfiles);
-      if (ChIP == NULL) {
-         fprintf(stderr, "error wile reading input\n");
-         return 1;
-      }
-
-   } else if (any_gem && all_gem) {
-      char * gemfiles[argc-1];
-      const unsigned int nfiles = argc-1;
-      for (int i = 1; i < argc; i++) gemfiles[i-1] = argv[i];
-      ChIP = read_gem((const char **) gemfiles, nfiles);
-      if (ChIP == NULL) {
-         fprintf(stderr, "error wile reading input\n");
-         return 1;
-      }
-
-   } else if (argc == 2 && !any_sam) {
-      FILE *inputf = fopen(argv[1], "r");
-      if (inputf == NULL) {
-         fprintf(stderr, "file not found: %s\n", argv[1]);
-         return 1;
-      }
-      ChIP = read_file(inputf);
-      fclose(inputf);
+   if (ChIP == NULL) {
+      fprintf(stderr, "error wile reading input\n");
+      exit(EXIT_FAILURE);
    }
 
    // Do zerone.
-   const unsigned int m = 3; // number of states.
+   //const unsigned int m = 3; // number of states.
    zerone_t *zerone = do_zerone(ChIP);
-   if (zerone == NULL) return 1;
+
+   if (zerone == NULL) {
+      fprintf(stderr, "run time error (sorry)\n");
+      exit(EXIT_FAILURE);
+   }
 
    // XXX Broken on any computer of the planet except one. XXX //
    // XXX Better put the data directly in the file. XXX
@@ -239,7 +196,7 @@ int main(int argc, char **argv) {
 //      }
 //      fprintf(stdout, "\n");
       fprintf(stdout, "%d\t%f\t%f\t%f\n", zerone->path[i],
-            zerone->phi[0+i*m], zerone->phi[1+i*m], zerone->phi[2+i*m]);
+            zerone->phi[0+i*3], zerone->phi[1+i*3], zerone->phi[2+i*3]);
    }
 
 

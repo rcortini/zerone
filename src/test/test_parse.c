@@ -4,7 +4,7 @@
 #include "parse.c"
 
 void
-test_add
+test_add_to_rod
 (void)
 {
    rod_t *rod = malloc(sizeof(rod_t) + 32*sizeof(uint32_t));
@@ -18,28 +18,28 @@ test_add
    rod->mx = 0;
    memset(rod->array, 0, 32*sizeof(uint32_t));
 
-   test_assert(add(&rod, 0));
+   test_assert(add_to_rod(&rod, 0));
    test_assert(rod->mx == 0);
    test_assert(rod->array[0] == 1);
 
-   test_assert(add(&rod, 1));
+   test_assert(add_to_rod(&rod, 1));
    test_assert(rod->mx == 1);
    test_assert(rod->array[1] == 1);
 
-   test_assert(add(&rod, 32));
+   test_assert(add_to_rod(&rod, 32));
    test_assert_critical(rod->sz == 64);
    test_assert(rod->mx == 32);
    test_assert(rod->array[32] == 1);
 
-   test_assert(add(&rod, 1));
+   test_assert(add_to_rod(&rod, 1));
    test_assert(rod->mx == 32);
    test_assert(rod->array[1] == 2);
 
-   test_assert(add(&rod, 63));
+   test_assert(add_to_rod(&rod, 63));
    test_assert(rod->mx == 63);
    test_assert(rod->array[63] == 1);
 
-   test_assert(add(&rod, 65));
+   test_assert(add_to_rod(&rod, 65));
    test_assert_critical(rod->sz == 130);
    test_assert(rod->mx == 65);
    test_assert(rod->array[65] == 1);
@@ -83,7 +83,7 @@ test_lookup_or_insert
    // Test that the pointer is the same.
    test_assert_critical(lnk == lookup_or_insert("chr1", hashtab));
 
-   test_assert(add(&lnk->counts, 157));
+   test_assert(add_to_rod(&lnk->counts, 157));
    test_assert(lnk->counts->sz == 314);
    test_assert(lnk->counts->mx == 157);
 
@@ -95,7 +95,7 @@ test_lookup_or_insert
    test_assert(lnk->counts->sz == 32);
    test_assert(lnk->counts->mx == 0);
 
-   test_assert(add(&lnk->counts, 39));
+   test_assert(add_to_rod(&lnk->counts, 39));
    test_assert(lnk->counts->sz == 78);
    test_assert(lnk->counts->mx == 39);
 
@@ -103,7 +103,7 @@ test_lookup_or_insert
    for (int i = 0 ; i < 10000 ; i++) {
       lnk = lookup_or_insert("chr2", hashtab);;
       test_assert_critical(lnk != NULL);
-      test_assert(add(&lnk->counts, i));
+      test_assert(add_to_rod(&lnk->counts, i));
    }
 
    test_assert(lnk->counts->sz == 19968);
@@ -158,17 +158,17 @@ test_merge_hashes
 
    lnk = lookup_or_insert("chr1", hashes[0]);
    test_assert_critical(lnk != NULL);
-   test_assert(add(&lnk->counts, 5));
+   test_assert(add_to_rod(&lnk->counts, 5));
    lnk = lookup_or_insert("chr2", hashes[0]);
    test_assert_critical(lnk != NULL);
-   test_assert(add(&lnk->counts, 76));
+   test_assert(add_to_rod(&lnk->counts, 76));
 
    lnk = lookup_or_insert("chr1", hashes[1]);
    test_assert_critical(lnk != NULL);
-   test_assert(add(&lnk->counts, 81));
+   test_assert(add_to_rod(&lnk->counts, 81));
    lnk = lookup_or_insert("chr3", hashes[1]);
    test_assert_critical(lnk != NULL);
-   test_assert(add(&lnk->counts, 8));
+   test_assert(add_to_rod(&lnk->counts, 8));
 
    ChIP_t *ChIP = merge_hashes(hashes, 2);
    test_assert_critical(ChIP != NULL);
@@ -187,15 +187,120 @@ test_merge_hashes
 
 }
 
+
 void
-test_read_and_count
+test_choose_iterator
+(void)
+{
+
+   generic_state_t * g_state = NULL;
+   bgzf_state_t    * b_state = NULL;
+   iter_t            iterate = NULL;
+   
+   iterate = choose_iterator("test_file_good.map");
+   test_assert(iterate == generic_iterator);
+
+   g_state = (generic_state_t *) STATE;
+   test_assert_critical(g_state != NULL);
+   test_assert(g_state->parser == parse_gem);
+   test_assert(g_state->reader == getline);
+   test_assert(g_state->file != NULL);
+   test_assert(g_state->buff != NULL);
+   test_assert(g_state->bsz == 32);
+
+   // Clean.
+   iterate(NULL);
+   test_assert(STATE == NULL);
+
+   iterate = choose_iterator("test_file_good.map.gz");
+   test_assert(iterate == generic_iterator);
+
+   g_state = (generic_state_t *) STATE;
+   test_assert_critical(g_state != NULL);
+   test_assert(g_state->parser == parse_gem);
+   test_assert(g_state->reader == getgzline);
+   test_assert(g_state->file != NULL);
+   test_assert(g_state->buff != NULL);
+   test_assert(g_state->bsz == 32);
+
+   // Clean.
+   iterate(NULL);
+   test_assert(STATE == NULL);
+
+   iterate = choose_iterator("test_file_good.bam");
+   test_assert(iterate == bgzf_iterator);
+
+   b_state = (bgzf_state_t *) STATE;
+   test_assert_critical(b_state != NULL);
+   test_assert(b_state->file != NULL);
+   test_assert(b_state->hdr != NULL);
+   test_assert(b_state->bam != NULL);
+
+   // Clean.
+   iterate(NULL);
+   test_assert(STATE == NULL);
+
+   redirect_stderr();
+   iterate = choose_iterator("no_such_file.map");
+   unredirect_stderr();
+   test_assert(iterate == NULL);
+   test_assert_stderr("cannot open file no_such_file.map\n");
+   test_assert(STATE == NULL);
+
+   return;
+
+}
+
+
+void
+test_parse_gem
+(void)
+{
+
+      loc_t loc;
+
+      // NOTE that we cannot pass constant strings to
+      // 'parse_gem()' because it modifies them in general.
+      char line1[] = "a\tb\tc\t0:0:0\t-";
+      test_assert(parse_gem(&loc, line1));
+      test_assert(loc.name == NULL);
+      test_assert(loc.pos == 0);
+
+      char line2[] = "a\tb\tc\t0\tchr18:-:16507402:A35";
+      test_assert(parse_gem(&loc, line2));
+      test_assert(strcmp(loc.name, "chr18") == 0);
+      test_assert(loc.pos == 16507402);
+
+      char line3[] = "abc0chr18:-:16507402:A35";
+      test_assert(!parse_gem(&loc, line3));
+
+      char line4[] = "a\tb\tc\t0\tchr1816507402:A35";
+      test_assert(!parse_gem(&loc, line4));
+
+      char line5[] = "a\tb\tc\t0\tchr18:-:wrong:A35";
+      test_assert(!parse_gem(&loc, line5));
+
+      return;
+
+}
+
+void
+test_autoparse
 (void)
 {
 
    hash_t *hashtab = NULL;
    link_t *lnk = NULL;
+
+   hashtab = calloc(HSIZE, sizeof(link_t *));
+
+   if (hashtab == NULL) {
+      fprintf(stderr, "error in test function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return;
+   }
       
-   hashtab = read_and_count("test_file_good.map");
+   test_assert(autoparse("test_file_good.map", hashtab));
    test_assert_critical(hashtab != NULL);
 
    lnk = lookup_or_insert("chr6", hashtab);
@@ -210,36 +315,54 @@ test_read_and_count
    test_assert_critical(lnk != NULL);
    test_assert(lnk->counts->array[445385] == 1);
 
-   destroy_hash(hashtab);
-   hashtab = NULL;
-
    // Try parsing a non gem file.
    redirect_stderr();
-   hashtab = read_and_count("test_parse.c");
+   test_assert(!autoparse("test_parse.c", hashtab));
    unredirect_stderr();
-   test_assert(hashtab == NULL);
-   test_assert(strncmp("format conflict in line:\n",
+   test_assert(hashtab != NULL);
+   test_assert(strncmp("unknown format for file test_parse.c",
             caught_in_stderr(), 25) == 0);
 
    // Try parsing bad gem files.
    redirect_stderr();
-   hashtab = read_and_count("test_file_bad1.map");
+   test_assert(!autoparse("test_file_bad1.map", hashtab));
    unredirect_stderr();
-   test_assert(hashtab == NULL);
+   test_assert(hashtab != NULL);
    test_assert(strncmp("format conflict in line:\n",
             caught_in_stderr(), 25) == 0);
 
    redirect_stderr();
-   hashtab = read_and_count("test_file_bad2.map");
+   test_assert(!autoparse("test_file_bad2.map", hashtab));
    unredirect_stderr();
-   test_assert(hashtab == NULL);
+   test_assert(hashtab != NULL);
    test_assert(strncmp("format conflict in line:\n",
             caught_in_stderr(), 25) == 0);
 
+   // Now test .bam format. Note that there is a sequence
+   // at position 0 in this file, so the parser will choke
+   // on it. But there are 8 sequences before, that should
+   // fill the hash as tested below.
+   test_assert(!autoparse("test_file_good.bam", hashtab));
+   test_assert_critical(hashtab != NULL);
+
+   lnk = lookup_or_insert("insert", hashtab);
+   test_assert_critical(lnk != NULL);
+   test_assert(lnk->counts->array[0] == 2);
+
+   lnk = lookup_or_insert("ref1", hashtab);
+   test_assert_critical(lnk != NULL);
+   test_assert(lnk->counts->array[0] == 6);
+
+   destroy_hash(hashtab);
+
 }
+#if 0
+
+}
+#endif
 
 void
-test_readgzline
+test_getgzline
 (void)
 {
 
@@ -260,15 +383,15 @@ test_readgzline
       return;
    }
 
-   test_assert_critical(readgzline(&buff, &bsz, fp) > 0);
+   test_assert_critical(getgzline(&buff, &bsz, fp) > 0);
    test_assert(strncmp((char *) buff,
             "SRR574805.4 ROCKFORD:3:1:1728:956/1", 35) == 0);
 
-   test_assert_critical(readgzline(&buff, &bsz, fp) > 0);
+   test_assert_critical(getgzline(&buff, &bsz, fp) > 0);
    test_assert(strncmp((char *) buff,
             "SRR574805.6 ROCKFORD:3:1:2065:964/1", 35) == 0);
 
-   test_assert(readgzline(&buff, &bsz, fp) == -1);
+   test_assert(getgzline(&buff, &bsz, fp) == -1);
 
    fclose(fp);
    free(buff);
@@ -276,7 +399,7 @@ test_readgzline
 }
 
 void
-test_readgzline_err
+test_getgzline_err
 (void)
 {
 
@@ -299,12 +422,12 @@ test_readgzline_err
       return;
    }
 
-   test_assert(readgzline(&buff, &bsz, fp) == -2);
+   test_assert(getgzline(&buff, &bsz, fp) == -2);
 
    fclose(fp);
 
    // Check that the error did not mess up
-   // the internal state of 'readgzline'.
+   // the internal state of 'getgzline'.
    fp = fopen("test_file_bad1.map.gz", "r");
 
    if (fp == NULL) {
@@ -313,12 +436,12 @@ test_readgzline_err
       return;
    }
 
-   test_assert_critical(readgzline(&buff, &bsz, fp) > 0);
+   test_assert_critical(getgzline(&buff, &bsz, fp) > 0);
    test_assert(strncmp((char *) buff,
             "SRR574805.4 ROCKFORD:3:1:1728:956/1", 35) == 0);
 
    // Interrupt inflation (to prevent memory leak).
-   test_assert_critical(readgzline(NULL, &bsz, fp) == -1);
+   test_assert_critical(getgzline(NULL, &bsz, fp) == -1);
 
    fclose(fp);
 
@@ -330,14 +453,14 @@ test_readgzline_err
       return;
    }
 
-   test_assert(readgzline(&buff, &bsz, fp) == -2);
+   test_assert(getgzline(&buff, &bsz, fp) == -2);
 
    fclose(fp);
    free(buff);
 
 }
 
-
+#if 0
 void
 test_read_gem
 (void)
@@ -377,3 +500,4 @@ test_read_gem
    free(ChIP);
 
 }
+#endif

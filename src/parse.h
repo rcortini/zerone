@@ -3,6 +3,6 @@
 
 #include "zerone.h"
 
-ChIP_t *read_gem(const char **, int);
+ChIP_t * parse_input_files(char **, char **);
 
 #endif

@@ -1,9 +1,16 @@
-#include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include <zlib.h>
+#include "bgzf.h"
+#include "sam.h"
 #include "zerone.h"
+
+
+//  ----- Globals ----- //
+void * STATE;
+int    ERR;
+
 
 #define SUCCESS 1
 #define FAILURE 0
@@ -28,11 +35,24 @@
 struct hash_t;
 struct link_t;
 struct rod_t;
+struct loc_t;
+// Iterator states.
+struct bgzf_state_t;
+struct generic_state_t;
 
 typedef struct link_t link_t;
 typedef struct rod_t rod_t;
+typedef struct loc_t loc_t;
+typedef struct bgzf_state_t bgzf_state_t;
+typedef struct generic_state_t generic_state_t;
+
+// Shortcuts.
 typedef link_t * hash_t;
-typedef ssize_t (*reader_t)(char **, size_t *, FILE *);
+
+// Special functions.
+typedef int     (*iter_t)   (loc_t *);
+typedef int     (*parser_t) (loc_t *, char *);
+typedef ssize_t (*reader_t) (char **, size_t *, FILE *);
 
 
 // Type definitions.
@@ -48,45 +68,118 @@ struct rod_t {
    uint32_t array[];
 };
 
+struct loc_t {
+   char * name;
+   int    pos;
+};
+
+// Iterator states.
+struct bgzf_state_t {
+   BGZF      * file;
+   bam_hdr_t * hdr;
+   bam1_t    * bam;
+};
+
+struct generic_state_t {
+   FILE      * file;
+   reader_t    reader;
+   parser_t    parser;
+   char      * buff;
+   size_t      bsz;
+};
+
 
 //  ---- Declaration of local functions  ---- //
+int      autoparse (const char *, hash_t *);
+iter_t   choose_iterator (const char *);
 
-int add (rod_t **, uint32_t);
-void destroy_hash(hash_t *);
-uint32_t djb2 (const char *);
-int is_gzipped(FILE *);
+// Iterators.
+int      bgzf_iterator (loc_t *);
+int      generic_iterator (loc_t *);
+
+// Raders.
+ssize_t  getgzline (char **, size_t *, FILE *);
+
+// Parsers.
+int      parse_gem (loc_t *, char *);
+// TODO: Write the parsers below. //
+int      parse_sam (loc_t *, char *);
+int      parse_bed (loc_t *, char *);
+
+// Hash handling functions.
+int      add_to_rod (rod_t **, uint32_t);
+void     destroy_hash(hash_t *);
 link_t * lookup_or_insert (const char *, hash_t *);
-ChIP_t * merge_hashes(hash_t **, int);
-hash_t * read_and_count (const char *);
-ssize_t readgzline (char **, size_t *, FILE *);
+ChIP_t * merge_hashes (hash_t **, int);
+
+// Convenience functions.
+uint32_t djb2 (const char *);
+int      is_gzipped (FILE *);
+
+
 
 
 //  -- Definitions of exported functions  --- //
 
 ChIP_t *
-read_gem
+parse_input_files
 (
-   const    char * fn[],
-   unsigned int    nfiles
+   char * mock_fnames[],
+   char * ChIP_fnames[]
 )
 {
 
-   ChIP_t *ChIP = NULL; // Return value.
-   // Array of hash tables (one per file).
-   hash_t *hashtab[nfiles];
-   memset(hashtab, 0, nfiles * sizeof(hash_t *));
+   ChIP_t * ChIP = NULL;         // Return value.
+   hash_t * hashtab[512] = {0};  // Array of hash tables.
+   int      nhashes = 0;         // Number of hashes.
 
-   for (int i = 0; i < nfiles; i++) {
-      hashtab[i] = read_and_count(fn[i]);
-      if (hashtab[i] == NULL) {
+   // Create a unique hash for all mock files.
+   hashtab[0] = calloc(HSIZE, sizeof(link_t *));
+   if (hashtab[0] == NULL) {
+      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      goto clean_and_return;
+   }
+
+   nhashes = 1;
+
+   // Fill in the hash with mock files.
+   for (int i = 0; mock_fnames[i] != NULL; i++) {
+      if(!autoparse(mock_fnames[i], hashtab[0])) {
          fprintf(stderr, "error in function '%s()' %s:%d\n",
                __func__, __FILE__, __LINE__);
          goto clean_and_return;
       }
    }
 
-   // Merge hash tables. 
-   ChIP = merge_hashes(hashtab, nfiles);
+
+   // Create distinct hash for each ChIP file.
+   for (int i = 0; ChIP_fnames[i] != NULL; i++) {
+
+      if (nhashes >= 512) {
+         fprintf(stderr, "too many files (sorry)\n");
+         goto clean_and_return;
+      }
+
+      hashtab[nhashes] = calloc(HSIZE, sizeof(link_t *));
+      if (hashtab[nhashes] == NULL) {
+         fprintf(stderr, "memory error in function '%s()' %s:%d\n",
+               __func__, __FILE__, __LINE__);
+         goto clean_and_return;
+      }
+
+      nhashes++;
+
+      if (!autoparse(ChIP_fnames[i], hashtab[nhashes])) {
+         fprintf(stderr, "error in function '%s()' %s:%d\n",
+               __func__, __FILE__, __LINE__);
+         goto clean_and_return;
+      }
+
+   }
+
+   // Merge hash tables in to a 'ChIP_t'.
+   ChIP = merge_hashes(hashtab, nhashes);
    if (ChIP == NULL) {
       fprintf(stderr, "error in function '%s()' %s:%d\n",
                __func__, __FILE__, __LINE__);
@@ -94,10 +187,7 @@ read_gem
    }
 
 clean_and_return:
-   for (int i = 0 ; i < nfiles ; i++) {
-      if (hashtab[i] != NULL) destroy_hash(hashtab[i]);
-   }
-
+   for (int i = 0 ; i < nhashes ; i++) destroy_hash(hashtab[i]);
    return ChIP;
 
 }
@@ -106,286 +196,299 @@ clean_and_return:
 
 //  ---- Definitions of local functions  ---- //
 
-int
-add
+
+iter_t
+choose_iterator
 (
-   rod_t   ** addr,
-   uint32_t   pos
+   const char * fname
 )
 {
 
-   // Convenience variable.
-   rod_t *rod = *addr;
+   // First check if format is .bam.
+   if (strcmp(".bam", fname + strlen(fname) - 4) == 0) {
 
-   if (pos >= rod->sz) {
-      // Double size of the rod.
-      size_t oldsz = rod->sz;
-      size_t newsz = 2*pos;
-      rod_t *tmp = realloc(rod, sizeof(rod_t) + newsz*sizeof(uint32_t));
-      if (tmp == NULL) {
+      bgzf_state_t * state = calloc(1, sizeof(bgzf_state_t));
+      if (state == NULL) {
          fprintf(stderr, "memory error in function '%s()' %s:%d\n",
+               __func__, __FILE__, __LINE__);
+         goto exit_bgzf_error;
+      }
+
+      state->file = bgzf_open(fname, "r");
+      if (state->file == NULL) {
+         fprintf(stderr, "cannot open file %s\n", fname);
+         goto exit_bgzf_error;
+      }
+
+      state->hdr = bam_hdr_read(state->file);
+      if (state->hdr == NULL) {
+         fprintf(stderr, "cannot read header from file %s\n", fname);
+         goto exit_bgzf_error;
+      }
+
+      state->bam = bam_init1();
+      if (state->bam == NULL) {
+         fprintf(stderr, "bam! error (sorry)\n");
+         goto exit_bgzf_error;
+      }
+
+      STATE = state;
+      return bgzf_iterator;
+
+exit_bgzf_error:
+      if (state != NULL) {
+         if (state->file != NULL) bgzf_close(state->file);
+         if (state->hdr != NULL) bam_hdr_destroy(state->hdr);
+         if (state->bam != NULL) bam_destroy1(state->bam);
+      }
+      free(state);
+      return NULL;
+
+   }
+
+   // Format is not .bam, so it is generic.
+   generic_state_t * state = calloc(1, sizeof(generic_state_t));
+
+   if (state == NULL) {
+      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      goto exit_generic_error;
+   }
+
+   state->file = fopen(fname, "r");
+
+   if (state->file == NULL) {
+      fprintf(stderr, "cannot open file %s\n", fname);
+      goto exit_generic_error;
+   }
+
+   state->bsz = 32;
+   state->buff = malloc(state->bsz * sizeof(char));
+
+   if (state->buff == NULL) {
+      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      goto exit_generic_error;
+   }
+
+   if (strcmp(".map", fname + strlen(fname) - 4) == 0) {
+      state->reader = getline;
+      state->parser = parse_gem;
+   }
+//   else if (strcmp(".sam", fname + strlen(fname) - 4) == 0) {
+//      state->reader = getline;
+//      state->parser = parse_sam;
+//   }
+   else if (strcmp(".map.gz", fname + strlen(fname) - 7) == 0) {
+      state->reader = getgzline;
+      state->parser = parse_gem;
+   }
+   else {
+      fprintf(stderr, "unknown format for file %s\n", fname);
+      goto exit_generic_error;
+   }
+
+   STATE = state;
+   return generic_iterator;
+
+exit_generic_error:
+   if (state != NULL) {
+      if (state->file != NULL) fclose(state->file);
+      free(state->buff);
+   }
+   free(state);
+   return NULL;
+
+}
+
+
+int
+autoparse
+(
+   const char   * fname,
+         hash_t * hashtab
+)
+{
+
+   loc_t loc;
+
+   // Find an iterator for the given file type.
+   iter_t iterate = choose_iterator(fname);
+
+   if (iterate == NULL) {
+      fprintf(stderr, "error in function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return FAILURE;
+   }
+
+   ERR = 0;
+   while (iterate(&loc) > 0) {
+
+      // 'loc.name' is set to NULL for unmapped reads.
+      if (loc.name == NULL) continue;
+
+      link_t *lnk = lookup_or_insert(loc.name, hashtab);
+
+      if (lnk == NULL) {
+         fprintf(stderr, "error in function '%s()' %s:%d\n",
                __func__, __FILE__, __LINE__);
          return FAILURE;
       }
-      // Update all.
-      *addr = rod = tmp;
-      memset(rod->array + oldsz, 0, (newsz-oldsz)*sizeof(uint32_t));
-      rod->sz = newsz;
+
+      // Add read to counts.
+      if (!add_to_rod(&lnk->counts, loc.pos / BIN_SIZE)) {
+         fprintf(stderr, "error in function '%s()' %s:%d\n",
+               __func__, __FILE__, __LINE__);
+         return FAILURE;
+      }
+
    }
 
-   rod->array[pos]++;
-   if (pos > rod->mx) rod->mx = pos;
+   if (ERR) {
+      // Unexpected exit from iteration.
+      return FAILURE;
+   }
 
    return SUCCESS;
 
 }
 
 
-ChIP_t *
-merge_hashes
+int
+generic_iterator
 (
-   hash_t ** hashes,
-   int       n
+   loc_t *loc
 )
 {
-   // Add keys and update a reference hash table.
-   hash_t *refhash = hashes[0];
-
-   for (int i = 1 ; i < n ; i++) {
-      hash_t *hashtab = hashes[i];
-      for (int j = 0 ; j < HSIZE ; j++) {
-         for(link_t *lnk = hashtab[j] ; lnk != NULL ; lnk = lnk->next) {
-            // Get chromosome from reference hash (or create it).
-            link_t *reflnk = lookup_or_insert(lnk->seqname, refhash);
-            if (reflnk == NULL) {
-               fprintf(stderr, "error in function '%s()' %s:%d\n",
-                     __func__, __FILE__, __LINE__);
-               return NULL;
-            }
-            // Update the max in reference hash. Note that
-            // the size of this 'link_t' may be smaller.
-            if (lnk->counts->mx > reflnk->counts->mx)
-               reflnk->counts->mx = lnk->counts->mx;
-         }
-      }
-   }
-
-   // Now use the data in reference hash to creat 'ChIP_t'.
-   int nkeys = 0;
-   int nbins = 0;
-   for (int j = 0 ; j < HSIZE ; j++) {
-      for(link_t *lnk = refhash[j] ; lnk != NULL ; lnk = lnk->next) {
-         nkeys++;
-         nbins += lnk->counts->mx;
-      }
-   }
-
-   unsigned int *size = malloc(nkeys * sizeof(unsigned int));
-   int *y = calloc(n*nbins, sizeof(int));
-   if (size == NULL || y == NULL) {
-      fprintf(stderr, "memory error in funtion '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
-      return NULL;
-   }
-
-   // Fill in the observations.
-   int m = 0;
-   size_t offset = 0;
-   for (int j = 0 ; j < HSIZE ; j++) {
-   for (link_t *rlnk = refhash[j] ; rlnk != NULL ; rlnk = rlnk->next) {
-
-      // Get seqname and sequence length.
-      char *key = rlnk->seqname;
-      size_t blksz = size[m++] = rlnk->counts->mx;
-
-      // Go through all the hashes to get the data.
-      for (int i = 0 ; i < n ; i++) {
-         hash_t *hashtab = hashes[i];
-         link_t *lnk = lookup_or_insert(key, hashtab);
-         if (lnk == NULL) {
-            fprintf(stderr, "error in function '%s()' %s:%d\n",
-                  __func__, __FILE__, __LINE__);
-            return NULL;
-         }
-         rod_t *counts = lnk->counts;
-         size_t kmax = counts->sz < blksz ? counts->sz : blksz;
-         for (int k = 0 ; k < kmax ; k++) {
-            y[offset + (n*k) + i] = counts->array[k];
-         }
-      }
-
-      // Update offset.
-      offset += n*blksz;
-
-   }
-   }
-
-   ChIP_t *ChIP = new_ChIP(n, nkeys, y, size);
-   free(size);
-
-   return ChIP;
-
-}
-
-hash_t *
-read_and_count
-(
-   const char * fn
-)
-{
-
-   int status = SUCCESS;
-
-   char *buff = NULL;
-   FILE *fp = NULL;
-
-   // Create new hash for each file (it is the return value).
-   hash_t * hashtab = calloc(HSIZE, sizeof(link_t *));
-   if (hashtab == NULL) {
-      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
-      status = FAILURE;
+   // Cast as state for generic iterator.
+   generic_state_t *state = (generic_state_t *) STATE;
+   parser_t parse = state->parser;
+   reader_t read = state->reader;
+   
+   if (loc == NULL) {
+      // Interruption.
       goto clean_and_return;
    }
 
-   fp = fopen(fn, "r");
-   if (fp == NULL) {
-      fprintf(stderr, "cannot open file %s\n", fn);
-      status = FAILURE;
+   // Read one line.
+   int nbytes = read(&state->buff, &state->bsz, state->file);
+
+   if (nbytes < -1) {
+      ERR = __LINE__;
       goto clean_and_return;
    }
 
-   // Check if file is gzipped.
-   reader_t reader = is_gzipped(fp) ? readgzline : getline;
-
-   size_t bsz = 64;
-   buff = malloc(bsz * sizeof(char));
-   if (buff == NULL) {
-      fprintf(stderr, "memory error\n");
-      status = FAILURE;
+   if (nbytes == -1) {
+      // End of file.
       goto clean_and_return;
    }
 
-   errno = 0;
-
-   ssize_t bytesread;
-   while ((bytesread = reader(&buff, &bsz, fp)) > -1) {
-      // Get last field of the line.
-      char *map = strrchr(buff, '\t');
-      if (map++ == NULL) {
-         fprintf(stderr, "format conflict in line:\n%s", buff);
-         status = FAILURE;
-         goto clean_and_return;
-      }
-
-      if (map[0] == '-') continue;
-
-      // Parse mapping data.
-      char *chrom = strsep(&map, ":");
-      strsep(&map, ":"); // Discard strand.
-      char *tmp = strsep(&map, ":");
-
-      if (chrom == NULL || tmp == NULL) {
-         fprintf(stderr, "format conflict in line:\n%s", buff);
-         status = FAILURE;
-         goto clean_and_return;
-      }
-
-      // Positions in the genome cannot be 0, so we can identify
-      // failures of 'atoi' to convert numbers.
-      int pos = atoi(tmp);
-      if (pos == 0) {
-         fprintf(stderr, "format conflict in line:\n%s", buff);
-         status = FAILURE;
-         goto clean_and_return;
-      }
-
-      link_t *lnk = lookup_or_insert(chrom, hashtab);
-      if (lnk == NULL) {
-         fprintf(stderr, "error in function '%s()' %s:%d\n",
-               __func__, __FILE__, __LINE__);
-         status = FAILURE;
-         goto clean_and_return;
-      }
-
-      // Add read to counts.
-      if (!add(&lnk->counts, pos / BIN_SIZE)) {
-         fprintf(stderr, "error in function '%s()' %s:%d\n",
-               __func__, __FILE__, __LINE__);
-         status = FAILURE;
-         goto clean_and_return;
-      }
-
-   }
-
-   // XXX Perhaps this will go in the getline functions. XXX //
-   if (errno) {
-      fprintf(stderr, "input error in function '%s()'\n", __func__);
-      status = FAILURE;
+   if (!parse(loc, state->buff)) {
+      fprintf(stderr, "format conflict in line:\n%s", state->buff);
+      ERR = __LINE__;
       goto clean_and_return;
    }
+
+   return nbytes;
 
 clean_and_return:
-   free(buff);
-   fclose(fp);
+   free(state->buff);
+   fclose(state->file);
+   free(state);
 
-   if (status == FAILURE) {
-      destroy_hash(hashtab);
-      hashtab = NULL;
-   }
-
-   return hashtab;
+   STATE = NULL;
+   return -1;
 
 }
 
-
-link_t *
-lookup_or_insert
+int
+bgzf_iterator
 (
-   const char   * s,
-         hash_t * hashtab
+   loc_t *loc
 )
-// Famous K&R simple hash lookup.
 {
 
-   for (link_t *lnk = hashtab[h(s)] ; lnk != NULL ; lnk = lnk->next) {
-      if (strcmp(s, lnk->seqname) == 0)  return lnk;
+   // Cast as state for bgzf iterator.
+   bgzf_state_t *state = (bgzf_state_t *) STATE;
+
+   if (loc == NULL) {
+      // Interruption.
+      goto clean_and_return;
    }
 
-   // Entry was not found.
-   link_t *new = malloc(sizeof(link_t));
-
-   if (new == NULL) {
-      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
-      return NULL;
+   int bytesread = bam_read1(state->file, state->bam);
+   
+   if (bytesread < -1 || state->bam->core.tid < 0) {
+      ERR = __LINE__;
+      goto clean_and_return;
    }
 
-   rod_t  *rod = malloc(sizeof(rod_t) + 32*sizeof(uint32_t));
-   if (rod == NULL) {
-      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
-      free(new);
-      return NULL;
+   if (bytesread == -1) {
+      // End of file.
+      goto clean_and_return;
    }
 
-   // Initiatile 'rod_t'.
-   memset(rod->array, 0, 32*sizeof(uint32_t));
-   rod->sz = 32;
-   rod->mx = 0;
 
-   // Update 'link_t'.
-   strncpy(new->seqname, s, 15);
-   new->counts = rod;
+   loc->name = state->hdr->target_name[state->bam->core.tid];
+   loc->pos = state->bam->core.pos;
 
-   // Add 'link_t' to table hash table.
-   new->next = hashtab[h(s)];
-   hashtab[h(s)] = new;
+   return bytesread;
 
-   return new;
+clean_and_return:
+   // This bit is executed when the iterator needs to be
+   // cleaned (end of file, interruption or error).
+   bam_hdr_destroy(state->hdr);
+   bgzf_close(state->file);
+   bam_destroy1(state->bam);
+   free(state);
+
+   STATE = NULL;
+   return -1;
 
 }
 
+
+int
+parse_gem
+(
+   loc_t *loc,
+   char  *line
+)
+{
+
+   // Get last field of the line.
+   char *map = strrchr(line, '\t');
+
+   // No tab character found in line.
+   if (map++ == NULL) return FAILURE;
+
+   if (map[0] == '-') {
+      loc->name = NULL;
+      loc->pos = 0;
+      return SUCCESS;
+   }
+
+   // Parse mapping data.
+   char *chrom = strsep(&map, ":");
+                 strsep(&map, ":"); // Discard strand.
+   char *tmp =   strsep(&map, ":");
+
+   // Cannot find chromosome or position.
+   if (chrom == NULL || tmp == NULL) return FAILURE;
+
+   // Positions in the genome cannot be 0, so we can identify
+   // failures of 'atoi' to convert numbers.
+   int pos = atoi(tmp);
+
+   // Field position is not a number.
+   if (pos == 0) return FAILURE;
+
+   loc->name = chrom;
+   loc->pos = pos;
+
+   return SUCCESS;
+
+}
 
 
 //  ---------  Utility functions  ----------  //
@@ -439,13 +542,44 @@ is_gzipped
 
 }
 
+#if 0
+   // Set to 0 upon first call.
+   static int is_initialized;
+
+   // Set 'buff' to NULL to interrupt inflation.
+   if (is_initialized && buff == NULL) {
+      if (b != NULL) {
+         bam_destroy1(b);
+         b = NULL;
+      }
+      if (hdr != NULL) {
+         bam_hdr_destroy(hdr);
+         hdr = NULL;
+      }
+      is_initialized = 0;
+      return -1;
+   }
+
+   if (!is_initialized) {
+
+      hdr = bam_hdr_read(bgzffile);
+      b = bam_init1();
+
+      if (hdr == NULL || b == NULL) goto exit_io_error;
+
+      is_initialized = 1;
+      
+   }
+#endif
+
+
 
 ssize_t
-readgzline
+getgzline
 (
-   char ** buff,
+   char  ** buff,
    size_t * bsz,
-   FILE *  gzfile
+   FILE   * gzfile
 )
 // The function is absolutely not re-entrant.
 {
@@ -565,7 +699,178 @@ readgzline
 exit_io_error:
    (void) inflateEnd(&strm);
    is_initialized = 0;
-   errno = EIO;
+   ERR = __LINE__;
    return -2;
+
+}
+
+
+
+int
+add_to_rod
+(
+   rod_t   ** addr,
+   uint32_t   pos
+)
+{
+
+   // Convenience variable.
+   rod_t *rod = *addr;
+
+   if (pos >= rod->sz) {
+      // Double size of the rod.
+      size_t oldsz = rod->sz;
+      size_t newsz = 2*pos;
+      rod_t *tmp = realloc(rod, sizeof(rod_t) + newsz*sizeof(uint32_t));
+      if (tmp == NULL) {
+         fprintf(stderr, "memory error in function '%s()' %s:%d\n",
+               __func__, __FILE__, __LINE__);
+         return FAILURE;
+      }
+      // Update all.
+      *addr = rod = tmp;
+      memset(rod->array + oldsz, 0, (newsz-oldsz)*sizeof(uint32_t));
+      rod->sz = newsz;
+   }
+
+   rod->array[pos]++;
+   if (pos > rod->mx) rod->mx = pos;
+
+   return SUCCESS;
+
+}
+
+
+ChIP_t *
+merge_hashes
+(
+   hash_t ** hashes,
+   int       n
+)
+{
+   // Add keys and update a reference hash table.
+   hash_t *refhash = hashes[0];
+
+   for (int i = 1 ; i < n ; i++) {
+      hash_t *hashtab = hashes[i];
+      for (int j = 0 ; j < HSIZE ; j++) {
+         for(link_t *lnk = hashtab[j] ; lnk != NULL ; lnk = lnk->next) {
+            // Get chromosome from reference hash (or create it).
+            link_t *reflnk = lookup_or_insert(lnk->seqname, refhash);
+            if (reflnk == NULL) {
+               fprintf(stderr, "error in function '%s()' %s:%d\n",
+                     __func__, __FILE__, __LINE__);
+               return NULL;
+            }
+            // Update the max in reference hash. Note that
+            // the size of this 'link_t' may be smaller.
+            if (lnk->counts->mx > reflnk->counts->mx)
+               reflnk->counts->mx = lnk->counts->mx;
+         }
+      }
+   }
+
+   // Now use the data in reference hash to creat 'ChIP_t'.
+   int nkeys = 0;
+   int nbins = 0;
+   for (int j = 0 ; j < HSIZE ; j++) {
+      for(link_t *lnk = refhash[j] ; lnk != NULL ; lnk = lnk->next) {
+         nkeys++;
+         nbins += lnk->counts->mx;
+      }
+   }
+
+   unsigned int *size = malloc(nkeys * sizeof(unsigned int));
+   int *y = calloc(n*nbins, sizeof(int));
+   if (size == NULL || y == NULL) {
+      fprintf(stderr, "memory error in funtion '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return NULL;
+   }
+
+   // Fill in the observations.
+   int m = 0;
+   size_t offset = 0;
+   for (int j = 0 ; j < HSIZE ; j++) {
+   for (link_t *rlnk = refhash[j] ; rlnk != NULL ; rlnk = rlnk->next) {
+
+      // Get seqname and sequence length.
+      char *key = rlnk->seqname;
+      size_t blksz = size[m++] = rlnk->counts->mx;
+
+      // Go through all the hashes to get the data.
+      for (int i = 0 ; i < n ; i++) {
+         hash_t *hashtab = hashes[i];
+         link_t *lnk = lookup_or_insert(key, hashtab);
+         if (lnk == NULL) {
+            fprintf(stderr, "error in function '%s()' %s:%d\n",
+                  __func__, __FILE__, __LINE__);
+            return NULL;
+         }
+         rod_t *counts = lnk->counts;
+         size_t kmax = counts->sz < blksz ? counts->sz : blksz;
+         for (int k = 0 ; k < kmax ; k++) {
+            y[offset + (n*k) + i] = counts->array[k];
+         }
+      }
+
+      // Update offset.
+      offset += n*blksz;
+
+   }
+   }
+
+   ChIP_t *ChIP = new_ChIP(n, nkeys, y, size);
+   free(size);
+
+   return ChIP;
+
+}
+
+
+link_t *
+lookup_or_insert
+(
+   const char   * s,
+         hash_t * hashtab
+)
+// Famous K&R simple hash lookup.
+{
+
+   for (link_t *lnk = hashtab[h(s)] ; lnk != NULL ; lnk = lnk->next) {
+      if (strcmp(s, lnk->seqname) == 0) return lnk;
+   }
+
+   // Entry was not found.
+   link_t *new = malloc(sizeof(link_t));
+
+   if (new == NULL) {
+      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return NULL;
+   }
+
+   rod_t *rod = malloc(sizeof(rod_t) + 32*sizeof(uint32_t));
+   if (rod == NULL) {
+      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      free(new);
+      return NULL;
+   }
+
+   // Initiatile 'rod_t'.
+   memset(rod->array, 0, 32*sizeof(uint32_t));
+   rod->sz = 32;
+   rod->mx = 0;
+
+   // Update 'link_t'.
+   strncpy(new->seqname, s, 15);
+   new->counts = rod;
+
+   // Add 'link_t' to table hash table.
+   new->next = hashtab[h(s)];
+   hashtab[h(s)] = new;
+
+   return new;
 
 }

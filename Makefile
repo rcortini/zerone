@@ -4,7 +4,7 @@ SRC_DIR= src
 INC_DIR= src
 
 OBJECT_FILES= bgzf.o sam.o hfile.o hmm.o utils.o xxhash.o zerone.o \
-      zinb.o parsam.o parse.o
+      zinb.o parse.o
 SOURCE_FILES= main.c predict.c
 
 OBJECTS= $(addprefix $(SRC_DIR)/,$(OBJECT_FILES))
