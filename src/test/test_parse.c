@@ -284,6 +284,40 @@ test_parse_gem
 
 }
 
+
+void
+test_parse_sam
+(void)
+{
+
+      loc_t loc;
+
+      // NOTE that we cannot pass constant strings to
+      // 'parse_sam()' because it modifies them in general.
+      char line1[] = "a\tb\tchr1\t456";
+      test_assert(parse_sam(&loc, line1));
+      test_assert(strcmp(loc.name, "chr1") == 0);
+      test_assert(loc.pos == 456);
+
+      char line2[] = "a\tb\tchr2\t345";
+      test_assert(parse_sam(&loc, line2));
+      test_assert(strcmp(loc.name, "chr2") == 0);
+      test_assert(loc.pos == 345);
+
+      char line3[] = "abc0chr18:-:16507402:A35";
+      test_assert(!parse_sam(&loc, line3));
+
+      char line4[] = "a\tb\tc\twrong";
+      test_assert(!parse_sam(&loc, line4));
+
+      char line5[] = "a\tb\tc\t0\t...";
+      test_assert(!parse_sam(&loc, line5));
+
+      return;
+
+}
+
+
 void
 test_autoparse
 (void)

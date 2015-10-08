@@ -1,3 +1,4 @@
+#include "debug.h"
 #include "utils.h"
 
 #define U32 uint32_t
@@ -41,7 +42,7 @@ indexts
    xxhash = malloc(n*sizeof(U32));
    int *addr = malloc(n * sizeof(int));
    if (xxhash == NULL || addr == NULL) {
-      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       return -1;
    }
 
@@ -56,7 +57,7 @@ indexts
    // to return the index of the small such observation.
    int *all0 = calloc(r, sizeof(int));
    if (all0 == NULL) {
-      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       return -1;
    }
    U32 xxhash0 = XXH32(all0, r*sizeof(int), 0);

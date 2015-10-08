@@ -1,3 +1,4 @@
+#include "debug.h"
 #include "hmm.h"
 
 double
@@ -161,7 +162,7 @@ bwd
 
    R = malloc(m*m * sizeof(double));
    if (R == NULL) {
-      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       return;
    }
 
@@ -303,7 +304,7 @@ viterbi(
    long double *array = malloc(2*m * sizeof(long double));
    int *argmax = malloc(m*n * sizeof(int));
    if (argmax == NULL || array == NULL) {
-      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       // Set path to -1 and return.
       memset(path, -1, n*sizeof(int));
       return;
@@ -390,7 +391,7 @@ block_fwdb(
    offset = 0;
    double *T = malloc(m*m * sizeof(double));
    if (T == NULL) {
-      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       return -1.0/0.0;
    }
    for (int i = 0 ; i < nblocks ; i++) {
@@ -480,7 +481,7 @@ block_viterbi
    double *log_Q = malloc(m*m * sizeof(double));
    double *log_i = malloc(m * sizeof(double));
    if (log_Q == NULL || log_i == NULL) {
-      fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       return 1;
    }
 
@@ -555,7 +556,7 @@ block_viterbi
    // 'init' and 'Q' is simpler for consistency.
    double *log_p = malloc(n*m *sizeof(double));
    if (log_p == NULL) {
-      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       free(log_Q);
       free(log_i);
       return 1;

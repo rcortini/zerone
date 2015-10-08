@@ -104,8 +104,8 @@ ssize_t  getgzline (char **, size_t *, FILE *);
 
 // Parsers.
 int      parse_gem (loc_t *, char *);
-// TODO: Write the parsers below. //
 int      parse_sam (loc_t *, char *);
+// TODO: Write the parsers below. //
 int      parse_bed (loc_t *, char *);
 
 // Hash handling functions.
@@ -275,15 +275,16 @@ exit_bgzf_error:
       state->reader = getline;
       state->parser = parse_gem;
    }
-//   else if (strcmp(".sam", fname + strlen(fname) - 4) == 0) {
-//      state->reader = getline;
-//      state->parser = parse_sam;
-//   }
+   else if (strcmp(".sam", fname + strlen(fname) - 4) == 0) {
+      state->reader = getline;
+      state->parser = parse_sam;
+   }
    else if (strcmp(".map.gz", fname + strlen(fname) - 7) == 0) {
       state->reader = getgzline;
       state->parser = parse_gem;
    }
    else {
+      // XXX non debug error XXX //
       fprintf(stderr, "unknown format for file %s\n", fname);
       goto exit_generic_error;
    }
@@ -488,6 +489,34 @@ parse_gem
 
 }
 
+int
+parse_sam
+(
+   loc_t *loc,
+   char  *line
+)
+{
+
+                 strsep(&line, "\t"); // Discard QNAME.
+                 strsep(&line, "\t"); // Discard FLAG.
+   char *chrom = strsep(&line, "\t");
+   char *tmp   = strsep(&line, "\t");
+
+   // Cannot find chromosome or position.
+   if (chrom == NULL || tmp == NULL) return FAILURE;
+
+   // Positions in the genome cannot be 0, so we can identify
+   // failures of 'atoi' to convert numbers.
+   int pos = atoi(tmp);
+
+   // Field position is not a number.
+   if (pos == 0) return FAILURE;
+
+   loc->name = chrom;
+   loc->pos = pos;
+
+   return SUCCESS;
+}
 
 //  ---------  Utility functions  ----------  //
 
