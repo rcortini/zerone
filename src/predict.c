@@ -1,58 +1,26 @@
 #include "predict.h"
 
 double *
-readmatrix
-(
-   char   * fn,
-   int      nrow,
-   int      ncol
-)
-{
-   FILE   * fp  = fopen(fn, "r");
-   if (fp == NULL) return NULL;
-   size_t   n   = 512;
-   char   * row = malloc(n * sizeof(size_t));
-   int      eln = 0; // Element number in matrix.
-   double * matrix = malloc(nrow * ncol * sizeof(double));
-   if (row == NULL || matrix == NULL) {
-      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-      return NULL;
-   }
-
-   int slen;
-   while ((slen = getline(&row, &n, fp)) > 0) {
-      char * el = row;
-      for (int i = 0; i < slen; i++) {
-         if (row[i] == ',' || row[i] == '\n') {
-            row[i] = '\0';
-            matrix[eln++] = atof(el);
-            el = row + i + 1;
-         }
-      }
-   }
-
-   assert(eln == nrow * ncol);
-   free(row);
-   fclose(fp);
-
-   return matrix;
-}
-
-double *
-extractfeats
+extractfeat
 (
    ChIP_t  * ChIP,
    zerone_t * zerone
 )
 {
    double * feat = malloc(DIM * sizeof(double));
+   if (feat == NULL) {
+      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return NULL;
+   }
    double * p = zerone->p;
    unsigned int m = zerone->m;
    unsigned int n = nobs(ChIP);
    unsigned int r = ChIP->r + 1;
 
    // Add the values of the transition matrix Q to the feature vector...
-   for (int i = 0; i < 6; i++) feat[i] = zerone->Q[i];
+   int f = m * m - m;
+   for (int i = 0; i < f; i++) feat[i] = zerone->Q[i];
 
    // ...the min, max and mean values of the ratios between the values of p...
    double ummin = 1.0;
@@ -78,29 +46,32 @@ extractfeats
       ubmean += ubratio;
       mbmean += mbratio;
    }
-   feat[ 6] = ummin;
-   feat[ 7] = ummean / (r - 2);
-   feat[ 8] = ummax;
-   feat[ 9] = ubmin;
-   feat[10] = ubmean / (r - 2);
-   feat[11] = ubmax;
-   feat[12] = mbmin;
-   feat[13] = mbmean / (r - 2);
-   feat[14] = mbmax;
+   feat[f++] = ummin;
+   feat[f++] = ummean / (r - 2);
+   feat[f++] = ummax;
+   feat[f++] = ubmin;
+   feat[f++] = ubmean / (r - 2);
+   feat[f++] = ubmax;
+   feat[f++] = mbmin;
+   feat[f++] = mbmean / (r - 2);
+   feat[f++] = mbmax;
 
    // ...the mean of the values of phi...
-   double meanphi[2] = { 0.0, 0.0 };
+   double meanphi[m - 1] = { 0.0, 0.0 };
    for (int i = 1; i < m; i++) {
       for (int j = 0; j < n; j++) {
          meanphi[i - 1] += zerone->phi[j * m + i];
       }
-      feat[14 + i] = meanphi[i - 1] / n;
+      feat[f++] = meanphi[i - 1] / n;
    }
 
    // ...and also the mean of the Viterbi path.
    double meanpath = 0.0;
    for (int i = 0; i < n; i++) meanpath += zerone->path[i];
-   feat[17] = meanpath / n;
+   feat[f++] = meanpath / n;
+
+   // TODO: remove this feature!
+   feat[f++] = zerone->l;
 
    return feat;
 }
@@ -108,12 +79,15 @@ extractfeats
 double *
 zscale
 (
-   double * feat,
-   double * center,
-   double * scale
+   double * feat
 )
 {
    double * sfeat = malloc(DIM * sizeof(double));
+   if (sfeat == NULL) {
+      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return NULL;
+   }
    // Z-score scaling.
    for (int i = 0; i < DIM; i++) sfeat[i] = (feat[i] - center[i]) / scale[i];
    return sfeat;
@@ -122,11 +96,12 @@ zscale
 double
 predict
 (
-   double * feat,
-   double * sv,
-   double * coefs
+   ChIP_t  * ChIP,
+   zerone_t * zerone
 )
 {
+   double * feat = zscale(extractfeat(ChIP, zerone));
+
    // Kernel: the exponential of the squared Euclidean distance
    // between the test and support vectors parametrized by gamma.
    double kvals[NSV];
@@ -146,7 +121,7 @@ predict
 
    // Add the intercept term of the hyperplane before returning.
    //return (label - RHO) + 0.65 > 0 ? 1 : -1;
-   return (label - RHO) + 0.65;
+   return (label - RHO);// + 0.65;
 
    // The +0.65 before returning moves the decision boundary
    // towards the negative space by that proportion of the margin width.

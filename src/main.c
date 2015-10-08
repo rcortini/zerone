@@ -5,7 +5,7 @@
 **  Guillaume Filion     (guillaume.filion@gmail.com)
 **  Eduard Valera Zorita (polcusco@gmail.com)
 **
-** License: 
+** License:
 **  This program is free software: you can redistribute it and/or modify
 **  it under the terms of the GNU General Public License as published by
 **  the Free Software Foundation, either version 3 of the License, or
@@ -68,7 +68,7 @@ parse_fname
 )
 // Several file names may be passed as comma-separated values.
 {
-   
+
 
    char *token;
    while ((token = strsep(&value, ",")) != NULL) {
@@ -158,34 +158,13 @@ int main(int argc, char **argv) {
       exit(EXIT_FAILURE);
    }
 
-   // XXX Broken on any computer of the planet except one. XXX //
-   // XXX Better put the data directly in the file. XXX
-   
-//   char * centerfn = "/home/pcusco/Zerone/classifier/SVM_18x1_center.csv";
-//   char * scalefn  = "/home/pcusco/Zerone/classifier/SVM_18x1_scale.csv";
-//   char * svfn     = "/home/pcusco/Zerone/classifier/SVM_200x18_sv.csv";
-//   char * coefsfn  = "/home/pcusco/Zerone/classifier/SVM_200x1_coefs.csv";
-
-//   double * coefs  = readmatrix(coefsfn, NSV, 1);
-//   double * center = readmatrix(centerfn, DIM, 1);
-//   double * scale  = readmatrix(scalefn, DIM, 1);
-//   double * sv     = readmatrix(svfn, NSV, DIM);
-//   if (coefs == NULL || center == NULL || scale == NULL || sv == NULL) {
-//      fprintf(stderr, "could not read SVM file\n");
-//      return 1;
-//   }
-//
    // Quality control.
+   double QCscore = predict(ChIP, zerone);
+   fprintf(stdout, "# QC score: %.3f\n", QCscore);
+   fprintf(stdout, "# advice: %s discretization.\n",
+         QCscore >= 0 ? "accept" : "reject");
 
-//   double * feat = extractfeats(ChIP, zerone);
-//   double * sfeat = zscale(feat, center, scale);
-
-//   double QCscore = predict(sfeat, sv, coefs);
-//   fprintf(stdout, "# QC score: %.3f\n", QCscore);
-//   fprintf(stdout, "# advice: %s discretization.\n",
-//         QCscore >= 0 ? "accept" : "reject");
-  
-   // Print results (Viretbi path and phi matrix).
+   // Print results (Viterbi path and phi matrix).
    for (size_t i = 0 ; i < nobs(ChIP) ; i++) {
 // The commented lines below print the output together with
 // the data used for discretization.
@@ -198,32 +177,6 @@ int main(int argc, char **argv) {
       fprintf(stdout, "%d\t%f\t%f\t%f\n", zerone->path[i],
             zerone->phi[0+i*3], zerone->phi[1+i*3], zerone->phi[2+i*3]);
    }
-
-
-//char * featsfn = "/home/pcusco/zerone/classifier/SVM_946x18_features.csv";
-//char * labelsfn = "/home/pcusco/zerone/classifier/SVM_946x1_labels.csv";
-//double * feats = readmatrix(featsfn, 946, DIM);
-//double * labels = readmatrix(labelsfn, 946, 1);
-//
-//int sum = 0;
-//for (int i = 0; i < 946; i++) {
-//   double * sfeat = zscale(&feats[i*DIM], center, scale);
-//   int p = predict(sfeat, sv, coefs);
-//   free(sfeat);
-//   if (p == -1) p = 0;
-//   if (p != (int)labels[i]) {
-//      sum++;
-//   }
-//      fprintf(stdout, "%d:%d\n", (int)labels[i], p);
-//}
-//fprintf(stderr, "sum: %d\n", sum);
-
-//   free(center);
-//   free(scale);
-//   free(sv);
-//   free(coefs);
-//   free(feat);
-//   free(sfeat);
 
    destroy_zerone_all(zerone); // Also frees ChIP.
 
