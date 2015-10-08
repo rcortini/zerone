@@ -3,6 +3,8 @@
 #include <string.h>
 #include <zlib.h>
 #include "bgzf.h"
+#include "debug.h"
+#include "parse.h"
 #include "sam.h"
 #include "zerone.h"
 
@@ -22,7 +24,7 @@ int    ERR;
 #define HSIZE 997
 
 // Shortcut to acces position of hash table.
-#define h(a) djb2(a) % HSIZE
+#define hv(a) djb2(a) % HSIZE
 
 // Size of the buffer for gzip decompression.
 #define CHUNK 16384
@@ -57,7 +59,7 @@ typedef ssize_t (*reader_t) (char **, size_t *, FILE *);
 
 // Type definitions.
 struct link_t {
-   char     seqname[16]; // Chromosome or sequence name.
+   char     seqname[32]; // Chromosome or sequence name.
    rod_t  * counts;      // Counts in chromosome bins.
    link_t * next;        // Next node on the link list.
 };
@@ -135,9 +137,9 @@ parse_input_files
 
    // Create a unique hash for all mock files.
    hashtab[0] = calloc(HSIZE, sizeof(link_t *));
+
    if (hashtab[0] == NULL) {
-      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       goto clean_and_return;
    }
 
@@ -146,8 +148,7 @@ parse_input_files
    // Fill in the hash with mock files.
    for (int i = 0; mock_fnames[i] != NULL; i++) {
       if(!autoparse(mock_fnames[i], hashtab[0])) {
-         fprintf(stderr, "error in function '%s()' %s:%d\n",
-               __func__, __FILE__, __LINE__);
+         debug_print("%s", "autoparse failed\n");
          goto clean_and_return;
       }
    }
@@ -157,22 +158,21 @@ parse_input_files
    for (int i = 0; ChIP_fnames[i] != NULL; i++) {
 
       if (nhashes >= 512) {
-         fprintf(stderr, "too many files (sorry)\n");
+         // XXX non debug error XXX //
+         fprintf(stderr, "too many files\n");
          goto clean_and_return;
       }
 
       hashtab[nhashes] = calloc(HSIZE, sizeof(link_t *));
       if (hashtab[nhashes] == NULL) {
-         fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-               __func__, __FILE__, __LINE__);
+         debug_print("%s", "memory error\n");
          goto clean_and_return;
       }
 
       nhashes++;
 
-      if (!autoparse(ChIP_fnames[i], hashtab[nhashes])) {
-         fprintf(stderr, "error in function '%s()' %s:%d\n",
-               __func__, __FILE__, __LINE__);
+      if (!autoparse(ChIP_fnames[i], hashtab[nhashes-1])) {
+         debug_print("%s", "autoparse failed\n");
          goto clean_and_return;
       }
 
@@ -181,8 +181,7 @@ parse_input_files
    // Merge hash tables in to a 'ChIP_t'.
    ChIP = merge_hashes(hashtab, nhashes);
    if (ChIP == NULL) {
-      fprintf(stderr, "error in function '%s()' %s:%d\n",
-               __func__, __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       goto clean_and_return;
    }
 
@@ -209,25 +208,27 @@ choose_iterator
 
       bgzf_state_t * state = calloc(1, sizeof(bgzf_state_t));
       if (state == NULL) {
-         fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-               __func__, __FILE__, __LINE__);
+         debug_print("%s", "memory error\n");
          goto exit_bgzf_error;
       }
 
       state->file = bgzf_open(fname, "r");
       if (state->file == NULL) {
+         // XXX non debug error XXX //
          fprintf(stderr, "cannot open file %s\n", fname);
          goto exit_bgzf_error;
       }
 
       state->hdr = bam_hdr_read(state->file);
       if (state->hdr == NULL) {
+         // XXX non debug error XXX //
          fprintf(stderr, "cannot read header from file %s\n", fname);
          goto exit_bgzf_error;
       }
 
       state->bam = bam_init1();
       if (state->bam == NULL) {
+         // XXX non debug error XXX //
          fprintf(stderr, "bam! error (sorry)\n");
          goto exit_bgzf_error;
       }
@@ -250,14 +251,14 @@ exit_bgzf_error:
    generic_state_t * state = calloc(1, sizeof(generic_state_t));
 
    if (state == NULL) {
-      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       goto exit_generic_error;
    }
 
    state->file = fopen(fname, "r");
 
    if (state->file == NULL) {
+      // XXX non debug error XXX //
       fprintf(stderr, "cannot open file %s\n", fname);
       goto exit_generic_error;
    }
@@ -266,8 +267,7 @@ exit_bgzf_error:
    state->buff = malloc(state->bsz * sizeof(char));
 
    if (state->buff == NULL) {
-      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       goto exit_generic_error;
    }
 
@@ -316,8 +316,7 @@ autoparse
    iter_t iterate = choose_iterator(fname);
 
    if (iterate == NULL) {
-      fprintf(stderr, "error in function '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
+      debug_print("%s", "choosing iterator failed\n");
       return FAILURE;
    }
 
@@ -330,15 +329,13 @@ autoparse
       link_t *lnk = lookup_or_insert(loc.name, hashtab);
 
       if (lnk == NULL) {
-         fprintf(stderr, "error in function '%s()' %s:%d\n",
-               __func__, __FILE__, __LINE__);
+         debug_print("%s", "hash query failed\n");
          return FAILURE;
       }
 
       // Add read to counts.
       if (!add_to_rod(&lnk->counts, loc.pos / BIN_SIZE)) {
-         fprintf(stderr, "error in function '%s()' %s:%d\n",
-               __func__, __FILE__, __LINE__);
+         debug_print("%s", "adding read failed\n");
          return FAILURE;
       }
 
@@ -384,6 +381,7 @@ generic_iterator
    }
 
    if (!parse(loc, state->buff)) {
+      // XXX non debug error XXX //
       fprintf(stderr, "format conflict in line:\n%s", state->buff);
       ERR = __LINE__;
       goto clean_and_return;
@@ -501,7 +499,7 @@ djb2
 // The magic djb2 (http://www.cse.yorku.ca/~oz/hash.html).
 {
    uint32_t val = 5381;
-   for (int i = 0 ; i < 15 && s[i] != '\0' ; i++) 
+   for (int i = 0 ; i < 31 && s[i] != '\0' ; i++) 
       val = val * 33 ^ s[i];
    return val;
 }
@@ -541,37 +539,6 @@ is_gzipped
    return c1 == '\x1f' && c2 == '\x8b';
 
 }
-
-#if 0
-   // Set to 0 upon first call.
-   static int is_initialized;
-
-   // Set 'buff' to NULL to interrupt inflation.
-   if (is_initialized && buff == NULL) {
-      if (b != NULL) {
-         bam_destroy1(b);
-         b = NULL;
-      }
-      if (hdr != NULL) {
-         bam_hdr_destroy(hdr);
-         hdr = NULL;
-      }
-      is_initialized = 0;
-      return -1;
-   }
-
-   if (!is_initialized) {
-
-      hdr = bam_hdr_read(bgzffile);
-      b = bam_init1();
-
-      if (hdr == NULL || b == NULL) goto exit_io_error;
-
-      is_initialized = 1;
-      
-   }
-#endif
-
 
 
 ssize_t
@@ -723,8 +690,7 @@ add_to_rod
       size_t newsz = 2*pos;
       rod_t *tmp = realloc(rod, sizeof(rod_t) + newsz*sizeof(uint32_t));
       if (tmp == NULL) {
-         fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-               __func__, __FILE__, __LINE__);
+         debug_print("%s", "memory error\n");
          return FAILURE;
       }
       // Update all.
@@ -745,21 +711,20 @@ ChIP_t *
 merge_hashes
 (
    hash_t ** hashes,
-   int       n
+   int       nhashes
 )
 {
    // Add keys and update a reference hash table.
    hash_t *refhash = hashes[0];
 
-   for (int i = 1 ; i < n ; i++) {
+   for (int i = 1 ; i < nhashes ; i++) {
       hash_t *hashtab = hashes[i];
       for (int j = 0 ; j < HSIZE ; j++) {
          for(link_t *lnk = hashtab[j] ; lnk != NULL ; lnk = lnk->next) {
             // Get chromosome from reference hash (or create it).
             link_t *reflnk = lookup_or_insert(lnk->seqname, refhash);
             if (reflnk == NULL) {
-               fprintf(stderr, "error in function '%s()' %s:%d\n",
-                     __func__, __FILE__, __LINE__);
+               debug_print("%s", "hash query failed\n");
                return NULL;
             }
             // Update the max in reference hash. Note that
@@ -781,10 +746,12 @@ merge_hashes
    }
 
    unsigned int *size = malloc(nkeys * sizeof(unsigned int));
-   int *y = calloc(n*nbins, sizeof(int));
-   if (size == NULL || y == NULL) {
-      fprintf(stderr, "memory error in funtion '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
+   char *name = malloc(nkeys * 32);
+   char **nptr = malloc(nkeys * sizeof(char *));
+   int *y = calloc(nhashes * nbins, sizeof(int));
+
+   if (size == NULL || name == NULL || y == NULL || nptr == NULL) {
+      debug_print("%s", "memory error\n");
       return NULL;
    }
 
@@ -796,32 +763,36 @@ merge_hashes
 
       // Get seqname and sequence length.
       char *key = rlnk->seqname;
+      nptr[m] = name + 32*m;
+      strncpy(nptr[m], key, 32);
       size_t blksz = size[m++] = rlnk->counts->mx;
 
       // Go through all the hashes to get the data.
-      for (int i = 0 ; i < n ; i++) {
+      for (int i = 0 ; i < nhashes ; i++) {
          hash_t *hashtab = hashes[i];
          link_t *lnk = lookup_or_insert(key, hashtab);
          if (lnk == NULL) {
-            fprintf(stderr, "error in function '%s()' %s:%d\n",
-                  __func__, __FILE__, __LINE__);
+            debug_print("%s", "hash query failed\n");
             return NULL;
          }
          rod_t *counts = lnk->counts;
          size_t kmax = counts->sz < blksz ? counts->sz : blksz;
          for (int k = 0 ; k < kmax ; k++) {
-            y[offset + (n*k) + i] = counts->array[k];
+            y[offset + (nhashes * k) + i] = counts->array[k];
          }
       }
 
       // Update offset.
-      offset += n*blksz;
+      offset += nhashes * blksz;
 
    }
    }
 
-   ChIP_t *ChIP = new_ChIP(n, nkeys, y, size);
+   ChIP_t *ChIP = new_ChIP(nhashes, nkeys, y, nptr, size);
+
    free(size);
+   free(name);
+   free(nptr);
 
    return ChIP;
 
@@ -832,12 +803,12 @@ link_t *
 lookup_or_insert
 (
    const char   * s,
-         hash_t * hashtab
+         hash_t * htab
 )
 // Famous K&R simple hash lookup.
 {
 
-   for (link_t *lnk = hashtab[h(s)] ; lnk != NULL ; lnk = lnk->next) {
+   for (link_t *lnk = htab[hv(s)] ; lnk != NULL ; lnk = lnk->next) {
       if (strcmp(s, lnk->seqname) == 0) return lnk;
    }
 
@@ -845,15 +816,13 @@ lookup_or_insert
    link_t *new = malloc(sizeof(link_t));
 
    if (new == NULL) {
-      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       return NULL;
    }
 
    rod_t *rod = malloc(sizeof(rod_t) + 32*sizeof(uint32_t));
    if (rod == NULL) {
-      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       free(new);
       return NULL;
    }
@@ -864,12 +833,12 @@ lookup_or_insert
    rod->mx = 0;
 
    // Update 'link_t'.
-   strncpy(new->seqname, s, 15);
+   strncpy(new->seqname, s, 31);
    new->counts = rod;
 
    // Add 'link_t' to table hash table.
-   new->next = hashtab[h(s)];
-   hashtab[h(s)] = new;
+   new->next = htab[hv(s)];
+   htab[hv(s)] = new;
 
    return new;
 

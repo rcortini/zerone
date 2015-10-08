@@ -55,8 +55,8 @@ main(
       {"parse/autoparse",         test_autoparse},
       {"parse/getgzline",         test_getgzline},
       {"parse/getgzline_err",     test_getgzline_err},
-//    {"parse/read_gem",          test_read_gem},
-      {"zerone/read_file",        test_read_file},
+      {"parse/parse_input_files", test_parse_input_files},
+//    {"zerone/read_file",        test_read_file},
       {"zerone/eval_bw_f",        test_eval_bw_f},
       {NULL, NULL}
    };

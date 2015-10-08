@@ -131,8 +131,8 @@ test_stress_hash
    // HSIZE = 997 buckets). Make sure insertion works until
    // the end.
    for (int i = 0 ; i < 100000 ; i++) {
-      char s[16] = {0};
-      for (int j = 0 ; j < 16 ; j++) s[j] = rand();
+      char s[32] = {0};
+      for (int j = 0 ; j < 32 ; j++) s[j] = rand();
       test_assert_critical(lookup_or_insert(s, hashtab));
    }
 
@@ -174,9 +174,9 @@ test_merge_hashes
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);
-   test_assert(ChIP->size[0] == 81);
-   test_assert(ChIP->size[1] == 76);
-   test_assert(ChIP->size[2] == 8);
+   test_assert(ChIP->sz[0] == 81);
+   test_assert(ChIP->sz[1] == 76);
+   test_assert(ChIP->sz[2] == 8);
 
    destroy_hash(hashes[0]);
    destroy_hash(hashes[1]);
@@ -356,10 +356,7 @@ test_autoparse
    destroy_hash(hashtab);
 
 }
-#if 0
 
-}
-#endif
 
 void
 test_getgzline
@@ -460,23 +457,23 @@ test_getgzline_err
 
 }
 
-#if 0
 void
-test_read_gem
+test_parse_input_files
 (void)
 {
 
    ChIP_t *ChIP = NULL;
 
-   const char *fnames[] = {"test_file_good.map", "test_file_good.map"};
+   char *mock_fnames_1[] = { "test_file_good.map", NULL };
+   char *ChIP_fnames_1[] = { "test_file_good.map", NULL };
 
-   ChIP = read_gem(fnames, 2);
+   ChIP = parse_input_files(mock_fnames_1, ChIP_fnames_1);
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);
-   test_assert(ChIP->size[0] == 445385);
-   test_assert(ChIP->size[1] == 317504);
-   test_assert(ChIP->size[2] == 55024);
+   test_assert(ChIP->sz[0] == 445385);
+   test_assert(ChIP->sz[1] == 317504);
+   test_assert(ChIP->sz[2] == 55024);
 
    // Manually destroy 'ChIP'.
    free(ChIP->y);
@@ -484,20 +481,19 @@ test_read_gem
    ChIP = NULL;
 
    // Same test with gzipped files.
-   const char *fnames_gz[] = {"test_file_good.map.gz",
-      "test_file_good.map.gz"};
+   char *mock_fnames_2[] = { "test_file_good.map.gz", NULL };
+   char *ChIP_fnames_2[] = { "test_file_good.map.gz", NULL };
 
-   ChIP = read_gem(fnames_gz, 2);
+   ChIP = parse_input_files(mock_fnames_2, ChIP_fnames_2);
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);
-   test_assert(ChIP->size[0] == 445385);
-   test_assert(ChIP->size[1] == 317504);
-   test_assert(ChIP->size[2] == 55024);
+   test_assert(ChIP->sz[0] == 445385);
+   test_assert(ChIP->sz[1] == 317504);
+   test_assert(ChIP->sz[2] == 55024);
 
    // Manually destroy 'ChIP'.
    free(ChIP->y);
    free(ChIP);
 
 }
-#endif

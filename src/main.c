@@ -2,8 +2,8 @@
 ** Copyright 2014 Guillaume Filion, Eduard Valera Zorita and Pol Cusco.
 **
 ** File authors:
-**  Guillaume Filion     (guillaume.filion@gmail.com)
-**  Eduard Valera Zorita (polcusco@gmail.com)
+**  Pol Cuscó Pons    (polcusco@gmail.com)
+**  Guillaume Filion  (guillaume.filion@gmail.com)
 **
 ** License:
 **  This program is free software: you can redistribute it and/or modify
@@ -34,23 +34,17 @@ const char *USAGE =
 "Usage:"
 "  zerone [options] <input file 1> ... <input file n>\n"
 "\n"
-"    -0 --baseline <input file> given file is a baseline control\n"
+"    -0 --mock: given file is a mock control\n"
+"    -1 --chip: given file is a ChIP-seq experiment\n"
+"    -l --list-output: output list of targets (default table)\n"
+"\n"
+"    -h --help: display this message and exit\n"
 "    -v --version: display version and exit\n";
 
 
 
 #define VERSION "zerone-v1.0"
 #define MAXNARGS 255
-
-
-// Useful macros.
-#define has_map(a) strcmp(".map", (a) + strlen(a) - 4) == 0 || \
-   strcmp(".map.gz", (a) + strlen(a) - 7) == 0
-#define has_sam(a) strcmp(".sam", (a) + strlen(a) - 4) == 0
-#define has_bam(a) strcmp(".bam", (a) + strlen(a) - 4) == 0
-
-
-typedef ChIP_t * (*parser_t) (char **, char **);
 
 
 
@@ -91,6 +85,11 @@ parse_fname
 
 int main(int argc, char **argv) {
 
+   if (argc == 1) {
+      say_usage();
+      exit(EXIT_SUCCESS);
+   }
+
    // Input file names (mock and ChIP).
    char *mock_fnames[MAXNARGS+1] = {0};
    char *ChIP_fnames[MAXNARGS+1] = {0};
@@ -98,25 +97,37 @@ int main(int argc, char **argv) {
    int n_mock_files = 0;
    int n_ChIP_files = 0;
 
+   static int list_flag = 0;
+
    // Parse options.
    while(1) {
       int option_index = 0;
       static struct option long_options[] = {
-         {"mock",     required_argument,  0, '0'},
-         {"help",     no_argument,        0, 'h'},
-         {"version",  no_argument,        0, 'v'},
+         {"list-output", no_argument,       &list_flag, 1 },
+         {"mock",        required_argument,         0, '0'},
+         {"chip",        required_argument,         0, '1'},
+         {"help",        no_argument,               0, 'h'},
+         {"version",     no_argument,               0, 'v'},
          {0, 0, 0, 0}
       };
 
-      int c = getopt_long(argc, argv, "0:hv",
+      int c = getopt_long(argc, argv, "0:1:hv",
             long_options, &option_index);
 
       // Done parsing named options. //
       if (c == -1) break;
 
       switch (c) {
+      case 0:
+         // A flag was set //
+         break;
+
       case '0':
          parse_fname(mock_fnames, optarg, &n_mock_files);
+         break;
+
+      case '1':
+         parse_fname(ChIP_fnames, optarg, &n_ChIP_files);
          break;
 
       case 'h':
@@ -144,16 +155,18 @@ int main(int argc, char **argv) {
    // Process input files.
    ChIP_t *ChIP = parse_input_files(mock_fnames, ChIP_fnames);
 
+   fprintf(stderr, "done reading\n");
+
    if (ChIP == NULL) {
-      fprintf(stderr, "error wile reading input\n");
+      fprintf(stderr, "error while reading input\n");
       exit(EXIT_FAILURE);
    }
 
    // Do zerone.
    //const unsigned int m = 3; // number of states.
-   zerone_t *zerone = do_zerone(ChIP);
+   zerone_t *Z = do_zerone(ChIP);
 
-   if (zerone == NULL) {
+   if (Z == NULL) {
       fprintf(stderr, "run time error (sorry)\n");
       exit(EXIT_FAILURE);
    }
@@ -164,21 +177,46 @@ int main(int argc, char **argv) {
    fprintf(stdout, "# advice: %s discretization.\n",
          QCscore >= 0 ? "accept" : "reject");
 
-   // Print results (Viterbi path and phi matrix).
-   for (size_t i = 0 ; i < nobs(ChIP) ; i++) {
-// The commented lines below print the output together with
-// the data used for discretization.
-//      fprintf(stdout, "%d\t%f\t%f\t%f", zerone->path[i],
-//            zerone->phi[0+i*m], zerone->phi[1+i*m], zerone->phi[2+i*m]);
-//      for (int j = 0 ; j < ChIP->r ; j++) {
-//         fprintf(stdout, "\t%d", ChIP->y[j+i*ChIP->r]);
-//      }
-//      fprintf(stdout, "\n");
-      fprintf(stdout, "%d\t%f\t%f\t%f\n", zerone->path[i],
-            zerone->phi[0+i*3], zerone->phi[1+i*3], zerone->phi[2+i*3]);
+   // Print results (Viretbi path and phi matrix).
+//   const int target = Z->map[2];
+//   const int inter  = ChIP->map[1];
+//   const int ground = ChIP->map[0];
+
+   if (list_flag) {
+      int wid = 0;
+      int target = 0;
+      for (int i = 0 ; i < ChIP->nb ; i++) {
+         char *name = ChIP->nm + 32*i;
+         for (int j = 0 ; j < ChIP->sz[i] ; j++) {
+            if (!target && Z->path[wid] == target) {
+               fprintf(stdout, "%s\t%d\t", name, 300*j + 1);
+               target = 1;
+            }
+            else if (target && Z->path[wid] != target) {
+               fprintf(stdout, "%d\n", 300*(j+1));
+               target = 0;
+            }
+         }
+         if (target) {
+            fprintf(stdout, "%d\n", 300 * ChIP->sz[i]);
+            target = 0;
+         }
+      }
    }
 
-   destroy_zerone_all(zerone); // Also frees ChIP.
+   else {
+      int wid = 0;
+      for (int i = 0 ; i < ChIP->nb ; i++) {
+         char *name = ChIP->nm + 32*i;
+         for (int j = 0 ; j < ChIP->sz[i] ; j++) {
+            fprintf(stdout, "%s\t%d\t%d\t%d\n", name, 300*j + 1,
+                  300*(j+1), Z->path[wid]);
+         }
+         wid++;
+      }
+   }
+
+   destroy_zerone_all(Z); // Also frees ChIP.
 
    for (int i = 0 ; i < MAXNARGS ; i++) {
       free(mock_fnames[i]);

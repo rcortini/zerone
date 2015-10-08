@@ -20,9 +20,12 @@ nobs
    const ChIP_t *ChIP
 )
 {
-   unsigned int retval = 0;
-   for (size_t i = 0 ; i < ChIP->nb ; i++) retval += ChIP->size[i];
-   return retval;
+
+   uint size = 0;
+   for (int i = 0 ; i < ChIP->nb ; i++) size += ChIP->sz[i];
+
+   return size;
+
 }
 
 
@@ -32,149 +35,115 @@ do_zerone
    ChIP_t *ChIP
 )
 {
+
+   // The number of state in Zerone is an important constant.
+   // So much depends on it that it may be frozen in the code.
    const unsigned int m = 3;
+
+   int        * mock = NULL; // The mock ChIP profile.
+   int        * path = NULL; // The Viterbi path.
+   zinb_par_t * par  = NULL; // The parameter estimates.
+   zerone_t   * Z    = NULL; // The Zerone instance.
 
    // Extract the dimensions of the observations.
    const unsigned int r = ChIP->r;
    const unsigned int n = nobs(ChIP);
 
+   if (r > 63) {
+      fprintf(stderr, "maximum number of profiles exceeded\n");
+      goto clean_and_return;
+   }
 
-   // Extract the first ChIP profile, which is the sum of
-   // negative controls.
-   int *ctrl = malloc(n * sizeof(int));
-   if (ctrl == NULL) {
+   // Extract the first ChIP profile (the sum of mock controls).
+   mock = malloc(n * sizeof(int));
+   if (mock == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-      return NULL;
+      goto clean_and_return;
    }
 
+   // Copy data to 'mock'.
    for (size_t i = 0 ; i < n ; i++) {
-      ctrl[i] = ChIP->y[0+i*r];
+      mock[i] = ChIP->y[0+i*r];
    }
 
-   zinb_par_t *z = mle_zinb(ctrl, n);
-   if (z == NULL) {
+   par = mle_zinb(mock, n);
+   if (par == NULL) {
+// TODO: Change parametrization so that failure does not happen. //
       fprintf(stderr, "zerone failure %s:%d\n", __FILE__, __LINE__);
       apologize();
-      return NULL;
+      goto clean_and_return;
    }
 
-   free(ctrl);
+   free(mock);
+   mock = NULL;
 
-   double *Q = malloc(m*m * sizeof(double));
-   double *p = malloc(m*(r+1) * sizeof(double));
-   if (Q == NULL || p == NULL) {
-      fprintf(stderr, "memory error: %s:%d\n", __FILE__, __LINE__);
-      return NULL;
-   }
+   double Q[9] = {0};
+   double p[3*64] = {0};
+
    // Set initial values of 'Q'.
-   for (size_t i = 0 ; i < m ; i++) {
-   for (size_t j = 0 ; j < m ; j++) {
-      Q[i+j*m] = (i==j) ? .95 : .05/(m-1);
+   for (size_t i = 0 ; i < 3 ; i++) {
+   for (size_t j = 0 ; j < 3 ; j++) {
+      Q[i+j*3] = (i==j) ? .95 : .025;
    }
    }
 
-   // Set initial values of 'p'. The are not normalize, but the
-   // call to 'bw_zinm' will normalize them.
-   for (size_t i = 0 ; i < m ; i++) {
-      p[0+i*(r+1)] = z->p;
-      p[1+i*(r+1)] = 1 - z->p;
+   // Set initial values of 'p'. They are not normalize,
+   // but the call to 'bw_zinm' will normalize them.
+   for (size_t i = 0 ; i < 3 ; i++) {
+      p[0+i*(r+1)] = par->p;
+      p[1+i*(r+1)] = 1 - par->p;
       for (size_t j = 2 ; j < r+1 ; j++) {
          p[j+i*(r+1)] = i + 0.5;
       }
    }
 
-   zerone_t *zerone = new_zerone(m, ChIP);
-   if (zerone == NULL) {
-      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-      free(Q);
-      free(p);
-      return NULL;
+   Z = new_zerone(3, ChIP);
+
+   if (Z == NULL) {
+      fprintf(stderr, "error in function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      goto clean_and_return;
    }
-   set_zerone_par(zerone, Q, z->a, z->pi, p);
 
-   free(Q);
-   free(p);
-
-   Q = zerone->Q;
-   p = zerone->p;
+   set_zerone_par(Z, Q, par->a, par->pi, p);
 
    // Run the Baum-Welch algorithm.
-   bw_zinm(zerone);
+   bw_zinm(Z);
 
    // Reorder the states in case they got scrambled.
    // We use the value of p0 as a sort key.
    int tmp, map[3] = {0,1,2};
-   if (p[0*(r+1)] < p[1*(r+1)]) { tmp = map[0]; map[0] = map[1]; map[1] = tmp; }
-   if (p[1*(r+1)] < p[2*(r+1)]) { tmp = map[1]; map[1] = map[2]; map[2] = tmp; }
-   if (p[0*(r+1)] < p[1*(r+1)]) { tmp = map[0]; map[0] = map[1]; map[1] = tmp; }
+   if (Z->p[0*(r+1)] < Z->p[1*(r+1)])
+      tmp = map[0]; map[0] = map[1]; map[1] = tmp;
+   if (Z->p[1*(r+1)] < Z->p[2*(r+1)]) 
+      tmp = map[1]; map[1] = map[2]; map[2] = tmp;
+   if (Z->p[0*(r+1)] < Z->p[1*(r+1)]) 
+      tmp = map[0]; map[0] = map[1]; map[1] = tmp;
 
-   if (map[0] != 0 || map[1] != 1) {
-      // The states have beem scrambled. We need to reorder
-      // 'Q', 'p', 'phi' and 'pem'.
-
-      double *phi = zerone->phi;
-      double *pem = zerone->pem;
-
-      double *Q_ = malloc(m*m * sizeof(double));
-      double *p_ = malloc(m*(r+1) * sizeof(double));
-      double *phi_ = malloc(m*n * sizeof(double));
-      double *pem_ = malloc(m*n * sizeof(double));
-      if (Q_ == NULL || p_ == NULL || phi_ == NULL || pem_ == NULL) {
-         // TODO: free everything
-         fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-         return NULL;
-      }
-
-      for (size_t j = 0 ; j < m ; j++) {
-      for (size_t i = 0 ; i < m ; i++) {
-         Q_[map[i]+map[j]*m] = Q[i+j*m];
-      }
-      }
-      memcpy(zerone->Q, Q_, m*m * sizeof(double));
-
-      for (size_t j = 0 ; j < m ; j++) {
-      for (size_t i = 0 ; i < r+1 ; i++) {
-         p_[i+map[j]*(r+1)] = p[i+j*(r+1)];
-      }
-      }
-      memcpy(zerone->p, p_, m*(r+1) * sizeof(double));
-
-      for (size_t j = 0 ; j < m ; j++) {
-      for (size_t i = 0 ; i < n ; i++) {
-         phi_[map[j]+i*m] = phi[j+i*m];
-         pem_[map[j]+i*m] = pem[j+i*m];
-      }
-      }
-      memcpy(zerone->phi, phi_, m*n * sizeof(double));
-      memcpy(zerone->pem, pem_, m*n * sizeof(double));
-
-      free(Q_);
-      free(p_);
-      free(phi_);
-      free(pem_);
-
-   }
+   Z->map[0] = map[0];
+   Z->map[1] = map[1];
+   Z->map[2] = map[2];
 
    // Run the Viterbi algorithm.
-   int *path = malloc(n * sizeof(int));
-   double *initp = malloc(m * sizeof(double));
-   double *log_Q = malloc(m*m * sizeof(double));
-   if (path == NULL || initp == NULL || log_Q == NULL) {
+   double log_Q[9] = {0};
+   double initp[3] = {0};
+
+   path = malloc(n * sizeof(int));
+   if (path == NULL) {
       fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
-      // TODO: free everything.
-      return NULL;
+      goto clean_and_return;
    }
 
-   for (size_t i = 0 ; i < m ; i++) initp[i] = log(1.0/m);
-   for (size_t i = 0 ; i < m*m ; i++) log_Q[i] = log(Q[i]);
+   for (size_t i = 0 ; i < 3 ; i++) initp[i] = log(1.0/3);
+   for (size_t i = 0 ; i < 9 ; i++) log_Q[i] = log(Q[i]);
 
-   block_viterbi(m, ChIP->nb, ChIP->size, log_Q, initp, zerone->pem, path);
-   zerone->path = path;
+   // Find Viterbi path.
+   block_viterbi(m, ChIP->nb, ChIP->sz, log_Q, initp, Z->pem, path);
 
-   free(initp);
-   free(log_Q);
+   Z->path = path;
 
-   return zerone;
+clean_and_return:
+   return Z;
 
 }
 
@@ -214,11 +183,11 @@ void
 zinm_prob
 (
          zerone_t * restrict zerone,
-   const int     * restrict index,
-   // control //
+   const int      * restrict index,
+   // call control //
          int                otype,
    // output //
-         double  * restrict pem
+         double   * restrict pem
 )
 // SYNOPSIS:
 //   Compute emission probabilities with a mixture negative multinomial
@@ -268,7 +237,7 @@ zinm_prob
    ChIP_t *ChIP = zerone->ChIP;
    unsigned int temp = 0;
    for (size_t i = 0 ; i < ChIP->nb ; i++) {
-      temp += ChIP->size[i];
+      temp += ChIP->sz[i];
    }
 
    const unsigned int   r  = ChIP->r;
@@ -397,6 +366,7 @@ zinm_prob
 }
 
 
+#if 0
 ChIP_t *
 read_file
 (
@@ -522,7 +492,7 @@ read_file
    return ChIP;
 
 }
-
+#endif
 
 void
 update_trans
@@ -603,7 +573,7 @@ bw_zinm
    ChIP_t *ChIP = zerone->ChIP;
    size_t temp = 0;
    for (size_t i = 0 ; i < ChIP->nb ; i++) {
-      temp += ChIP->size[i];
+      temp += ChIP->sz[i];
    }
 
    // Constants.
@@ -611,7 +581,7 @@ bw_zinm
    const size_t         m    = zerone->m;
    const size_t         r    = ChIP->r;
    const unsigned int   nb   = ChIP->nb;
-   const unsigned int * size = ChIP->size;
+   const unsigned int * size = ChIP->sz;
    const int          * y    = ChIP->y;
    const double         a    = zerone->a;
    const double         pi   = zerone->pi;
@@ -657,7 +627,7 @@ bw_zinm
    // Start Baum-Welch cycles.
    for (zerone->iter = 1 ; zerone->iter < BW_MAXITER ; zerone->iter++) {
 
-#ifndef NDEBUG
+#ifdef DEBUG
 fprintf(stderr, "iter: %d\r", zerone->iter);
 #endif
 
@@ -763,7 +733,7 @@ fprintf(stderr, "iter: %d\r", zerone->iter);
 
    }
 
-#ifndef NDEBUG
+#ifdef DEBUG
 fprintf(stderr, "\n");
 #endif
 
@@ -839,14 +809,16 @@ set_zerone_par
 ChIP_t *
 new_ChIP
 (
-         unsigned int   r,
-         unsigned int   nb,
-                  int * y,
-   const unsigned int * size
+         uint     r,
+         uint     nb,
+         int   *  y,
+         char **  name, 
+   const uint  *  size
 )
 {
 
-   size_t extra = nb * sizeof(unsigned int);
+   size_t extra = nb * (sizeof(int *) + 32);
+
    ChIP_t *new = calloc(1, sizeof(ChIP_t) + extra);
    if (new == NULL) {
       fprintf(stderr, "memory error in function '%s()' %s:%d\n",
@@ -857,7 +829,15 @@ new_ChIP
    new->r = r;
    new->nb = nb;
    new->y = y;
-   memcpy(new->size, size, nb * sizeof(unsigned int));
+   // The 'nm' pointer points after the sizes.
+   new->nm = ((char *) new) + sizeof(ChIP_t) + nb * sizeof(int *);
+
+   memcpy(new->sz, size, nb * sizeof(uint));
+
+   // Allow to not pass names.
+   if (name != NULL) {
+      for (int i = 0 ; i < nb ; i++) strncpy(new->nm + 32*i, name[i], 31);
+   }
 
    return new;
 
