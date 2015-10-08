@@ -216,8 +216,8 @@ parameters is $3(r+1)$, where $r$ is the number of replicate experiments
 We used a machine learning strategy to identify discretization
 failures. We first prepared a high confidence dataset where the
 output of Zerone was labelled positive (success) or negative (failure).
-We discretized 144 replicated ChIP-seq experiments (\textit{i.e.}
-144 different features), together with their respective input control.
+We discretized 144 replicated ChIP-seq experiments, together with their
+respective input control.
 We labelled the output for the discretization as positive (91 cases)
 or negative (53 cases), based visual inspection and on the available
 literature about the chromatin features. The most common cases of
@@ -225,9 +225,8 @@ poor data quality in ChIP-seq correspond to low signal-to-noise ratio
 (\textit{e.g.} when the antibody is unspecific), and lack of
 repdroducibility between replicates (\textit{e.g.} when samples are
 swapped). To cover these cases, we included in the trusted set
-a number of cases obtained by discretizing non-replicates
+720 cases obtained by discretizing non-replicates
 (\textit{e.g.} CTCF and Pol2) and controls without immuno-precipitation.
-%% NOTE: there were a total of 802 non-replicate and flat discretizations
 
 To identify discretization failures, we used the paremeters of the
 fitted HMM. Based on the transition matrix, the emission paramaters,
@@ -245,6 +244,7 @@ the training data to a kernel space. Also, SVMs are fast to train and
 they require only one hyperparameter to be fitted, which were
 advantages over other approaches such as neural networks.
 
+% TODO: change pca image to the new dataset
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{pca_color.pdf}}
 \caption{Principal Component Analysis of the training dataset.
@@ -252,7 +252,7 @@ Training examples labeled as positive (red circles) appear to be similar to
 each other, while negative examples (grey crosses) show notable differences
 between them and with respect to positive examples. There exist though a
 certain degree of overlap between the two groups that creates an
-``ambiguous zone'', at least in this projection.
+``ambiguous zone'', at least on this projection.
 }\label{fig:pca_color}
 \end{figure}
 
@@ -271,7 +271,7 @@ of preprocessed mapped reads because they could have been mapped with
 different software and could therefore disagree on its results
 \citep{pmid21059603}. Instead, we mapped all the raw reads onto the
 hg19 assembly of the human genome with GEM \citep{pmid23103880}, using
-the options \texttt{--unique-mapping} and \texttt{-q ignore} of gem-mapper,
+the options \texttt{--unique-mapping} and \texttt{-q ignore} of gem-mapper
 version 1.376 (beta). The version of gem-indexer was 1.423 (beta). We
 preprocessed the data in the same way both for training the classifier
 and for benchmarking. We also used the same genome assembly to generate
@@ -308,6 +308,7 @@ options.
 \section{Results}
 \label{sec:results}
 
+% TODO:
 % give an EXAMPLE where using Zerone highlighted inconsistencies in published
 % ChIP-seq ENCODE data, allowing us to detect noisy and non-replicating profiles
 % that should be flagged as such.
@@ -351,8 +352,8 @@ In order to determine the capacity of the different programs to call peaks of
 CTCF binding, we compared the discretized profiles against a dataset of CTCF
 binding motifs. We used FIMO \citep{pmid21330290} from the MEME suite version
 4.10.1 \citep{pmid19458158}, to generate such dataset from the human CTCF motif
-obtained from the JASPAR database (version 5.0{\textunderscore}ALPHA,
-\citealp{pmid24194598}). The CTCF motif dataset contained 85,690 entries.
+obtained from the JASPAR database version 5.0{\textunderscore}ALPHA
+\citep{pmid24194598}. The CTCF motif dataset contained 85,690 entries.
 
 Table \ref{tab:ctcf} shows that Zerone outperforms its competitors: it has one
 of the highest recall scores, comparable to that of JAMM, the other software

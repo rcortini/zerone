@@ -2,20 +2,19 @@
 #define _GNU_SOURCE
 #endif
 
+#ifndef _PREDICT
+#define _PREDICT
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h> // Link with -lm
 #include <assert.h>
 #include "zerone.h"
+#include "svmdata.h"
 
-#define NSV 200
-#define DIM 18
-#define GAMMA 0.0625
-#define RHO 0.7399845397264748214639
-//#define NTESTS 946
+double * extractfeat(ChIP_t *, zerone_t *);
+double * zscale(double *);
+double   predict(ChIP_t *, zerone_t *);
 
-double * readmatrix(char *, int, int);
-double * extractfeats(ChIP_t *, zerone_t *);
-double * zscale(double *, double *, double *);
-double   predict(double *, double *, double *);
+#endif
