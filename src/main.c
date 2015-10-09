@@ -24,8 +24,9 @@
 
 #include <stdio.h>
 #include <getopt.h>
-#include "predict.h"
+#include "debug.h"
 #include "parse.h"
+#include "predict.h"
 #include "zerone.h"
 
 
@@ -152,15 +153,17 @@ int main(int argc, char **argv) {
       parse_fname(ChIP_fnames, argv[optind++], &n_ChIP_files);
    }
 
+   debug_print("%s", "done parsing arguments\n");
+
    // Process input files.
    ChIP_t *ChIP = parse_input_files(mock_fnames, ChIP_fnames);
-
-   fprintf(stderr, "done reading\n");
 
    if (ChIP == NULL) {
       fprintf(stderr, "error while reading input\n");
       exit(EXIT_FAILURE);
    }
+
+   debug_print("%s", "done reading input files\n");
 
    // Do zerone.
    //const unsigned int m = 3; // number of states.
@@ -210,9 +213,8 @@ int main(int argc, char **argv) {
          char *name = ChIP->nm + 32*i;
          for (int j = 0 ; j < ChIP->sz[i] ; j++) {
             fprintf(stdout, "%s\t%d\t%d\t%d\n", name, 300*j + 1,
-                  300*(j+1), Z->path[wid]);
+                  300*(j+1), Z->path[wid++]);
          }
-         wid++;
       }
    }
 

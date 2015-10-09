@@ -1,5 +1,7 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "debug.h"
 #include "predict.h"
 #include "svmdata.h"
 
@@ -12,13 +14,13 @@ extractfeat
 {
    double * feat = malloc(DIM * sizeof(double));
    if (feat == NULL) {
-      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       return NULL;
    }
    double * p = zerone->p;
    unsigned int m = zerone->m;
    unsigned int n = nobs(ChIP);
+   // XXX This bit is confusing. Needs to be discussed. XXX //
    unsigned int r = ChIP->r + 1;
 
    // Add the values of the transition matrix Q to the feature vector...
@@ -35,10 +37,20 @@ extractfeat
    double ummean = 0.0;
    double ubmean = 0.0;
    double mbmean = 0.0;
+
+   // 'map' contains the permutation of the states.
+   int *map = zerone->map;
+
    for (int i = 2; i < r; i++) {
-      double umratio = (p[    i] / (1 - p[0])) / (p[  r + i] / (1 - p[  r]));
-      double ubratio = (p[    i] / (1 - p[0])) / (p[2*r + i] / (1 - p[2*r]));
-      double mbratio = (p[r + i] / (1 - p[r])) / (p[2*r + i] / (1 - p[2*r]));
+//      double umratio = (p[    i] / (1 - p[0])) / (p[  r + i] / (1 - p[  r]));
+//      double ubratio = (p[    i] / (1 - p[0])) / (p[2*r + i] / (1 - p[2*r]));
+//      double mbratio = (p[r + i] / (1 - p[r])) / (p[2*r + i] / (1 - p[2*r]));
+      double umratio = (p[i+map[0]*r] / (1 - p[map[0]*r])) /
+         (p[i+map[1]*r] / (1 - p[map[1]*r]));
+      double ubratio = (p[i+map[0]*r] / (1 - p[map[0]*r])) /
+         (p[i+map[2]*r] / (1 - p[map[2]*r]));
+      double mbratio = (p[i+map[1]*r] / (1 - p[map[1]*r])) /
+         (p[i+map[2]*r] / (1 - p[map[2]*r]));
       if (umratio < ummin) ummin = umratio;
       if (ubratio < ubmin) ubmin = ubratio;
       if (mbratio < mbmin) mbmin = mbratio;
@@ -49,6 +61,7 @@ extractfeat
       ubmean += ubratio;
       mbmean += mbratio;
    }
+
    feat[f++] = ummin;
    feat[f++] = ummean / (r - 2);
    feat[f++] = ummax;
@@ -60,19 +73,19 @@ extractfeat
    feat[f++] = mbmax;
 
    // ...the mean of the values of phi...
+   // XXX This may be excluded when 'm' is set to 3. XXX //
    if (m <= 1) {
-      fprintf(stderr, "you need at least 2 states!");
+      debug_print("%s", "'m' must be at least 2\n");
       return NULL;
    }
    double * meanphi = calloc((size_t) m - 1, sizeof(double));
    if (meanphi == NULL) {
-      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       return NULL;
    }
    for (int i = 1; i < m; i++) {
       for (int j = 0; j < n; j++) {
-         meanphi[i - 1] += zerone->phi[j * m + i];
+         meanphi[i - 1] += zerone->phi[j * m + map[i]];
       }
       feat[f++] = meanphi[i - 1] / n;
    }
@@ -80,7 +93,7 @@ extractfeat
 
    // ...and also the mean of the Viterbi path.
    double meanpath = 0.0;
-   for (int i = 0; i < n; i++) meanpath += zerone->path[i];
+   for (int i = 0; i < n; i++) meanpath += map[zerone->path[i]];
    feat[f++] = meanpath / n;
 
    // TODO: remove this feature!
@@ -97,8 +110,7 @@ zscale
 {
    double * sfeat = malloc(DIM * sizeof(double));
    if (sfeat == NULL) {
-      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
+      debug_print("%s", "memory error\n");
       return NULL;
    }
    // Z-score scaling.
