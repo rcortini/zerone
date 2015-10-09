@@ -53,6 +53,7 @@ main(
       {"parse/choose_iterator",   test_choose_iterator},
       {"parse/parse_gem",         test_parse_gem},
       {"parse/parse_sam",         test_parse_sam},
+      {"parse/parse_bed",         test_parse_bed},
       {"parse/autoparse",         test_autoparse},
       {"parse/getgzline",         test_getgzline},
       {"parse/getgzline_err",     test_getgzline_err},

@@ -319,6 +319,38 @@ test_parse_sam
 
 
 void
+test_parse_bed
+(void)
+{
+
+      loc_t loc;
+
+      // NOTE that we cannot pass constant strings to
+      // 'parse_sam()' because it modifies them in general.
+      char line1[] = "chr1\t1\t3";
+      test_assert(parse_bed(&loc, line1));
+      test_assert(strcmp(loc.name, "chr1") == 0);
+      test_assert(loc.pos == 2);
+
+      char line2[] = "chr2\t345\t345";
+      test_assert(parse_bed(&loc, line2));
+      test_assert(strcmp(loc.name, "chr2") == 0);
+      test_assert(loc.pos == 345);
+
+      char line3[] = "abc0chr18:-:16507402:A35";
+      test_assert(!parse_bed(&loc, line3));
+
+      char line4[] = "a\twrong\t45";
+      test_assert(!parse_bed(&loc, line4));
+
+      char line5[] = "a\t45\twrong";
+      test_assert(!parse_bed(&loc, line5));
+
+      return;
+
+}
+
+void
 test_autoparse
 (void)
 {
