@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
    }
 
    // Quality control.
-   double QCscore = predict(ChIP, zerone);
+   double QCscore = predict(ChIP, Z);
    fprintf(stdout, "# QC score: %.3f\n", QCscore);
    fprintf(stdout, "# advice: %s discretization.\n",
          QCscore >= 0 ? "accept" : "reject");

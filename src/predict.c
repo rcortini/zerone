@@ -1,4 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "predict.h"
+#include "svmdata.h"
 
 double *
 extractfeat
@@ -57,13 +60,23 @@ extractfeat
    feat[f++] = mbmax;
 
    // ...the mean of the values of phi...
-   double meanphi[m - 1] = { 0.0, 0.0 };
+   if (m <= 1) {
+      fprintf(stderr, "you need at least 2 states!");
+      return NULL;
+   }
+   double * meanphi = calloc((size_t) m - 1, sizeof(double));
+   if (meanphi == NULL) {
+      fprintf(stderr, "memory error in function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return NULL;
+   }
    for (int i = 1; i < m; i++) {
       for (int j = 0; j < n; j++) {
          meanphi[i - 1] += zerone->phi[j * m + i];
       }
       feat[f++] = meanphi[i - 1] / n;
    }
+   free(meanphi);
 
    // ...and also the mean of the Viterbi path.
    double meanpath = 0.0;
