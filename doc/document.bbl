@@ -1,0 +1,164 @@
+\begin{thebibliography}{}
+
+\bibitem[Bailey {\em et~al.}(2009)Bailey, Boden, Buske, Frith, Grant, Clementi,
+  Ren, Li, and Noble]{pmid19458158}
+Bailey, T.~L., Boden, M., Buske, F.~A., Frith, M., Grant, C.~E., Clementi, L.,
+  Ren, J., Li, W.~W., and Noble, W.~S. (2009).
+\newblock {MEME SUITE: tools for motif discovery and searching.}
+\newblock {\em {Nucleic Acids Res.}}, {\bf 37}(Web Server issue), W202--8.
+
+\bibitem[Baum and Petrie(1966)Baum and Petrie]{baum1966}
+Baum, L.~E. and Petrie, T. (1966).
+\newblock Statistical inference for probabilistic functions of finite state
+  markov chains.
+\newblock {\em The Annals of Mathematical Statistics\/}, {\bf 37}(6),
+  1554--1563.
+
+\bibitem[Chang and Lin(2011)Chang and Lin]{Chang2011}
+Chang, C.-c. and Lin, C.-j. (2011).
+\newblock {LIBSVM : A Library for Support Vector Machines}.
+\newblock {\em ACM Transactions on Intelligent Systems and Technology
+  (TIST)\/}, {\bf 2}, 1--39.
+
+\bibitem[Dempster {\em et~al.}(1977)Dempster, Laird, and
+  Rubin]{Dempster77maximumlikelihood}
+Dempster, A.~P., Laird, N.~M., and Rubin, D.~B. (1977).
+\newblock Maximum likelihood from incomplete data via the em algorithm.
+\newblock {\em JOURNAL OF THE ROYAL STATISTICAL SOCIETY, SERIES B\/}, {\bf
+  39}(1), 1--38.
+
+\bibitem[Grant {\em et~al.}(2011)Grant, Bailey, and Noble]{pmid21330290}
+Grant, C.~E., Bailey, T.~L., and Noble, W.~S. (2011).
+\newblock {FIMO: scanning for occurrences of a given motif.}
+\newblock {\em {Bioinformatics}\/}, {\bf 27}(7), 1017--8.
+
+\bibitem[Guelen {\em et~al.}(2008)Guelen, Pagie, Brasset, Meuleman, Faza,
+  Talhout, Eussen, de~Klein, Wessels, de~Laat, and van Steensel]{pmid18463634}
+Guelen, L., Pagie, L., Brasset, E., Meuleman, W., Faza, M.~B., Talhout, W.,
+  Eussen, B.~H., de~Klein, A., Wessels, L., de~Laat, W., and van Steensel, B.
+  (2008).
+\newblock {Domain organization of human chromosomes revealed by mapping of
+  nuclear lamina interactions.}
+\newblock {\em {Nature}\/}, {\bf 453}(7197), 948--51.
+
+\bibitem[Ibrahim {\em et~al.}(2015)Ibrahim, Lacadie, and Ohler]{pmid25223640}
+Ibrahim, M.~M., Lacadie, S.~A., and Ohler, U. (2015).
+\newblock {JAMM: a peak finder for joint analysis of NGS replicates.}
+\newblock {\em {Bioinformatics}\/}, {\bf 31}(1), 48--55.
+
+\bibitem[Jackman(2015)Jackman]{pscla}
+Jackman, S. (2015).
+\newblock {\em {pscl}: Classes and Methods for {R} Developed in the Political
+  Science Computational Laboratory, Stanford University\/}.
+\newblock Department of Political Science, Stanford University, Stanford,
+  California.
+\newblock R package version 1.4.9.
+
+\bibitem[Kim {\em et~al.}(2007)Kim, Abdullaev, Smith, Ching, Loukinov, Green,
+  Zhang, Lobanenkov, and Ren]{pmid17382889}
+Kim, T.~H., Abdullaev, Z.~K., Smith, A.~D., Ching, K.~A., Loukinov, D.~I.,
+  Green, R.~D., Zhang, M.~Q., Lobanenkov, V.~V., and Ren, B. (2007).
+\newblock {Analysis of the vertebrate insulator protein CTCF-binding sites in
+  the human genome.}
+\newblock {\em {Cell}\/}, {\bf 128}(6), 1231--45.
+
+\bibitem[Kimura(2013)Kimura]{pmid23739122}
+Kimura, H. (2013).
+\newblock {Histone modifications for human epigenome analysis.}
+\newblock {\em {J. Hum. Genet.}}, {\bf 58}(7), 439--45.
+
+\bibitem[Li {\em et~al.}(2009)Li, Handsaker, Wysoker, Fennell, Ruan, Homer,
+  Marth, Abecasis, and and]{pmid19505943}
+Li, H., Handsaker, B., Wysoker, A., Fennell, T., Ruan, J., Homer, N., Marth,
+  G., Abecasis, G., and and, R.~D. (2009).
+\newblock {The Sequence Alignment/Map format and SAMtools.}
+\newblock {\em {Bioinformatics}\/}, {\bf 25}(16), 2078--9.
+
+\bibitem[Li {\em et~al.}(2011)Li, Brown, Huang, and Bickel]{li2011}
+Li, Q., Brown, J.~B., Huang, H., and Bickel, P.~J. (2011).
+\newblock Measuring reproducibility of high-throughput experiments.
+\newblock {\em Ann. Appl. Stat.}, {\bf 5}(3), 1752--1779.
+
+\bibitem[Marco-Sola {\em et~al.}(2012)Marco-Sola, Sammeth, Guigó, and
+  Ribeca]{pmid23103880}
+Marco-Sola, S., Sammeth, M., Guigó, R., and Ribeca, P. (2012).
+\newblock {The GEM mapper: fast, accurate and versatile alignment by
+  filtration.}
+\newblock {\em {Nat. Methods}\/}, {\bf 9}(12), 1185--8.
+
+\bibitem[Mathelier {\em et~al.}(2014)Mathelier, Zhao, Zhang, Parcy,
+  Worsley-Hunt, Arenillas, Buchman, yu~Chen, Chou, Ienasescu, Lim, Shyr, Tan,
+  Zhou, Lenhard, Sandelin, and Wasserman]{pmid24194598}
+Mathelier, A., Zhao, X., Zhang, A.~W., Parcy, F., Worsley-Hunt, R., Arenillas,
+  D.~J., Buchman, S., yu~Chen, C., Chou, A., Ienasescu, H., Lim, J., Shyr, C.,
+  Tan, G., Zhou, M., Lenhard, B., Sandelin, A., and Wasserman, W.~W. (2014).
+\newblock {JASPAR 2014: an extensively expanded and updated open-access
+  database of transcription factor binding profiles.}
+\newblock {\em {Nucleic Acids Res.}}, {\bf 42}(Database issue), D142--7.
+
+\bibitem[Meyer {\em et~al.}(2014)Meyer, Dimitriadou, Hornik, Weingessel, and
+  Leisch]{e1071}
+Meyer, D., Dimitriadou, E., Hornik, K., Weingessel, A., and Leisch, F. (2014).
+\newblock {\em e1071: Misc Functions of the Department of Statistics (e1071),
+  TU Wien\/}.
+\newblock R package version 1.6-4.
+
+\bibitem[Park {\em et~al.}(2013)Park, Lee, Bhupindersingh, and
+  Iyer]{pmid24349523}
+Park, D., Lee, Y., Bhupindersingh, G., and Iyer, V.~R. (2013).
+\newblock {Widespread misinterpretable ChIP-seq bias in yeast.}
+\newblock {\em {PLoS ONE}\/}, {\bf 8}(12), e83506.
+
+\bibitem[Pokholok {\em et~al.}(2005)Pokholok, Harbison, Levine, Cole, Hannett,
+  Lee, Bell, Walker, Rolfe, Herbolsheimer, Zeitlinger, Lewitter, Gifford, and
+  Young]{pmid16122420}
+Pokholok, D.~K., Harbison, C.~T., Levine, S., Cole, M., Hannett, N.~M., Lee,
+  T.~I., Bell, G.~W., Walker, K., Rolfe, P.~A., Herbolsheimer, E., Zeitlinger,
+  J., Lewitter, F., Gifford, D.~K., and Young, R.~A. (2005).
+\newblock {Genome-wide map of nucleosome acetylation and methylation in yeast.}
+\newblock {\em {Cell}\/}, {\bf 122}(4), 517--27.
+
+\bibitem[{R Core Team}(2014){R Core Team}]{R}
+{R Core Team} (2014).
+\newblock {\em R: A Language and Environment for Statistical Computing\/}.
+\newblock R Foundation for Statistical Computing, Vienna, Austria.
+
+\bibitem[Spyrou {\em et~al.}(2009)Spyrou, Stark, Lynch, and
+  Tavaré]{pmid19772557}
+Spyrou, C., Stark, R., Lynch, A.~G., and Tavaré, S. (2009).
+\newblock {BayesPeak: Bayesian analysis of ChIP-seq data.}
+\newblock {\em {BMC Bioinformatics}\/}, {\bf 10}, 299.
+
+\bibitem[Szalkowski and Schmid(2011)Szalkowski and Schmid]{pmid21059603}
+Szalkowski, A.~M. and Schmid, C.~D. (2011).
+\newblock {Rapid innovation in ChIP-seq peak-calling algorithms is
+  outdistancing benchmarking efforts.}
+\newblock {\em {Brief. Bioinformatics}\/}, {\bf 12}(6), 626--33.
+
+\bibitem[Teytelman {\em et~al.}(2013)Teytelman, Thurtle, Rine, and van
+  Oudenaarden]{pmid24173036}
+Teytelman, L., Thurtle, D.~M., Rine, J., and van Oudenaarden, A. (2013).
+\newblock {Highly expressed loci are vulnerable to misleading ChIP localization
+  of multiple unrelated proteins.}
+\newblock {\em {Proc. Natl. Acad. Sci. U.S.A.}}, {\bf 110}(46), 18602--7.
+
+\bibitem[Viterbi(1967)Viterbi]{1054010}
+Viterbi, A. (1967).
+\newblock Error bounds for convolutional codes and an asymptotically optimum
+  decoding algorithm.
+\newblock {\em Information Theory, IEEE Transactions on\/}, {\bf 13}(2),
+  260--269.
+
+\bibitem[Zeileis {\em et~al.}(2008)Zeileis, Kleiber, and Jackman]{psclb}
+Zeileis, A., Kleiber, C., and Jackman, S. (2008).
+\newblock Regression models for count data in {R}.
+\newblock {\em Journal of Statistical Software\/}, {\bf 27}(8).
+
+\bibitem[Zhang {\em et~al.}(2008)Zhang, Liu, Meyer, Eeckhoute, Johnson,
+  Bernstein, Nusbaum, Myers, Brown, Li, and Liu]{pmid18798982}
+Zhang, Y., Liu, T., Meyer, C.~A., Eeckhoute, J., Johnson, D.~S., Bernstein,
+  B.~E., Nusbaum, C., Myers, R.~M., Brown, M., Li, W., and Liu, X.~S. (2008).
+\newblock {Model-based analysis of ChIP-Seq (MACS).}
+\newblock {\em {Genome Biol.}}, {\bf 9}(9), R137.
+
+\end{thebibliography}
