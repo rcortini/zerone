@@ -355,6 +355,12 @@ a large fraction of the ChIP-seq signal with few target genomic sites.
 The number of targets and the amount of signal captured are therefore
 critical characteristics of a discretizer.
 
+\begin{figure*}
+\centerline{\includegraphics[scale=0.4]{pareto_front.pdf}}
+\caption{Left: Update legend.}
+\label{fig:pareto}
+\end{figure*}
+
 Unfortunately, the amount of noise in each experiment is unknown
 (because of differences between antibody specificities), so there is
 a large uncertainty about the amount of signal lost during the
@@ -363,10 +369,42 @@ the trade-off between false positives and false negatives in ChIP-seq
 experiments, and thus no gold standard to rank discretizers. However,
 we can compare discretizers with a partial order, as explained below.
 
+When sorting genomic windows by decreasing order of ChIP-seq reads
+and plotting the cumulative number of reads, we obtain a curve that
+forms a Pareto front. It represents the largest amount of reads that
+can be captured by the given amount of targets, or alternatively the
+smallest number of targets that can catpure the given amount of reads.
+A discretization can be represented as a point on the $xy$ plane, the
+$x$ coordinates is the number of targets, and the $y$ coordinate
+is the number of reads captured by the discretization.
 
-Genomic windows are sorted by decreasing order of ChIP-seq reads and 
-the cumulative read number is plotted. The curve is thus a Pareto front
-\textit{i.e.} no discretizer can be on the left side of the curve.
+By construction, no discretization can lie on the upper left side of 
+the Pareto front, and every discretization on the front represents an
+optimum. Discretizations lying on the lower right side of the front
+are suboptimal, since the same number of targets can capture more
+reads, and the the same number of reads can be captured by less
+targets. With this representation, the quality of a discretization
+can be appreciated by its distance to the Pareto front.
+
+In spite of the appearances, this representation has little to do
+with receiver operating characteristic (ROC) curves. First, a
+discretizer is represented as a point and not a curve. Second, a
+discretization close to the top-left corner is not always better
+than one that lays further away. For instance, if the experiment
+consists of pure noise, the Pareto front is a straight line from
+the bottom left to the top right corner. On this line, the closest
+point to the top-left corner is not a better discretization.
+Comparing two discretizations on the Pareto front is thus a delicate
+matter. All that can be said is that discretizations are expected
+to have more false positives and less false negatives as the slide
+to the right.
+
+The discretizers are compared in Fig.~\ref{fig:pareto}. Whereas the
+discretizations of CTCF have similar characteristics (left panel),
+those of Pol2 and H3K36me3 differ substantially (middle and right
+panels). These plots also reveal that different experiments have
+different properties (represented by the Pareto front), highlighting
+the difficulty of designing universal discretizers.
 
 
 \subsubsection{Identification of CTCF binding sites.}
@@ -429,11 +467,6 @@ Zerone is able to detect more enriched windows: other programs are only able to
 detect the peaks with the highest intensity and therefore the mean read count in
 enriched windows could be overestimated (Fig.~\ref{fig:expr}, right).
 
-\begin{figure*}
-\centerline{\includegraphics[scale=0.4]{pareto_front.pdf}}
-\caption{Left: Update legend.}
-\label{fig:pareto}
-\end{figure*}
 
 Interestingly, the majority of the enriched windows are detected by most
 programs. This can be visualized in the Venn diagram of Fig.~\ref{fig:venn},
