@@ -27,10 +27,6 @@
 \citation{e1071}
 \citation{pmid21059603}
 \citation{pmid23103880}
-\citation{pmid17382889}
-\citation{pmid21330290}
-\citation{pmid19458158}
-\citation{pmid24194598}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Principal Component Analysis of the training dataset. Training examples labeled as positive (red circles) appear to be similar to each other, while negative examples (grey crosses) show notable differences between them and with respect to positive examples. There exist though a certain degree of overlap between the two groups that creates an ``ambiguous zone'', at least on this projection. }}{3}}
 \newlabel{fig:pca_color}{{2}{3}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.4}}Datasets and preprocessing}{3}}
@@ -38,26 +34,34 @@
 \@writefile{toc}{\contentsline {section}{\numberline {3}Results}{3}}
 \newlabel{sec:results}{{3}{3}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{3.1}}Speed and memory consumption}{3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {{3.2}}Discretization benchmark}{3}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.1}}Identification of CTCF binding sites.}{3}}
+\citation{pmid17382889}
+\citation{pmid21330290}
+\citation{pmid19458158}
+\citation{pmid24194598}
 \citation{pmid16122420}
 \citation{pmid23739122}
-\bibstyle{natbib}
-\bibdata{document,extra}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Running times and peak memory footprint of the different discretizers on the three ChIP-seq datasets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (and not the sum) are shown. Note the logarithmic scale in the running times. }}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Running times and peak memory footprint of the discretizers on the three ChIP-seq datasets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. Note the logarithmic scale in the running times. }}{4}}
 \newlabel{fig:perf}{{3}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{3.2}}Discretization benchmark}{4}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.1}}Identification of CTCF binding sites.}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Compairing discretizations. Genomic windows are ordered by decreasing amount of ChIP-seq reads on the $x$ axis, and the cumulative amount of reads is plotted on the $y$ axis. This line forms a Pareto front representing an optimum for the trade-off between the amount of targets and the amount of captured ChIP-seq reads. A discretization is represented by a single point on this plane. Discretizations lying in the quadrant upper left of it capture more reads with fewer targets.}}{4}}
+\newlabel{fig:expl}{{4}{4}}
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Summary of peak calling on the CTCF dataset. The table lists the total number of peaks found by the different programs, how many of those peaks contained at least one CTCF motif, and the correspondent precision, recall and $F_{1}$ score relative to the CTCF motif dataset. }}{4}}
 \newlabel{tab:ctcf}{{1}{4}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.2}}H3K36me3-enriched domains.}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Left: mean expression levels of genomic windows not enriched in H3K36me3, as determined by the different discretizers. Center: mean fold change in gene expression of enriched windows relative to non-enriched ones. Right: percentage of the genome covered by windows detected as enriched. Mean value of the replicates is shown for BayesPeak and MACS.}}{4}}
-\newlabel{fig:expr}{{4}{4}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.3}}Pol2 binding around transcription start sites.}{4}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion and conclusions}{4}}
-\@writefile{toc}{\contentsline {paragraph}{Funding\text  {\rm  :}}{4}}
+\bibstyle{natbib}
+\bibdata{document,extra}
 \bibcite{pmid19458158}{{1}{2009}{{Bailey {\em  et~al.}}}{{Bailey, Boden, Buske, Frith, Grant, Clementi, Ren, Li, and Noble}}}
 \bibcite{baum1966}{{2}{1966}{{Baum and Petrie}}{{Baum and Petrie}}}
 \bibcite{Chang2011}{{3}{2011}{{Chang and Lin}}{{Chang and Lin}}}
 \bibcite{Dempster77maximumlikelihood}{{4}{1977}{{Dempster {\em  et~al.}}}{{Dempster, Laird, and Rubin}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Left: Update legend.}}{5}}
+\newlabel{fig:pareto}{{5}{5}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.3}}Pol2 binding around transcription start sites.}{5}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion and conclusions}{5}}
+\@writefile{toc}{\contentsline {paragraph}{Funding\text  {\rm  :}}{5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Enriched genomic windows called by the different software. Circle size represents the enriched portion of the genome according to each of the programs, and the overlap between circles approximates the amount of windows found enriched by two or more programs. Note the almost complete overlap between the BayesPeak discretizations on the two replicates.}}{5}}
+\newlabel{fig:venn}{{6}{5}}
 \bibcite{pmid21330290}{{5}{2011}{{Grant {\em  et~al.}}}{{Grant, Bailey, and Noble}}}
 \bibcite{pmid18463634}{{6}{2008}{{Guelen {\em  et~al.}}}{{Guelen, Pagie, Brasset, Meuleman, Faza, Talhout, Eussen, de~Klein, Wessels, de~Laat, and van Steensel}}}
 \bibcite{pmid25223640}{{7}{2015}{{Ibrahim {\em  et~al.}}}{{Ibrahim, Lacadie, and Ohler}}}
@@ -78,8 +82,6 @@
 \bibcite{1054010}{{22}{1967}{{Viterbi}}{{Viterbi}}}
 \bibcite{psclb}{{23}{2008}{{Zeileis {\em  et~al.}}}{{Zeileis, Kleiber, and Jackman}}}
 \bibcite{pmid18798982}{{24}{2008}{{Zhang {\em  et~al.}}}{{Zhang, Liu, Meyer, Eeckhoute, Johnson, Bernstein, Nusbaum, Myers, Brown, Li, and Liu}}}
-\global\@namedef{@lastpage@}{5}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Enriched genomic windows called by the different software. Circle size represents the enriched portion of the genome according to each of the programs, and the overlap between circles approximates the amount of windows found enriched by two or more programs. Note the almost complete overlap between the BayesPeak discretizations on the two replicates.}}{5}}
-\newlabel{fig:venn}{{5}{5}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Summary of peak calling on the Pol2 dataset. As in Table 1\hbox {}, The table lists the total number of peaks found by the different programs, how many of those peaks contained at least one TSS, and the correspondent precision, recall and $F_{1}$ score relative to the Pol2 dataset. }}{5}}
-\newlabel{tab:tss}{{2}{5}}
+\global\@namedef{@lastpage@}{6}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Summary of peak calling on the Pol2 dataset. As in Table 1\hbox {}, The table lists the total number of peaks found by the different programs, how many of those peaks contained at least one TSS, and the correspondent precision, recall and $F_{1}$ score relative to the Pol2 dataset. }}{6}}
+\newlabel{tab:tss}{{2}{6}}

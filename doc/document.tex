@@ -308,57 +308,109 @@ options.
 \section{Results}
 \label{sec:results}
 
-% TODO:
-% give an EXAMPLE where using Zerone highlighted inconsistencies in published
-% ChIP-seq ENCODE data, allowing us to detect noisy and non-replicating profiles
-% that should be flagged as such.
-
 \subsection{Speed and memory consumption}
-We compared the running time of the different programs on discretizing three
-datasets of similar size that represent the three major types of ChIP-seq signal
-usually observed. The CTCF signal consists of sharp peaks at the transcription
-factor binding site, the Pol2 signal consists of both peaks at promoters and
-potentially broad domains on transcribed genes, and H3K36me3 consists of broad
-domains. On these tests Zerone was the fastest algorithm (Fig.~\ref{fig:perf},
-top row). For Zerone, the running time was substantially lower than for BayesPeak
-and JAMM, and 5-10 times lower than for MACS. In terms of memory footprint,
-Zerone and MACS were comparable, while BayesPeak and JAMM demanded more memory
-(Fig.~\ref{fig:perf}, bottom row).
+We compared the running times of the different programs on discretizing
+three datasets of similar size that represent the three major types of
+ChIP-seq signal usually observed. The CTCF signal consists of sharp
+peaks at the transcription factor binding site, the H3K36me3 signal 
+consists of broad domains, and the Pol2 signal consists of  peaks
+at promoters and potentially broad domains on transcribed genes.
 
-Part of the benchmark is confounded by the fact that BayesPeak and MACS do
-not allow discretization from multiple inputs. On real pipelines, these tools
-would demand more time for the same number of CPU and memory. Overall, the
-performance of Zerone makes it suitable for usage in large volume pipelines.
+The results were similar between experiments, and Zerone was
+consistenty the fastest tool, with a running time around 5 minutes
+(Fig.~\ref{fig:perf}, top row). The advantage is only marginal over
+MACS, wihch ran for around 10 minutes, but it is substantial over
+BayesPeak and JAMM, which ran in over 9 hours. The results for peak
+memory usage were more variable between experiments (Fig.~\ref{fig:perf},
+bottom row). MACS achieved the best performance with a memory
+footprint around 0.5~GB, followed by Zerone around 1.0~GB.
+BayesPeak and JAMM each used more than 1.5~GB.
+
+The benchmark is partly confounded by the fact that BayesPeak and MACS
+discretize a single input per run, whereas Zerone and JAMM discretize
+multiple inputs simultaneously. This makes a difference for pipelines
+where all files have to be processed in parallel with the minimum
+amount of resources. In our benchmark, Zerone used twice as much memory
+as MACS, but it also processed twice as many files. In other words, for
+the same amount of available memory, a Zerone pipeline would run twice
+faster than a MACS pipeline, and with only half the required amount of
+CPUs.
+
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{performance.pdf}}
-\caption{Running times and peak memory footprint of the different discretizers
-on the three ChIP-seq datasets. For programs that only allow single-profile
-discretization (\textit{i.e.} BayesPeak and MACS), mean values (and not the
-sum) are shown. Note the logarithmic scale in the running times.
+\caption{Running times and peak memory footprint of the 
+discretizers on the three ChIP-seq datasets. For programs that only
+allow single-profile discretization (\textit{i.e.} BayesPeak and MACS),
+mean values (not the sum) are shown. Note the logarithmic scale in the
+running times.
 }\label{fig:perf}
 \end{figure}
 
 \subsection{Discretization benchmark}
-There is currently no gold standard for benchmarking ChIP-seq discretizers
-ability to call biologically relevant regions of enrichment. Therefore, we used
-different strategies for comparing the different types of signals analyzed.
+Intuitively, good discretizers capture a large fraction of the
+ChIP-seq signal within few target genomic sites. The number of targets
+and the amount of signal they represent are therefore critical
+characteristics of a discretization. Unfortunately, there is no gold
+standard to estimate the trade-off between false positives and false
+negatives in ChIP-seq experiments, and thus there is no objective way
+to rank discretizers. However, we can compare them with a partial order,
+as explained below.
+
+\begin{figure}[!tpb]
+\centerline{\includegraphics[scale=0.5]{pareto_front_explanation.pdf}}
+\caption{Compairing discretizations. Genomic windows are ordered by
+decreasing amount of ChIP-seq reads on the $x$ axis, and the
+cumulative amount of reads is plotted on the $y$ axis. This line forms
+a Pareto front representing an optimum for the trade-off between
+the amount of targets and the amount of captured ChIP-seq reads. A
+discretization is represented by a single point on this plane.
+Discretizations lying in the quadrant upper left of it capture more
+reads with fewer targets.}
+\label{fig:expl}
+\end{figure}
+
+When arranging genomic windows from high to low amount of ChIP-seq
+reads, the cumulative number of reads forms a Pareto front.
+It represents the largest amount of reads that can be captured by the
+given amount of targets, or alternatively the smallest number of
+targets that can catpure the given amount of reads
+(Fig.~\ref{fig:expl}). A discretization can be represented as a point
+on the $xy$ plane.  By construction, no discretization can lie on the
+left of the Pareto front, and those on the front represent an
+optimum. Others are suboptimal, since fewer windows can capture more
+targets.
+
+The discretizers are compared in Fig.~\ref{fig:pareto}. Whereas the
+discretizations of CTCF have similar characteristics (left panel),
+those of Pol2 and H3K36me3 differ substantially (middle and right
+panels). These plots also reveal that different experiments have
+different properties (represented by the Pareto front), highlighting
+the difficulty of designing universal discretizers.
+
+\begin{figure*}
+\centerline{\includegraphics[scale=0.4]{pareto_front.pdf}}
+\caption{Left: Update legend.}
+\label{fig:pareto}
+\end{figure*}
+
 
 \subsubsection{Identification of CTCF binding sites.}
-CTCF binding sites are characterized by a specific 20~bp sequence that is
-highly conserved in vertebrates. In humans, nearly 80\% of these sites contain
-the consensus motif \citep{pmid17382889}.
-In order to determine the capacity of the different programs to call peaks of
-CTCF binding, we compared the discretized profiles against a dataset of CTCF
-binding motifs. We used FIMO \citep{pmid21330290} from the MEME suite version
-4.10.1 \citep{pmid19458158}, to generate such dataset from the human CTCF motif
-obtained from the JASPAR database version 5.0{\textunderscore}ALPHA
-\citep{pmid24194598}. The CTCF motif dataset contained 85,690 entries.
+CTCF binding sites are characterized by a specific 20~bp sequence that
+is highly conserved in vertebrates. In humans, nearly 80\% of these
+sites contain the consensus motif \citep{pmid17382889}. In order to
+determine the capacity of the different programs to call peaks of CTCF
+binding, we compared the discretized profiles against a dataset of CTCF
+binding motifs. We used FIMO \citep{pmid21330290} from the MEME suite
+version 4.10.1 \citep{pmid19458158}, to generate such dataset from the
+human CTCF motif obtained from the JASPAR database version
+5.0{\textunderscore}ALPHA \citep{pmid24194598}. The CTCF motif dataset
+contained 85,690 entries.
 
-Table \ref{tab:ctcf} shows that Zerone outperforms its competitors: it has one
-of the highest recall scores, comparable to that of JAMM, the other software
-capable of combined analysis, while achieving the highest precision among the
-evaluated programs.
+Table \ref{tab:ctcf} shows that Zerone outperforms its competitors: it
+has one of the highest recall scores, comparable to that of JAMM, the
+other software capable of combined analysis, while achieving the
+highest precision among the evaluated programs.
 
 \begin{table}[!t]
 \processtable{Summary of peak calling on the CTCF dataset.
@@ -390,7 +442,7 @@ Therefore, the genes that contain peaks or windows determined as enriched in
 H3K36me3 by the different discretizers should be more expressed than the
 background.
 
-Fig.~\ref{fig:expr} shows that the expression levels of regions detected as
+UPDATE shows that the expression levels of regions detected as
 enriched in H3K36me3 by Zerone are indeed higher than the ones of non-enriched
 regions. Zerone detects as not enriched windows with lower expression than other
 programs (Fig.~\ref{fig:expr}, left), consistent with having the highest
@@ -403,15 +455,6 @@ Zerone is able to detect more enriched windows: other programs are only able to
 detect the peaks with the highest intensity and therefore the mean read count in
 enriched windows could be overestimated (Fig.~\ref{fig:expr}, right).
 
-\begin{figure}[!tpb]
-\centerline{\includegraphics[scale=0.5]{histone_expr.pdf}}
-\caption{Left: mean expression levels of genomic windows not enriched in
-H3K36me3, as determined by the different discretizers. Center: mean fold change
-in gene expression of enriched windows relative to non-enriched ones. Right:
-percentage of the genome covered by windows detected as enriched. Mean value
-of the replicates is shown for BayesPeak and MACS.}
-\label{fig:expr}
-\end{figure}
 
 Interestingly, the majority of the enriched windows are detected by most
 programs. This can be visualized in the Venn diagram of Fig.~\ref{fig:venn},

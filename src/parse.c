@@ -146,15 +146,21 @@ parse_input_files
 
    // Fill in the hash with mock files.
    for (int i = 0; mock_fnames[i] != NULL; i++) {
+
+      debug_print("%s %s\n", "autoparsing mock file", mock_fnames[i]);
+
       if(!autoparse(mock_fnames[i], hashtab[0])) {
          debug_print("%s", "autoparse failed\n");
          goto clean_and_return;
       }
+
    }
 
 
    // Create distinct hash for each ChIP file.
    for (int i = 0; ChIP_fnames[i] != NULL; i++) {
+
+      debug_print("%s %s\n", "autoparsing ChIP file", ChIP_fnames[i]);
 
       if (nhashes >= 512) {
          // XXX non debug error XXX //
