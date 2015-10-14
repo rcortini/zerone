@@ -236,7 +236,7 @@ of the discretization, and we used them to train a classifier.
 
 Our first attempts with logistic regression suggested that linear
 classifiers are unable to properly separate these two classes because
-they overlap in the feature space (Fig.~\ref{fig:pca_color}). To obtain more
+they overlap in the feature space (Fig.~\ref{fig:pca_bw}). To obtain more
 complex, nonlinear separation, we used a Support Vector Machine
 (SVM, \citealp{Chang2011,e1071}), as this approach guarantees the lowest
 overfitting upper bound and allows nonlinear classification by mapping
@@ -246,14 +246,14 @@ advantages over other approaches such as neural networks.
 
 % TODO: change pca image to the new dataset
 \begin{figure}[!tpb]
-\centerline{\includegraphics[scale=0.5]{pca_color.pdf}}
+\centerline{\includegraphics[scale=0.5]{pca_bw.pdf}}
 \caption{Principal Component Analysis of the training dataset.
 Training examples labeled as positive (red circles) appear to be similar to
 each other, while negative examples (grey crosses) show notable differences
 between them and with respect to positive examples. There exist though a
 certain degree of overlap between the two groups that creates an
 ``ambiguous zone'', at least on this projection.
-}\label{fig:pca_color}
+}\label{fig:pca_bw}
 \end{figure}
 
 We trained the SVM with a radial basis function kernel and
@@ -312,7 +312,7 @@ options.
 We compared the running times of the different programs on discretizing
 three datasets of similar size that represent the three major types of
 ChIP-seq signal usually observed. The CTCF signal consists of sharp
-peaks at the transcription factor binding site, the H3K36me3 signal 
+peaks at the transcription factor binding site, the H3K36me3 signal
 consists of broad domains, and the Pol2 signal consists of  peaks
 at promoters and potentially broad domains on transcribed genes.
 
@@ -339,7 +339,7 @@ CPUs.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{performance.pdf}}
-\caption{Running times and peak memory footprint of the 
+\caption{Running times and peak memory footprint of the
 discretizers on the three ChIP-seq datasets. For programs that only
 allow single-profile discretization (\textit{i.e.} BayesPeak and MACS),
 mean values (not the sum) are shown. Note the logarithmic scale in the

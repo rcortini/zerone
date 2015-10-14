@@ -5,6 +5,7 @@
 #include "test_zinb.c"
 #include "test_parse.c"
 #include "test_zerone.c"
+#include "test_predict.c"
 
 int
 main(
@@ -58,6 +59,7 @@ main(
       {"parse/getgzline",         test_getgzline},
       {"parse/getgzline_err",     test_getgzline_err},
       {"parse/parse_input_files", test_parse_input_files},
+      {"predict/predict",         test_predict},
 //    {"zerone/read_file",        test_read_file},
       {"zerone/eval_bw_f",        test_eval_bw_f},
       {NULL, NULL}

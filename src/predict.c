@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,10 +9,10 @@
 double *
 extractfeat
 (
-   ChIP_t  * ChIP,
    zerone_t * zerone
 )
 {
+   ChIP_t *ChIP = zerone->ChIP;
    double * feat = malloc(DIM * sizeof(double));
    if (feat == NULL) {
       debug_print("%s", "memory error\n");
@@ -121,11 +122,9 @@ zscale
 double
 predict
 (
-   ChIP_t  * ChIP,
-   zerone_t * zerone
+   double *feat
 )
 {
-   double * feat = zscale(extractfeat(ChIP, zerone));
 
    // Kernel: the exponential of the squared Euclidean distance
    // between the test and support vectors parametrized by gamma.
@@ -151,4 +150,15 @@ predict
    // The +0.65 before returning moves the decision boundary
    // towards the negative space by that proportion of the margin width.
    // The classifier is thus more prone to label examples as positive.
+}
+
+double
+zerone_predict
+(
+   zerone_t * zerone
+)
+{
+
+   double * feat = zscale(extractfeat(zerone));
+   return predict(feat);
 }
