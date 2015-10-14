@@ -381,12 +381,19 @@ left of the Pareto front, and those on the front represent an
 optimum. Others are suboptimal, since fewer windows can capture more
 targets.
 
-The discretizers are compared in Fig.~\ref{fig:pareto}. Whereas the
-discretizations of CTCF have similar characteristics (left panel),
-those of Pol2 and H3K36me3 differ substantially (middle and right
-panels). These plots also reveal that different experiments have
-different properties (represented by the Pareto front), highlighting
-the difficulty of designing universal discretizers.
+This representation reveals that discretizing the CTCF profile yields
+similar outputs regardless of the software (Fig.~\ref{fig:pareto},
+left panel). On the other hand, discretizing the Pol2 or the H3K36me3
+profile yields very distinct outputs (middle and right panels). In
+all the cases, Zerone produces the discretization capturing the most reads.
+For CTCF and Pol2, it lies on the Pareto front at a kink of the curve,
+\textit{i.e.} where the amount of reads per target starts to vanish. For
+H3K36me3, it lies off the Pareto front, but at a sensible location.
+Indeed, it has long been observed that histone modifications have more
+ChIP targets than transcription factors \citep{XXX}. Of the other tools,
+only JAMM produces a discretization that is consistent with those
+facts.
+
 
 \begin{figure*}
 \centerline{\includegraphics[scale=0.4]{pareto_front.pdf}}
@@ -500,6 +507,30 @@ replicates by separate.}
 \end{table}
 
 \section{Discussion and conclusions}
+
+Here we propose to compare discretizers with an intuitive grpahical
+representation (Fig~\ref{fig:expl}). This representation highlights
+two key properties discretizers: their conservativity and their
+sensitivity. A more conservative discretizer is not better nor worse.
+This is a matter of choice because of the inherent trade-off between
+false positives and false negatives. However, this choice is usually
+implicit and the merit of our representation is to make it explicit.
+Equally conservative discretizers may still differ in their false
+negative rate or sensitivity. In this case, the more sensitive is
+a better option. The second merit of our representation is to show
+how far discretizers are from the optimal sensitivity (for their
+conservativity).
+
+The Pareto front captures the trade-off between false positive and
+false negative rates. Figure \ref{fig:pareto} reveals that this front
+has different shapes, depending on the feature being discretized.
+This explains the difficulty of finding `univeral' discretization
+methods. Zerone stands out as the least conservative of the
+discretizers tested here.
+
+Explain that it makes sense.
+
+Explain that the naive approach is not the same.
 
 \section*{Acknowledgement}
 
