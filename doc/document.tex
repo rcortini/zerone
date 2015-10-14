@@ -236,7 +236,7 @@ of the discretization, and we used them to train a classifier.
 
 Our first attempts with logistic regression suggested that linear
 classifiers are unable to properly separate these two classes because
-they overlap in the feature space (Fig.~\ref{fig:pca_color}). To obtain more
+they overlap in the feature space (Fig.~\ref{fig:pca_bw}). To obtain more
 complex, nonlinear separation, we used a Support Vector Machine
 (SVM, \citealp{Chang2011,e1071}), as this approach guarantees the lowest
 overfitting upper bound and allows nonlinear classification by mapping
@@ -246,14 +246,14 @@ advantages over other approaches such as neural networks.
 
 % TODO: change pca image to the new dataset
 \begin{figure}[!tpb]
-\centerline{\includegraphics[scale=0.5]{pca_color.pdf}}
+\centerline{\includegraphics[scale=0.5]{pca_bw.pdf}}
 \caption{Principal Component Analysis of the training dataset.
 Training examples labeled as positive (red circles) appear to be similar to
 each other, while negative examples (grey crosses) show notable differences
 between them and with respect to positive examples. There exist though a
 certain degree of overlap between the two groups that creates an
 ``ambiguous zone'', at least on this projection.
-}\label{fig:pca_color}
+}\label{fig:pca_bw}
 \end{figure}
 
 We trained the SVM with a radial basis function kernel and
@@ -312,7 +312,7 @@ options.
 We compared the running times of the different programs on discretizing
 three datasets of similar size that represent the three major types of
 ChIP-seq signal usually observed. The CTCF signal consists of sharp
-peaks at the transcription factor binding site, the H3K36me3 signal 
+peaks at the transcription factor binding site, the H3K36me3 signal
 consists of broad domains, and the Pol2 signal consists of  peaks
 at promoters and potentially broad domains on transcribed genes.
 
@@ -339,7 +339,7 @@ CPUs.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{performance.pdf}}
-\caption{Running times and peak memory footprint of the 
+\caption{Running times and peak memory footprint of the
 discretizers on the three ChIP-seq datasets. For programs that only
 allow single-profile discretization (\textit{i.e.} BayesPeak and MACS),
 mean values (not the sum) are shown. Note the logarithmic scale in the
@@ -348,56 +348,38 @@ running times.
 \end{figure}
 
 \subsection{Discretization benchmark}
-The purpose of discretization is to simplify and denoise ChIP-seq
-profiles. The process can be viewed as a lossy compression, a noise
-reduction or a classification. Intuitively, good discretizers capture
-a large fraction of the ChIP-seq signal with few target genomic sites.
-The number of targets and the amount of signal captured are therefore
-critical characteristics of a discretizer.
+Intuitively, good discretizers capture a large fraction of the
+ChIP-seq signal within few target genomic sites. The number of targets
+and the amount of signal they represent are therefore critical
+characteristics of a discretization. Unfortunately, there is no gold
+standard to estimate the trade-off between false positives and false
+negatives in ChIP-seq experiments, and thus there is no objective way
+to rank discretizers. However, we can compare them with a partial order,
+as explained below.
 
-\begin{figure*}
-\centerline{\includegraphics[scale=0.4]{pareto_front.pdf}}
-\caption{Left: Update legend.}
-\label{fig:pareto}
-\end{figure*}
+\begin{figure}[!tpb]
+\centerline{\includegraphics[scale=0.5]{pareto_front_explanation.pdf}}
+\caption{Compairing discretizations. Genomic windows are ordered by
+decreasing amount of ChIP-seq reads on the $x$ axis, and the
+cumulative amount of reads is plotted on the $y$ axis. This line forms
+a Pareto front representing an optimum for the trade-off between
+the amount of targets and the amount of captured ChIP-seq reads. A
+discretization is represented by a single point on this plane.
+Discretizations lying in the quadrant upper left of it capture more
+reads with fewer targets.}
+\label{fig:expl}
+\end{figure}
 
-Unfortunately, the amount of noise in each experiment is unknown
-(because of differences between antibody specificities), so there is
-a large uncertainty about the amount of signal lost during the
-discretization. As a result, there is no gold standard to estimate
-the trade-off between false positives and false negatives in ChIP-seq
-experiments, and thus no gold standard to rank discretizers. However,
-we can compare discretizers with a partial order, as explained below.
-
-When sorting genomic windows by decreasing order of ChIP-seq reads
-and plotting the cumulative number of reads, we obtain a curve that
-forms a Pareto front. It represents the largest amount of reads that
-can be captured by the given amount of targets, or alternatively the
-smallest number of targets that can catpure the given amount of reads.
-A discretization can be represented as a point on the $xy$ plane, the
-$x$ coordinates is the number of targets, and the $y$ coordinate
-is the number of reads captured by the discretization.
-
-By construction, no discretization can lie on the upper left side of 
-the Pareto front, and every discretization on the front represents an
-optimum. Discretizations lying on the lower right side of the front
-are suboptimal, since the same number of targets can capture more
-reads, and the the same number of reads can be captured by less
-targets. With this representation, the quality of a discretization
-can be appreciated by its distance to the Pareto front.
-
-In spite of the appearances, this representation has little to do
-with receiver operating characteristic (ROC) curves. First, a
-discretizer is represented as a point and not a curve. Second, a
-discretization close to the top-left corner is not always better
-than one that lays further away. For instance, if the experiment
-consists of pure noise, the Pareto front is a straight line from
-the bottom left to the top right corner. On this line, the closest
-point to the top-left corner is not a better discretization.
-Comparing two discretizations on the Pareto front is thus a delicate
-matter. All that can be said is that discretizations are expected
-to have more false positives and less false negatives as the slide
-to the right.
+When arranging genomic windows from high to low amount of ChIP-seq
+reads, the cumulative number of reads forms a Pareto front.
+It represents the largest amount of reads that can be captured by the
+given amount of targets, or alternatively the smallest number of
+targets that can catpure the given amount of reads
+(Fig.~\ref{fig:expl}). A discretization can be represented as a point
+on the $xy$ plane.  By construction, no discretization can lie on the
+left of the Pareto front, and those on the front represent an
+optimum. Others are suboptimal, since fewer windows can capture more
+targets.
 
 The discretizers are compared in Fig.~\ref{fig:pareto}. Whereas the
 discretizations of CTCF have similar characteristics (left panel),
@@ -405,6 +387,12 @@ those of Pol2 and H3K36me3 differ substantially (middle and right
 panels). These plots also reveal that different experiments have
 different properties (represented by the Pareto front), highlighting
 the difficulty of designing universal discretizers.
+
+\begin{figure*}
+\centerline{\includegraphics[scale=0.4]{pareto_front.pdf}}
+\caption{Left: Update legend.}
+\label{fig:pareto}
+\end{figure*}
 
 
 \subsubsection{Identification of CTCF binding sites.}
