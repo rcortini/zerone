@@ -32,7 +32,7 @@
 
 const char *USAGE =
 "\n"
-"Usage:"
+"USAGE:"
 "  zerone [options] <input file 1> ... <input file n>\n"
 "\n"
 "    -0 --mock: given file is a mock control\n"
@@ -40,7 +40,11 @@ const char *USAGE =
 "    -l --list-output: output list of targets (default table)\n"
 "\n"
 "    -h --help: display this message and exit\n"
-"    -v --version: display version and exit\n";
+"    -v --version: display version and exit\n"
+"\n"
+"EXAMPLES:\n"
+" zerone --mock file1.bam,file2.bam --chip file3.bam,file4.bam\n"
+" zerone -l -0 file1.map -1 file2.map -1 file4.map\n";
 
 
 
@@ -164,6 +168,12 @@ int main(int argc, char **argv) {
    }
 
    debug_print("%s", "done reading input files\n");
+   debug_print("ChIP: r = %ld\n", ChIP->r);
+   debug_print("ChIP: nb = %d\n", ChIP->nb);
+   for (int i = 0 ; i < ChIP->nb ; i++) {
+      debug_print("ChIP: block %s (%d)\n",
+            ChIP->nm + 32*i, ChIP->sz[i]);
+   }
 
    // Do zerone.
    //const unsigned int m = 3; // number of states.

@@ -100,6 +100,7 @@ do_zerone
    Z = new_zerone(3, ChIP);
 
    if (Z == NULL) {
+      // TODO: handle this case properly. //
       fprintf(stderr, "error in function '%s()' %s:%d\n",
             __func__, __FILE__, __LINE__);
       goto clean_and_return;
@@ -109,6 +110,8 @@ do_zerone
 
    // Run the Baum-Welch algorithm.
    bw_zinm(Z);
+
+   // Verbose.
 
    // Reorder the states in case they got scrambled.
    // We use the value of p0 as a sort key.
