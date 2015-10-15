@@ -67,11 +67,12 @@ improve computational tools to analyse ChIP-seq data.
 
 One of the most common analyses performed on ChIP-seq profiles is to
 discretize the signal, \textit{i.e.} make calls whether the feature is
-present or absent for every \textit{locus} of the genome. This may seem
+present or absent for every locus of the genome. This may seem
 dubious at first glance because the biological reality is intrinsically
-quantitative, but there are several good reasons to discretize ChIP-seq
+quantitative, but there are good reasons to discretize ChIP-seq
 profiles: it makes the signal simpler to interpret from the human
-perspective, it simplifies downstream analyses and it allows to compare or
+perspective, it removes part of the experimental noise,
+it simplifies downstream analyses and it allows to compare or
 combine profiles of different nature. This raises a challenge at the
 computational level because discretization has to be carried out uniformly
 for signals that may have very different properties. For instance compare
@@ -150,17 +151,19 @@ fit to ChIP-seq data than Poisson and NB distributions.
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.55]{ZINB_fit.pdf}}
 % XX is wgEncodeSydhTfbsK562InputRawData.bed.gz %
-\caption{Using the ZINB distribution to model ChIP-seq data. Reads from
-the negative control data set XX were mapped on the human genome and pooled
-in 300~bp windows after removing duplicates. The histogram of the read
-counts is shown in black (no immunoprecipitation was performed in this
-experiment, so this variation corresponds to the `baseline'). The
-histograms in gray scales show the maximum likelihood fit of the Poisson,
-Negative Binomial (NB) and Zero-Inflated Negative Binomial (ZINB)
-distributions. The fit of the Poisson distribution (light gray) is poor.
-The NB distribution (medium gray) gives a good fit at the tail, but not
-for windows with 0 and 1 read. The ZINB distribution (dark gray) gives
-a good fit over the whole range.
+\caption{
+  Using the ZINB distribution to model ChIP-seq data. Reads from
+  the negative control data set XX were mapped on the human genome and
+  pooled in 300~bp windows after removing duplicates. The histogram of
+  the read counts is shown in black (no immunoprecipitation was
+  performed in this experiment, so this variation corresponds to the
+  `baseline'). The histograms in gray scales show the maximum
+  likelihood fit of the Poisson, Negative Binomial (NB) and
+  Zero-Inflated Negative Binomial (ZINB) distributions. The fit of
+  the Poisson distribution (light gray) is poor. The NB distribution
+  (medium gray) gives a good fit at the tail, but not for windows with
+  0 and 1 read. The ZINB distribution (dark gray) gives a good fit
+  over the whole range.
 }\label{fig:ZINB_fit}
 \end{figure}
 
@@ -244,15 +247,17 @@ the training data to a kernel space. Also, SVMs are fast to train and
 they require only one hyperparameter to be fitted, which were
 advantages over other approaches such as neural networks.
 
-% TODO: change pca image to the new data set
 \begin{figure}[!tpb]
-\centerline{\includegraphics[scale=0.5]{pca_bw.pdf}}
-\caption{Principal Component Analysis of the training data set.
-Training examples labeled as positive (red circles) appear to be similar to
-each other, while negative examples (grey crosses) show notable differences
-between them and with respect to positive examples. There exist though a
-certain degree of overlap between the two groups that creates an
-``ambiguous zone'', at least on this projection.
+\centerline{\includegraphics[scale=0.4]{pca_bw.pdf}}
+\caption{
+  Principal Component Analysis of the training data set.
+  Each symbol represents a discretization performed by Zerone. The
+  18 features extracted from each discretization are projected on the
+  first two principal components. Positive examples (black circles)
+  are similar to each other, while negative examples (grey crosses)
+  are different from each other and from positive examples. The two
+  groups overlap, which creates an ambiguous zone where failures and
+  successes are indistinguishable.
 }\label{fig:pca_bw}
 \end{figure}
 
@@ -331,26 +336,29 @@ discretize a single input per run, whereas Zerone and JAMM discretize
 multiple inputs simultaneously. This makes a difference for pipelines
 where all files have to be processed in parallel with the minimum
 amount of resources. In our benchmark, Zerone used twice as much memory
-as MACS, but it also processed twice as many files. In other words, for
-the same amount of available memory, a Zerone pipeline would run twice
-faster than a MACS pipeline, and with only half the required amount of
-CPUs.
+as MACS, but it also processed twice as many files. For the same amount
+of available memory, a Zerone pipeline would run twice faster than a
+MACS pipeline, and with only half the computer power.
 
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{performance.pdf}}
-\caption{Running times and peak memory footprint of the
-discretizers on the three ChIP-seq data sets. For programs that only
-allow single-profile discretization (\textit{i.e.} BayesPeak and MACS),
-mean values (not the sum) are shown. Note the logarithmic scale in the
-running times.
+\caption{
+  Running times and peak memory footprint of the
+  discretizers on the three ChIP-seq data sets. For programs that only
+  allow single-profile discretization (\textit{i.e.} BayesPeak and MACS),
+  mean values (not the sum) are shown. Note the logarithmic scale in the
+  running times.
 }\label{fig:perf}
 \end{figure}
 
 \subsection{Accuracy}
+The purpose of discretizers is to identify the targets of a
+transcription factor or a histone mark, \textit{i.e.} the sites of
+the genome where it is present.
 Intuitively, good discretizers capture a large fraction of the
-ChIP-seq signal within few target genomic sites. The number of targets
-and the amount of signal they represent are therefore critical
+ChIP-seq signal within few targets. The number of targets
+and the amount of reads they represent are therefore critical
 characteristics of a discretization. Unfortunately, there is no gold
 standard to estimate the trade-off between false positives and false
 negatives in ChIP-seq experiments, and thus there is no objective way
@@ -359,14 +367,17 @@ as explained below.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{pareto_front_explanation.pdf}}
-\caption{Compairing discretizations. Genomic windows are ordered by
-decreasing amount of ChIP-seq reads on the $x$ axis, and the
-cumulative amount of reads is plotted on the $y$ axis. This line forms
-a Pareto front representing an optimum for the trade-off between
-the amount of targets and the amount of captured ChIP-seq reads. A
-discretization is represented by a single point on this plane.
-Discretizations lying in the quadrant upper left of it capture more
-reads with fewer targets.}
+\caption{
+  Graphical representation of discretizations. Genomic
+  windows of the ChIP-seq profile are ordered by decreasing amount of
+  reads on the $x$ axis, and the cumulative amount of reads is plotted
+  on the $y$ axis. This line forms a Pareto front representing the
+  maximum number of reads for a given number of windows. Discretizations
+  are represented as a single point on this plane (black disc) whose
+  coordinates are the number of targets and the total number of reads
+  in the targets. The dark triangle represents discretizations that
+  are more conservative and discover more targets.
+}
 \label{fig:expl}
 \end{figure}
 
@@ -383,7 +394,15 @@ targets.
 
 \begin{figure*}
 \centerline{\includegraphics[scale=0.4]{pareto_front.pdf}}
-\caption{Left: Update legend.}
+\caption{
+  Characteristics of the discretizations for different programs.
+  The representation is obtained as shown on Fig.~\ref{fig:expl}.
+  When discretizing the CTCF and the Pol2 profile (left and middle),
+  Zerone produces discretizations that are very close to the Pareto
+  front. In the case of H3K36me3, the discretization is off the
+  Pareto front, but it is more sensitive and more sensible than the
+  others.
+}
 \label{fig:pareto}
 \end{figure*}
 
@@ -450,8 +469,10 @@ the left panel of Fig.~\ref{fig:pareto}.
 
 \subsubsection{Pol2 binding around transcription start sites.}
 % Pol2 is on TSSs
-To compare the behavior of the different discretizers, we determined how the
-peaks were distributed around TSSs.
+To compare the behavior of the discretizers on the Pol2 profile,
+we determined how the peaks were distributed around Transcription
+Start Sites (TSS), as it is expected that most of the Pol2 signal
+should contained annotated TSS.
 
 \begin{table}[!t]
 \processtable{Performance on the Pol2 data set.
@@ -475,43 +496,42 @@ and the associated precision, recall and $F_{1}$ score.
 replicates by separate.}
 \end{table}
 
+Table \ref{tab:tss} shows that, as in the previous case, Zerone
+achieves the highest $F_1$ score. Here it achieves both better
+precision and better recall than the other discretizers, with a
+very neat advantage in precision. These results confirm that
+the performance of Zerone is outstanding on this dataset, as suggested
+by the middle panel of Fig.~\ref{fig:pareto}.
+
 \subsubsection{H3K36me3-enriched domains.}
-Unlike in the previous case, there is no known consensus sequence
+Unlike the previous cases, there is no consensus sequence
 to determine the location of histone modifications. However, it is
 known that the bodies of active genes are enriched in H3K36me3
 \citep{pmid16122420,pmid23739122}. Therefore, the genes that contain
 peaks or windows determined as enriched in H3K36me3 by the different
 discretizers should be more expressed than the background.
 
-UPDATE shows that the expression levels of regions detected as
-enriched in H3K36me3 by Zerone are indeed higher than the ones of non-enriched
-regions. Zerone detects as not enriched windows with lower expression than other
-programs (Fig.~\ref{fig:expr}, left), consistent with having the highest
-precision score as discussed above (Table~\ref{tab:ctcf}). However, both JAMM
-and Zerone appear to detect as enriched windows with a lower mean read count
-(Fig.~\ref{fig:expr}, center), which seems to contradict the previous finding
-that these discretizers have the highest recall scores when analyzing the CTCF
-data set (Table~\ref{tab:ctcf}). This effect can be explained by the fact that
-Zerone is able to detect more enriched windows: other programs are only able to
-detect the peaks with the highest intensity and therefore the mean read count in
-enriched windows could be overestimated (Fig.~\ref{fig:expr}, right).
-
-
-Interestingly, the majority of the enriched windows are detected by most
-programs. This can be visualized in the Venn diagram of Fig.~\ref{fig:venn},
-where Zerone is shown to be able to detect most of the windows detected by other
-software, while discovering new enriched windows not found by the others, which
-is consistent with the previous observations (Table~\ref{tab:ctcf} and
-Fig.~\ref{fig:expr})
+The majority of the enriched windows are detected by most programs.
+This can be visualized in the Venn diagram of Fig.~\ref{fig:venn},
+where Zerone is shown to be able to detect most of the windows detected
+by other software, while discovering new enriched windows not found by
+the others, which is consistent with the previous observations
+(Table~\ref{tab:ctcf} and Fig.~\ref{fig:expr}).
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{histone_venn_color_names.pdf}}
-\caption{Enriched genomic windows called by the different software. Circle size
-represents the enriched portion of the genome according to each of the programs,
-and the overlap between circles approximates the amount of windows found
-enriched by two or more programs. Note the almost complete overlap between the
-BayesPeak discretizations on the two replicates.}\label{fig:venn}
+\caption{Enriched genomic windows called by the different software.
+Circle size represents the enriched portion of the genome according to
+each of the programs, and the overlap between circles approximates the
+amount of windows found enriched by two or more programs. Note the
+almost complete overlap between the BayesPeak discretizations on the
+two replicates.}\label{fig:venn}
 \end{figure}
+
+\subsection{Quality control}
+
+Give the example of HDAC6.
+
 \section{Discussion and conclusions}
 
 Here we introduced a way to compare discretizers with an intuitive

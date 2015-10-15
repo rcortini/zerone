@@ -19,7 +19,7 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.1}}Emission model}{2}}
 \newlabel{sub:emissions}{{{2.1}}{2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.2}}Discretization}{2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Using the ZINB distribution to model ChIP-seq data. Reads from the negative control data set XX were mapped on the human genome and pooled in 300\nobreakspace  {}bp windows after removing duplicates. The histogram of the read counts is shown in black (no immunoprecipitation was performed in this experiment, so this variation corresponds to the `baseline'). The histograms in gray scales show the maximum likelihood fit of the Poisson, Negative Binomial (NB) and Zero-Inflated Negative Binomial (ZINB) distributions. The fit of the Poisson distribution (light gray) is poor. The NB distribution (medium gray) gives a good fit at the tail, but not for windows with 0 and 1 read. The ZINB distribution (dark gray) gives a good fit over the whole range. }}{2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces  Using the ZINB distribution to model ChIP-seq data. Reads from the negative control data set XX were mapped on the human genome and pooled in 300\nobreakspace  {}bp windows after removing duplicates. The histogram of the read counts is shown in black (no immunoprecipitation was performed in this experiment, so this variation corresponds to the `baseline'). The histograms in gray scales show the maximum likelihood fit of the Poisson, Negative Binomial (NB) and Zero-Inflated Negative Binomial (ZINB) distributions. The fit of the Poisson distribution (light gray) is poor. The NB distribution (medium gray) gives a good fit at the tail, but not for windows with 0 and 1 read. The ZINB distribution (dark gray) gives a good fit over the whole range. }}{2}}
 \newlabel{fig:ZINB_fit}{{1}{2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.3}}Classification and training}{2}}
 \newlabel{sub:training}{{{2.3}}{2}}
@@ -28,7 +28,7 @@
 \citation{pmid21059603}
 \citation{pmid23103880}
 \citation{pmid24194598}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Principal Component Analysis of the training data set. Training examples labeled as positive (red circles) appear to be similar to each other, while negative examples (grey crosses) show notable differences between them and with respect to positive examples. There exist though a certain degree of overlap between the two groups that creates an ``ambiguous zone'', at least on this projection. }}{3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces  Principal Component Analysis of the training data set. Each symbol represents a discretization performed by Zerone. The 18 features extracted from each discretization are projected on the first two principal components. Positive examples (black circles) are similar to each other, while negative examples (grey crosses) are different from each other and from positive examples. The two groups overlap, which creates an ambiguous zone where failures and successes are indistinguishable. }}{3}}
 \newlabel{fig:pca_bw}{{2}{3}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.4}}Datasets and preprocessing}{3}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.5}}Benchmark conditions}{3}}
@@ -39,22 +39,23 @@
 \citation{pmid17382889}
 \citation{pmid21330290}
 \citation{pmid19458158}
-\citation{pmid16122420}
-\citation{pmid23739122}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Running times and peak memory footprint of the discretizers on the three ChIP-seq data sets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. Note the logarithmic scale in the running times. }}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces  Running times and peak memory footprint of the discretizers on the three ChIP-seq data sets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. Note the logarithmic scale in the running times. }}{4}}
 \newlabel{fig:perf}{{3}{4}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{3.2}}Accuracy}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Compairing discretizations. Genomic windows are ordered by decreasing amount of ChIP-seq reads on the $x$ axis, and the cumulative amount of reads is plotted on the $y$ axis. This line forms a Pareto front representing an optimum for the trade-off between the amount of targets and the amount of captured ChIP-seq reads. A discretization is represented by a single point on this plane. Discretizations lying in the quadrant upper left of it capture more reads with fewer targets.}}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces  Graphical representation of discretizations. Genomic windows of the ChIP-seq profile are ordered by decreasing amount of reads on the $x$ axis, and the cumulative amount of reads is plotted on the $y$ axis. This line forms a Pareto front representing the maximum number of reads for a given number of windows. Discretizations are represented as a single point on this plane (black disc) whose coordinates are the number of targets and the total number of reads in the targets. The dark triangle represents discretizations that are more conservative and discover more targets. }}{4}}
 \newlabel{fig:expl}{{4}{4}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.1}}Identification of CTCF binding sites.}{4}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.2}}Pol2 binding around transcription start sites.}{4}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.3}}H3K36me3-enriched domains.}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Left: Update legend.}}{5}}
+\citation{pmid16122420}
+\citation{pmid23739122}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces  Characteristics of the discretizations for different programs. The representation is obtained as shown on Fig.\nobreakspace  {}4\hbox {}. When discretizing the CTCF and the Pol2 profile (left and middle), Zerone produces discretizations that are very close to the Pareto front. In the case of H3K36me3, the discretization is off the Pareto front, but it is more sensitive and more sensible than the others. }}{5}}
 \newlabel{fig:pareto}{{5}{5}}
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Performance on the CTCF motifs data set. The table lists the total number of peaks found by the different programs, how many of those peaks contain at least one CTCF motif, and the associated precision, recall and $F_{1}$ score relative to the CTCF motif data set. }}{5}}
 \newlabel{tab:ctcf}{{1}{5}}
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Performance on the Pol2 data set. The table lists the total number of peaks found by the programs, how many of those peaks contain at least one Transription Start Site (TSS), and the associated precision, recall and $F_{1}$ score. }}{5}}
 \newlabel{tab:tss}{{2}{5}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.3}}H3K36me3-enriched domains.}{5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{3.3}}Quality control}{5}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Discussion and conclusions}{5}}
 \bibstyle{natbib}
 \bibdata{document,extra}
