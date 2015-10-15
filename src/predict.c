@@ -6,18 +6,17 @@
 #include "predict.h"
 #include "svmdata.h"
 
+// Below are the global constants declared in svmdata.h.
+// GAMMA, RHO, CENTER, SCALE, SV, COEFFS, DIM, NSV
+
 double *
 extractfeat
 (
-   zerone_t * zerone
+   zerone_t * zerone,
+   double   * feat
 )
 {
    ChIP_t *ChIP = zerone->ChIP;
-   double * feat = malloc(DIM * sizeof(double));
-   if (feat == NULL) {
-      debug_print("%s", "memory error\n");
-      return NULL;
-   }
    double * p = zerone->p;
    unsigned int m = zerone->m;
    unsigned int n = nobs(ChIP);
@@ -101,6 +100,7 @@ extractfeat
    feat[f++] = zerone->l;
 
    return feat;
+
 }
 
 double *
@@ -109,14 +109,9 @@ zscale
    double * feat
 )
 {
-   double * sfeat = malloc(DIM * sizeof(double));
-   if (sfeat == NULL) {
-      debug_print("%s", "memory error\n");
-      return NULL;
-   }
    // Z-score scaling.
-   for (int i = 0; i < DIM; i++) sfeat[i] = (feat[i] - center[i]) / scale[i];
-   return sfeat;
+   for (int i = 0; i < DIM; i++) feat[i] = (feat[i] - CENTER[i]) / SCALE[i];
+   return feat;
 }
 
 double
@@ -132,16 +127,16 @@ predict
    for (int i = 0; i < NSV; i++) {
       double sum = 0.0;
       for (int j = 0; j < DIM; j++) {
-         double dist = feat[j] - sv[i * DIM + j];
+         double dist = feat[j] - SV[i + j * NSV];
          sum += dist * dist;
       }
       kvals[i] = exp(-GAMMA * sum);
    }
 
    // Inner product between the kernelized test vector
-   // and the w hyperplane (here named coefs).
+   // and the w hyperplane (here named COEFS).
    double label = 0.0;
-   for (int i = 0; i < NSV; i++) label += coefs[i] * kvals[i];
+   for (int i = 0; i < NSV; i++) label += COEFS[i] * kvals[i];
 
    // Add the intercept term of the hyperplane before returning.
    //return (label - RHO) + 0.65 > 0 ? 1 : -1;
@@ -159,6 +154,8 @@ zerone_predict
 )
 {
 
-   double * feat = zscale(extractfeat(zerone));
+   double feat[DIM] = {0};
+   zscale(extractfeat(zerone, feat));
    return predict(feat);
+
 }

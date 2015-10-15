@@ -15,8 +15,6 @@ test_predict
       0.0718397730127468, 0.00333073543379349, 0.0375029981291674
    };
 
-   fprintf(stderr, "%f\n", predict(zscale(case1)));
-   fprintf(stderr, "%f\n", predict(case1));
    test_assert(fabs(predict(zscale(case1)) - 0.551572) < 1e-3);
 
    double case2[18] = {
@@ -28,8 +26,6 @@ test_predict
       0.511615494636454, 0.413931373715291, 1.23601301878537
    };
 
-   fprintf(stderr, "%f\n", predict(zscale(case2)));
-   fprintf(stderr, "%f\n", predict(case2));
    test_assert(fabs(predict(zscale(case2)) + 1.133339) < 1e-3);
 
    double case3[18] = {
@@ -41,8 +37,6 @@ test_predict
       0.350580129865963, 0.266862710646682, 0.891202047498119
    };
 
-   fprintf(stderr, "%f\n", predict(zscale(case3)));
-   fprintf(stderr, "%f\n", predict(case3));
    test_assert(fabs(predict(zscale(case3)) + 1.8283239) < 1e-3);
 
 }
