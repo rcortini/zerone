@@ -19,7 +19,7 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.1}}Emission model}{2}}
 \newlabel{sub:emissions}{{{2.1}}{2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.2}}Discretization}{2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Using the ZINB distribution to model ChIP-seq data. Reads from the negative control dataset XX were mapped on the human genome and pooled in 300\nobreakspace  {}bp windows after removing duplicates. The histogram of the read counts is shown in black (no immunoprecipitation was performed in this experiment, so this variation corresponds to the `baseline'). The histograms in gray scales show the maximum likelihood fit of the Poisson, Negative Binomial (NB) and Zero-Inflated Negative Binomial (ZINB) distributions. The fit of the Poisson distribution (light gray) is poor. The NB distribution (medium gray) gives a good fit at the tail, but not for windows with 0 and 1 read. The ZINB distribution (dark gray) gives a good fit over the whole range. }}{2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Using the ZINB distribution to model ChIP-seq data. Reads from the negative control data set XX were mapped on the human genome and pooled in 300\nobreakspace  {}bp windows after removing duplicates. The histogram of the read counts is shown in black (no immunoprecipitation was performed in this experiment, so this variation corresponds to the `baseline'). The histograms in gray scales show the maximum likelihood fit of the Poisson, Negative Binomial (NB) and Zero-Inflated Negative Binomial (ZINB) distributions. The fit of the Poisson distribution (light gray) is poor. The NB distribution (medium gray) gives a good fit at the tail, but not for windows with 0 and 1 read. The ZINB distribution (dark gray) gives a good fit over the whole range. }}{2}}
 \newlabel{fig:ZINB_fit}{{1}{2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.3}}Classification and training}{2}}
 \newlabel{sub:training}{{{2.3}}{2}}
@@ -27,35 +27,35 @@
 \citation{e1071}
 \citation{pmid21059603}
 \citation{pmid23103880}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Principal Component Analysis of the training dataset. Training examples labeled as positive (red circles) appear to be similar to each other, while negative examples (grey crosses) show notable differences between them and with respect to positive examples. There exist though a certain degree of overlap between the two groups that creates an ``ambiguous zone'', at least on this projection. }}{3}}
-\newlabel{fig:pca_color}{{2}{3}}
+\citation{pmid24194598}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Principal Component Analysis of the training data set. Training examples labeled as positive (red circles) appear to be similar to each other, while negative examples (grey crosses) show notable differences between them and with respect to positive examples. There exist though a certain degree of overlap between the two groups that creates an ``ambiguous zone'', at least on this projection. }}{3}}
+\newlabel{fig:pca_bw}{{2}{3}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.4}}Datasets and preprocessing}{3}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.5}}Benchmark conditions}{3}}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Results}{3}}
 \newlabel{sec:results}{{3}{3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {{3.1}}Speed and memory consumption}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{3.1}}Speed and memory footprint}{3}}
 \citation{XXX}
 \citation{pmid17382889}
 \citation{pmid21330290}
 \citation{pmid19458158}
-\citation{pmid24194598}
 \citation{pmid16122420}
 \citation{pmid23739122}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Running times and peak memory footprint of the discretizers on the three ChIP-seq datasets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. Note the logarithmic scale in the running times. }}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Running times and peak memory footprint of the discretizers on the three ChIP-seq data sets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. Note the logarithmic scale in the running times. }}{4}}
 \newlabel{fig:perf}{{3}{4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {{3.2}}Discretization benchmark}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{3.2}}Accuracy}{4}}
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Compairing discretizations. Genomic windows are ordered by decreasing amount of ChIP-seq reads on the $x$ axis, and the cumulative amount of reads is plotted on the $y$ axis. This line forms a Pareto front representing an optimum for the trade-off between the amount of targets and the amount of captured ChIP-seq reads. A discretization is represented by a single point on this plane. Discretizations lying in the quadrant upper left of it capture more reads with fewer targets.}}{4}}
 \newlabel{fig:expl}{{4}{4}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Summary of peak calling on the CTCF dataset. The table lists the total number of peaks found by the different programs, how many of those peaks contained at least one CTCF motif, and the correspondent precision, recall and $F_{1}$ score relative to the CTCF motif dataset. }}{4}}
-\newlabel{tab:ctcf}{{1}{4}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.1}}Identification of CTCF binding sites.}{4}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.2}}Pol2 binding around transcription start sites.}{4}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.3}}H3K36me3-enriched domains.}{4}}
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Left: Update legend.}}{5}}
 \newlabel{fig:pareto}{{5}{5}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.2}}H3K36me3-enriched domains.}{5}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.3}}Pol2 binding around transcription start sites.}{5}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Performance on the CTCF motifs data set. The table lists the total number of peaks found by the different programs, how many of those peaks contain at least one CTCF motif, and the associated precision, recall and $F_{1}$ score relative to the CTCF motif data set. }}{5}}
+\newlabel{tab:ctcf}{{1}{5}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Performance on the Pol2 data set. The table lists the total number of peaks found by the programs, how many of those peaks contain at least one Transription Start Site (TSS), and the associated precision, recall and $F_{1}$ score. }}{5}}
+\newlabel{tab:tss}{{2}{5}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Discussion and conclusions}{5}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Enriched genomic windows called by the different software. Circle size represents the enriched portion of the genome according to each of the programs, and the overlap between circles approximates the amount of windows found enriched by two or more programs. Note the almost complete overlap between the BayesPeak discretizations on the two replicates.}}{5}}
-\newlabel{fig:venn}{{6}{5}}
 \bibstyle{natbib}
 \bibdata{document,extra}
 \bibcite{pmid19458158}{{1}{2009}{{Bailey {\em  et~al.}}}{{Bailey, Boden, Buske, Frith, Grant, Clementi, Ren, Li, and Noble}}}
@@ -83,6 +83,6 @@
 \bibcite{psclb}{{23}{2008}{{Zeileis {\em  et~al.}}}{{Zeileis, Kleiber, and Jackman}}}
 \bibcite{pmid18798982}{{24}{2008}{{Zhang {\em  et~al.}}}{{Zhang, Liu, Meyer, Eeckhoute, Johnson, Bernstein, Nusbaum, Myers, Brown, Li, and Liu}}}
 \global\@namedef{@lastpage@}{6}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Summary of peak calling on the Pol2 dataset. As in Table 1\hbox {}, The table lists the total number of peaks found by the different programs, how many of those peaks contained at least one TSS, and the correspondent precision, recall and $F_{1}$ score relative to the Pol2 dataset. }}{6}}
-\newlabel{tab:tss}{{2}{6}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Enriched genomic windows called by the different software. Circle size represents the enriched portion of the genome according to each of the programs, and the overlap between circles approximates the amount of windows found enriched by two or more programs. Note the almost complete overlap between the BayesPeak discretizations on the two replicates.}}{6}}
+\newlabel{fig:venn}{{6}{6}}
 \@writefile{toc}{\contentsline {paragraph}{Funding\text  {\rm  :}}{6}}

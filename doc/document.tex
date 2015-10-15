@@ -28,7 +28,7 @@ is the standard method to investigate chromatin protein composition. As the
 number of community-available ChIP-seq profiles increases, it becomes more
 common to use data from different sources, which makes joint analysis
 challenging. Issues such as lack of reproducibility, heterogeneous quality and
-conflicts between replicates become evident when comparing datasets, especially
+conflicts between replicates become evident when comparing data sets, especially
 when they are produced by different laboratories.
 
 \section{Results:}
@@ -90,7 +90,7 @@ out poorly reproducible signal. This approach is a significant step
 forward, but the IDR is undefined when more than two replicates are
 available. Besides, keeping only the reproducible ChIP peaks is not
 always the best option. If one of the replicates is mislabelled,
-for instance, it is more appropriate to reject the dataset than to keep
+for instance, it is more appropriate to reject the data set than to keep
 the common ChIP peaks. In summary, how to integrate ChIP-seq data
 from different sources and with variable qualities is still an open
 problem.
@@ -151,7 +151,7 @@ fit to ChIP-seq data than Poisson and NB distributions.
 \centerline{\includegraphics[scale=0.55]{ZINB_fit.pdf}}
 % XX is wgEncodeSydhTfbsK562InputRawData.bed.gz %
 \caption{Using the ZINB distribution to model ChIP-seq data. Reads from
-the negative control dataset XX were mapped on the human genome and pooled
+the negative control data set XX were mapped on the human genome and pooled
 in 300~bp windows after removing duplicates. The histogram of the read
 counts is shown in black (no immunoprecipitation was performed in this
 experiment, so this variation corresponds to the `baseline'). The
@@ -214,7 +214,7 @@ parameters is $3(r+1)$, where $r$ is the number of replicate experiments
 \subsection{Classification and training}
 \label{sub:training}
 We used a machine learning strategy to identify discretization
-failures. We first prepared a high confidence dataset where the
+failures. We first prepared a high confidence data set where the
 output of Zerone was labelled positive (success) or negative (failure).
 We discretized 144 replicated ChIP-seq experiments, together with their
 respective input control.
@@ -244,10 +244,10 @@ the training data to a kernel space. Also, SVMs are fast to train and
 they require only one hyperparameter to be fitted, which were
 advantages over other approaches such as neural networks.
 
-% TODO: change pca image to the new dataset
+% TODO: change pca image to the new data set
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{pca_bw.pdf}}
-\caption{Principal Component Analysis of the training dataset.
+\caption{Principal Component Analysis of the training data set.
 Training examples labeled as positive (red circles) appear to be similar to
 each other, while negative examples (grey crosses) show notable differences
 between them and with respect to positive examples. There exist though a
@@ -275,16 +275,13 @@ the options \texttt{--unique-mapping} and \texttt{-q ignore} of gem-mapper
 version 1.376 (beta). The version of gem-indexer was 1.423 (beta). We
 preprocessed the data in the same way both for training the classifier
 and for benchmarking. We also used the same genome assembly to generate
-the datasets used in the benchmarks (see Section \ref{sec:results}).
-
-For training the classifier, we binned the mapped reads into 300~bp
-windows and saved the data in WIG format before discretization.
+the data sets used in the benchmarks (see Section \ref{sec:results}).
 
 \subsection{Benchmark conditions}
 To compare Zerone to other discretizers, we analysed three different
-ChIP-seq datasets: CCCTC-binding factor (CTCF), tri-methylated histone H3 at
+ChIP-seq data sets: CCCTC-binding factor (CTCF), tri-methylated histone H3 at
 lysine 36 (H3K36me3) and RNA polymerase II (Pol2)---that represent punctate,
-broad and mixed type signals respectively. Each dataset consisted of an input
+broad and mixed type signals respectively. Each data set consisted of an input
 profile and two replicate target profiles.
 
 To make the comparisons fair, we merged all contiguous windows that were called
@@ -292,25 +289,28 @@ as enriched by Zerone, in the same way the other programs do. Otherwise, the
 number of enriched regions in the genome would be higher and Zerone performance
 would look poorer than the actual.
 
-We decided to include MACS \texttt{callpeak} (version 2.1.0.20140616) in
-the comparisons because it is the \textit{de facto} standard method
-for ChIP-seq peak calling; BayesPeak (version 1.20.0) because, as Zerone,
-it makes use of an HMM with ZINB emissions to estimate the regions of
-enrichment; and JAMM (version 1.0.7rev1) because it can perform joint
-analysis on experimental replicates.
+We tested MACS \texttt{callpeak} version 2.1.0.20140616, BayesPeak
+version 1.20.0 and JAMM version 1.0.7rev1. All tests were performed on
+an 8-core Intel Xeon E5606 machine with 48~GB of DDR3-RAM at 1333~MHz.
+All programs were run on a single core with the default options.
 
-All tests were performed on an 8-core Intel Xeon E5606 machine with 48~GB of
-DDR3-RAM at 1333~MHz. All programs were run on a single core with the default
-options.
+CTCF motifs were obtained from the JASPAR database version
+5.0{\textunderscore}ALPHA \citep{pmid24194598}.
 
 \end{methods}
 
 \section{Results}
 \label{sec:results}
+We benchmarked Zerone against three other ChIP-seq discretizers.
+We included MACS as the standard method for ChIP-seq peak calling,
+BayesPeak because it is powered by an HMM with ZINB emissions
+similar to the model implemented in Zerone, and JAMM because, as
+Zerone, it can perform joint discretization of experimental replicates.
 
-\subsection{Speed and memory consumption}
+\subsection{Speed and memory footprint}
+
 We compared the running times of the different programs on discretizing
-three datasets of similar size that represent the three major types of
+three data sets of similar size that represent the three major types of
 ChIP-seq signal usually observed. The CTCF signal consists of sharp
 peaks at the transcription factor binding site, the H3K36me3 signal
 consists of broad domains, and the Pol2 signal consists of  peaks
@@ -340,14 +340,14 @@ CPUs.
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{performance.pdf}}
 \caption{Running times and peak memory footprint of the
-discretizers on the three ChIP-seq datasets. For programs that only
+discretizers on the three ChIP-seq data sets. For programs that only
 allow single-profile discretization (\textit{i.e.} BayesPeak and MACS),
 mean values (not the sum) are shown. Note the logarithmic scale in the
 running times.
 }\label{fig:perf}
 \end{figure}
 
-\subsection{Discretization benchmark}
+\subsection{Accuracy}
 Intuitively, good discretizers capture a large fraction of the
 ChIP-seq signal within few target genomic sites. The number of targets
 and the amount of signal they represent are therefore critical
@@ -381,6 +381,12 @@ left of the Pareto front, and those on the front represent an
 optimum. Others are suboptimal, since fewer windows can capture more
 targets.
 
+\begin{figure*}
+\centerline{\includegraphics[scale=0.4]{pareto_front.pdf}}
+\caption{Left: Update legend.}
+\label{fig:pareto}
+\end{figure*}
+
 This representation reveals that discretizing the CTCF profile yields
 similar outputs regardless of the software (Fig.~\ref{fig:pareto},
 left panel). On the other hand, discretizing the Pol2 or the H3K36me3
@@ -394,36 +400,32 @@ ChIP targets than transcription factors \citep{XXX}. Of the other tools,
 only JAMM produces a discretization that is consistent with those
 facts.
 
-
-\begin{figure*}
-\centerline{\includegraphics[scale=0.4]{pareto_front.pdf}}
-\caption{Left: Update legend.}
-\label{fig:pareto}
-\end{figure*}
+This representation shows that Zerone produces discretizations that
+are sensitive and adapted to the profile being discretized.
 
 
 \subsubsection{Identification of CTCF binding sites.}
-CTCF binding sites are characterized by a specific 20~bp sequence that
-is highly conserved in vertebrates. In humans, nearly 80\% of these
+CTCF binds a 20~bp consensus sequence that is highly conserved in
+vertebrates. In humans, nearly 80\% of the CTCF binding
 sites contain the consensus motif \citep{pmid17382889}. In order to
 determine the capacity of the different programs to call peaks of CTCF
-binding, we compared the discretized profiles against a dataset of CTCF
+binding, we compared the discretized profiles against a data set of CTCF
 binding motifs. We used FIMO \citep{pmid21330290} from the MEME suite
-version 4.10.1 \citep{pmid19458158}, to generate such dataset from the
-human CTCF motif obtained from the JASPAR database version
-5.0{\textunderscore}ALPHA \citep{pmid24194598}. The CTCF motif dataset
-contained 85,690 entries.
+version 4.10.1 \citep{pmid19458158} to identify and map CTCF motifs in
+the human genome. We obtained a reference data aset containing 85,690
+CTCF motifs.
 
-Table \ref{tab:ctcf} shows that Zerone outperforms its competitors: it
-has one of the highest recall scores, comparable to that of JAMM, the
-other software capable of combined analysis, while achieving the
-highest precision among the evaluated programs.
+Table \ref{tab:ctcf} shows that Zerone outperforms the other tools
+in terms of the $F_1$ score (the harmonic mean between precision and
+recall). It has a the second higest recall score, close to that of JAMM,
+and it achievs the highest precision.
 
 \begin{table}[!t]
-\processtable{Summary of peak calling on the CTCF dataset.
-The table lists the total number of peaks found by the different programs, how
-many of those peaks contained at least one CTCF motif, and the correspondent
-precision, recall and $F_{1}$ score relative to the CTCF motif dataset.
+\processtable{Performance on the CTCF motifs data set.
+The table lists the total number of peaks found by the different
+programs, how many of those peaks contain at least one CTCF motif,
+and the associated precision, recall and $F_{1}$ score relative to
+the CTCF motif data set.
 \label{tab:ctcf}}
 {\begin{tabular}{lrrccc}
         \toprule
@@ -441,13 +443,45 @@ precision, recall and $F_{1}$ score relative to the CTCF motif dataset.
 replicates by separate.}
 \end{table}
 
+In summary, Zerone achieves a good balance between sensitivity and
+specificity for transcription factor profiles, as was suggested by
+the left panel of Fig.~\ref{fig:pareto}.
+
+
+\subsubsection{Pol2 binding around transcription start sites.}
+% Pol2 is on TSSs
+To compare the behavior of the different discretizers, we determined how the
+peaks were distributed around TSSs.
+
+\begin{table}[!t]
+\processtable{Performance on the Pol2 data set.
+The table lists the total number of peaks found by the programs, how
+many of those peaks contain at least one Transription Start Site (TSS),
+and the associated precision, recall and $F_{1}$ score.
+\label{tab:tss}}
+{\begin{tabular}{lrrccc}
+        \toprule
+        \textbf{Software}  & \textbf{Total}  & \textbf{TSS} &
+        \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
+        \midrule
+        BayesPeak$^{(1)}$ & 208,809 & 2,722 & 0.01 & 0.06 & 0.03 \\
+        BayesPeak$^{(2)}$ & 203,438 & 2,603 & 0.01 & 0.05 & 0.03 \\
+        JAMM              & 209,882 & 6,761 & 0.03 & 0.21 & 0.11 \\
+        MACS$^{(1)}$      &  51,313 & 6,845 & 0.13 & 0.22 & 0.27 \\
+        MACS$^{(2)}$      &  49,034 & 6,546 & 0.13 & 0.21 & 0.26 \\
+        Zerone            &  23,976 & 6,926 & 0.29 & 0.24 & 0.36 \\
+        \botrule
+\end{tabular}}{The numbers in parentheses indicate the results on the two
+replicates by separate.}
+\end{table}
+
 \subsubsection{H3K36me3-enriched domains.}
-Unlike in the previous case, there is no known consensus sequence to determine
-the location of histone modifications. However, it is known that the bodies of
-active genes are enriched in H3K36me3 \citep{pmid16122420,pmid23739122}.
-Therefore, the genes that contain peaks or windows determined as enriched in
-H3K36me3 by the different discretizers should be more expressed than the
-background.
+Unlike in the previous case, there is no known consensus sequence
+to determine the location of histone modifications. However, it is
+known that the bodies of active genes are enriched in H3K36me3
+\citep{pmid16122420,pmid23739122}. Therefore, the genes that contain
+peaks or windows determined as enriched in H3K36me3 by the different
+discretizers should be more expressed than the background.
 
 UPDATE shows that the expression levels of regions detected as
 enriched in H3K36me3 by Zerone are indeed higher than the ones of non-enriched
@@ -457,7 +491,7 @@ precision score as discussed above (Table~\ref{tab:ctcf}). However, both JAMM
 and Zerone appear to detect as enriched windows with a lower mean read count
 (Fig.~\ref{fig:expr}, center), which seems to contradict the previous finding
 that these discretizers have the highest recall scores when analyzing the CTCF
-dataset (Table~\ref{tab:ctcf}). This effect can be explained by the fact that
+data set (Table~\ref{tab:ctcf}). This effect can be explained by the fact that
 Zerone is able to detect more enriched windows: other programs are only able to
 detect the peaks with the highest intensity and therefore the mean read count in
 enriched windows could be overestimated (Fig.~\ref{fig:expr}, right).
@@ -478,59 +512,41 @@ and the overlap between circles approximates the amount of windows found
 enriched by two or more programs. Note the almost complete overlap between the
 BayesPeak discretizations on the two replicates.}\label{fig:venn}
 \end{figure}
-
-\subsubsection{Pol2 binding around transcription start sites.}
-% Pol2 is on TSSs
-To compare the behavior of the different discretizers, we determined how the
-peaks were distributed around TSSs.
-
-\begin{table}[!t]
-\processtable{Summary of peak calling on the Pol2 dataset.
-As in Table \ref{tab:ctcf},  The table lists the total number of peaks found by the different programs, how
-many of those peaks contained at least one TSS, and the correspondent precision,
-recall and $F_{1}$ score relative to the Pol2 dataset.
-\label{tab:tss}}
-{\begin{tabular}{lrrccc}
-        \toprule
-        \textbf{Software}  & \textbf{Total}  & \textbf{TSS} &
-        \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
-        \midrule
-        BayesPeak$^{(1)}$ & 208,809 & 2,722 & 0.01 & 0.06 & 0.03 \\
-        BayesPeak$^{(2)}$ & 203,438 & 2,603 & 0.01 & 0.05 & 0.03 \\
-        JAMM              & 209,882 & 6,761 & 0.03 & 0.21 & 0.11 \\
-        MACS$^{(1)}$      &  51,313 & 6,845 & 0.13 & 0.22 & 0.27 \\
-        MACS$^{(2)}$      &  49,034 & 6,546 & 0.13 & 0.21 & 0.26 \\
-        Zerone            &  23,976 & 6,926 & 0.29 & 0.24 & 0.36 \\
-        \botrule
-\end{tabular}}{The numbers in parentheses indicate the results on the two
-replicates by separate.}
-\end{table}
-
 \section{Discussion and conclusions}
 
-Here we propose to compare discretizers with an intuitive grpahical
-representation (Fig~\ref{fig:expl}). This representation highlights
-two key properties discretizers: their conservativity and their
-sensitivity. A more conservative discretizer is not better nor worse.
-This is a matter of choice because of the inherent trade-off between
-false positives and false negatives. However, this choice is usually
-implicit and the merit of our representation is to make it explicit.
-Equally conservative discretizers may still differ in their false
-negative rate or sensitivity. In this case, the more sensitive is
-a better option. The second merit of our representation is to show
-how far discretizers are from the optimal sensitivity (for their
-conservativity).
+Here we introduced a way to compare discretizers with an intuitive
+grpahical representation (Fig.~\ref{fig:expl}). On this plane,
+the coordinates of a discretization indicate the number of targets
+(or occupancy) and the amount of reads captured by these targets.
+The Pareto front captures the inherent trade-off between sensitivity
+and specificity in the problem of discretizing ChIP-seq profiles.
+Points on this line that are close to the bottom-left corner represent
+discretizations with high amount of reads per target (most specific)
+and points that are close to the top-right corner represent
+discretizations with many targets (most sensitive). The Pareto front
+also highlights an unachievable region whose shape depends on the
+structure of the signal, \textit{i.e.} on the feature being disretized
+(Fig.~\ref{fig:expl}). One of the challenges of discretizing ChIP-seq
+profiles is to find algorithms that perform well in all the cases.
 
-The Pareto front captures the trade-off between false positive and
-false negative rates. Figure \ref{fig:pareto} reveals that this front
-has different shapes, depending on the feature being discretized.
-This explains the difficulty of finding `univeral' discretization
-methods. Zerone stands out as the least conservative of the
-discretizers tested here.
+In practice, the specificity of a discretizer is unknown because
+the biological truth remains hidden. However, we can decide whether
+a discretizer is more or less conservative than another by measuring
+the amount of reads per target. This characteristic may be a matter of
+choice, and is usually tacit in the case of ChIP-seq discretizers.
+Out of two equally conservative discretizers, one may be more sensitive,
+\textit{i.e.} discover more targets. The merit of the representation
+introduced here is to highlight these characteristics and to guide users
+when choosing the most appropriate tool fo their need.
 
-Explain that it makes sense.
-
-Explain that the naive approach is not the same.
+This representation naturally suggests a naive approach to discretize
+ChIP-seq profiles. Indeed, one could sort the genomic windows by
+decreasing amount of ChIP-seq reads and declare `target' any window
+above a chosen threshold. While this method would only produce
+discretizations on the Pareto front, adjusting the threshold to the
+conditions would be challenging for lack of an underlying model.
+This is one of the major strengths of Zerone: the statistical model
+automatically adjusts conservativity and sensitivity in a sensible way.
 
 \section*{Acknowledgement}
 
