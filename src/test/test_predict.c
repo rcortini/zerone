@@ -15,7 +15,7 @@ test_predict
       0.0718397730127468, 0.00333073543379349, 0.0375029981291674
    };
 
-   test_assert(fabs(predict(zscale(case1)) - 0.551572) < 1e-3);
+   test_assert(fabs(predict(zscale(case1)) - 1.135104) < 1e-3);
 
    double case2[18] = {
       0.00169173070088186, 0.999377116926393, 0.00046543319629242,
@@ -26,7 +26,7 @@ test_predict
       0.511615494636454, 0.413931373715291, 1.23601301878537
    };
 
-   test_assert(fabs(predict(zscale(case2)) + 1.133339) < 1e-3);
+   test_assert(fabs(predict(zscale(case2)) + 2.547238) < 1e-3);
 
    double case3[18] = {
       0.000571301109269696, 0.999376116529347, 2.38438981215253e-23,
@@ -37,6 +37,6 @@ test_predict
       0.350580129865963, 0.266862710646682, 0.891202047498119
    };
 
-   test_assert(fabs(predict(zscale(case3)) + 1.8283239) < 1e-3);
+   test_assert(fabs(predict(zscale(case3)) + 3.5982989) < 1e-3);
 
 }
