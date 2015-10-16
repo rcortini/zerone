@@ -236,7 +236,7 @@ dataset.
 To identify discretization failures, we used the paremeters of the
 fitted HMM. Based on the transition matrix, the emission paramaters,
 the Viterbi Path and the posterior probabilities,
-we computed 19 features expected to vary with the quality
+we computed 18 features expected to vary with the quality
 of the discretization, and we used them to train a classifier.
 
 Our first attempts with logistic regression suggested that linear
@@ -531,11 +531,45 @@ almost complete overlap between the BayesPeak discretizations on the
 two replicates.}\label{fig:venn}
 \end{figure}
 
-\subsection{Quality control}
+\subsection{Automatic quality control}
 
-Give the example of HDAC6.
+The most novel feature of Zerone is an embedded automatic quality
+control step taking place after the discretization. This not only
+ensures that the discretization is sensible, but also that the
+replicates are similar to each other and that ChIP-seq profiles
+are not too similar to the mock controls. Our approach is based
+on the idea that estimating distributional parameters from
+overly noisy or divergent profiles should give a signature that
+can be picked up by a specially trained classifier.
+
+We identified 18 summary statistics that characterize the
+discretization (including the transition parameters of the HMM,
+the mean number of targets and their mean posterior probability)
+and trained an SVM to recognize failures. We thus obtained a
+classifier able to identify failed discretization attempts
+with 95\% accuracy (\textit{c.f.} section \ref{sub:training}).
+
+Computer-assisted quality control is essential for high throughput
+pipelines and for cases with no prior knowledge. We decided to
+showcase this feature of Zerone on the ChIP-seq profile of HDAC6.
+The issue with this protein is that it is almost exclusively
+cytoplasmic, but that it is reported to have some enzymatic
+activity in the nucleus \citep{XXX}. Is the amount of protein in
+the nucleus sufficient to obtain good qualith ChIP-seq profile?
+
+The ENCODE consortium, who published this data, concluded that
+it is. 
 
 \section{Discussion and conclusions}
+
+Zerone was developed ground up for scalibility and throughput.
+Part of the speed is due to indexing methods that dramatically
+cut down the computation time during the Baum-Welch cycles. Zerone
+also rests on sound statistical bases. Theoretical arguments and
+experimental observations suggest that the Zero-Inflated Negative
+Multinomial distribution is appropriate to model ChIP-seq data
+(Fig.~\ref{fig:ZINB_fit}). This gives Zerone good specificity
+and sensitivity for very different profiles.
 
 Here we introduced a way to compare discretizers with an intuitive
 grpahical representation (Fig.~\ref{fig:expl}). On this plane,

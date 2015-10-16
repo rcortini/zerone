@@ -40,12 +40,11 @@ const char *USAGE =
 "    -l --list-output: output list of targets (default table)\n"
 "\n"
 "    -h --help: display this message and exit\n"
-"    -v --version: display version and exit\n"
+"       --version: display version and exit\n"
 "\n"
 "EXAMPLES:\n"
 " zerone --mock file1.bam,file2.bam --chip file3.bam,file4.bam\n"
 " zerone -l -0 file1.map -1 file2.map -1 file4.map\n";
-
 
 
 #define VERSION "zerone-v1.0"
@@ -90,6 +89,8 @@ parse_fname
 
 int main(int argc, char **argv) {
 
+   debug_print("%s (DEBUG)\n", VERSION);
+
    if (argc == 1) {
       say_usage();
       exit(EXIT_SUCCESS);
@@ -116,7 +117,7 @@ int main(int argc, char **argv) {
          {0, 0, 0, 0}
       };
 
-      int c = getopt_long(argc, argv, "0:1:hv",
+      int c = getopt_long(argc, argv, "0:1:h",
             long_options, &option_index);
 
       // Done parsing named options. //
@@ -190,11 +191,6 @@ int main(int argc, char **argv) {
    fprintf(stdout, "# advice: %s discretization.\n",
          QCscore >= 0 ? "accept" : "reject");
 
-   // Print results (Viretbi path and phi matrix).
-//   const int target = Z->map[2];
-//   const int inter  = ChIP->map[1];
-//   const int ground = ChIP->map[0];
-
    if (list_flag) {
       int wid = 0;
       int target = 0;
@@ -222,8 +218,16 @@ int main(int argc, char **argv) {
       for (int i = 0 ; i < ChIP->nb ; i++) {
          char *name = ChIP->nm + 32*i;
          for (int j = 0 ; j < ChIP->sz[i] ; j++) {
-            fprintf(stdout, "%s\t%d\t%d\t%d\n", name, 300*j + 1,
+//            fprintf(stdout, "%s\t%d\t%d\t%d\n", name, 300*j + 1,
+//                  300*(j+1), Z->path[wid++]);
+// XXX //
+            fprintf(stdout, "%s\t%d\t%d\t%d", name, 300*j + 1,
                   300*(j+1), Z->path[wid++]);
+            for (int k = 0 ; k < Z->ChIP->r ; k++) {
+               fprintf(stdout, "\t%d", Z->ChIP->y[k+j*Z->ChIP->r]);
+            }
+            fprintf(stdout, "\n");
+// XXX //
          }
       }
    }
