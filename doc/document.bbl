@@ -54,6 +54,13 @@ Jackman, S. (2015).
   California.
 \newblock R package version 1.4.9.
 
+\bibitem[Karolchik {\em et~al.}(2004)Karolchik, Hinrichs, Furey, Roskin,
+  Sugnet, Haussler, and Kent]{Karolchik2004}
+Karolchik, D., Hinrichs, A.~S., Furey, T.~S., Roskin, K.~M., Sugnet, C.~W.,
+  Haussler, D., and Kent, W.~J. (2004).
+\newblock {The UCSC Table Browser data retrieval tool.}
+\newblock {\em Nucleic acids research\/}, {\bf 32}(Database issue), D493----6.
+
 \bibitem[Kim {\em et~al.}(2007)Kim, Abdullaev, Smith, Ching, Loukinov, Green,
   Zhang, Lobanenkov, and Ren]{pmid17382889}
 Kim, T.~H., Abdullaev, Z.~K., Smith, A.~D., Ching, K.~A., Loukinov, D.~I.,

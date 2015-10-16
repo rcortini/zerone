@@ -228,8 +228,10 @@ poor data quality in ChIP-seq correspond to low signal-to-noise ratio
 (\textit{e.g.} when the antibody is unspecific), and lack of
 repdroducibility between replicates (\textit{e.g.} when samples are
 swapped). To cover these cases, we included in the trusted set
-720 cases obtained by discretizing non-replicates
-(\textit{e.g.} CTCF and Pol2) and controls without immuno-precipitation.
+38 other cases obtained by discretizing non-replicates
+(\textit{e.g.} CTCF and Pol2) and controls without immuno-precipitation. Thus,
+a total of 182 (91 positive and 91 negative) cases were used to build a balanced
+dataset.
 
 To identify discretization failures, we used the paremeters of the
 fitted HMM. Based on the transition matrix, the emission paramaters,
@@ -470,9 +472,10 @@ the left panel of Fig.~\ref{fig:pareto}.
 \subsubsection{Pol2 binding around transcription start sites.}
 % Pol2 is on TSSs
 To compare the behavior of the discretizers on the Pol2 profile,
-we determined how the peaks were distributed around Transcription
-Start Sites (TSS), as it is expected that most of the Pol2 signal
-should contained annotated TSS.
+we determined the extent to which the enriched regions contained Transcription
+Start Sites (TSS), as Pol2 is expected to bind near annotated TSS. Data about
+TSS positioning was extracted from the knownGene table of the UCSC Genes
+annotation for the hg19 genome \citep{Karolchik2004}.
 
 \begin{table}[!t]
 \processtable{Performance on the Pol2 data set.
