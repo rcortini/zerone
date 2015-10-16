@@ -1,0 +1,86 @@
+\documentclass[12pt]{article}
+\usepackage{url}
+\usepackage{hyperref}
+\title{Zerone tutorial}
+\author{Pol Cusc\'o and Guillaume Filion}
+
+\begin{document}
+\maketitle
+
+\section{Building instructions}
+
+Zerone is available as a Linux command line application and as an R package.
+You can download the source code of Zerone from Github with
+the following command on a standard terminal.
+
+\begin{verbatim}
+git clone git@github.com:gui11aume/zerone
+\end{verbatim}
+
+Note that this requires that you already have a Github account
+and that the computer you are working on has an SSH key registered
+on Github. If this is not the case, follow the instructions from
+\url{https://help.github.com/articles/generating-ssh-keys/}.
+
+This should download a directory named \texttt{zerone}. To build
+Zerone, execute the following.
+
+\begin{verbatim}
+cd zerone
+make
+\end{verbatim}
+
+This should succeed on most Linux systems because \texttt{make} is
+available by default. If this is not the case, you can obtain it by
+typing \texttt{sudo apt-get install make} on the Ubuntu terminal.
+
+Calling \texttt{make} should create an executable called
+\texttt{zerone}. To check that the building is successful, test Zerone with
+the following commands.
+
+\begin{verbatim}
+cd src/test
+make test
+cd ../..
+\end{verbatim}
+
+If it passes the tests without any error message, then everything went fine
+and you are done with the build. If not, then something went
+wrong. In this case, you can explain how to reproduce the problem
+on \url{https://github.com/gui11aume/zerone/issues}.
+
+\subsection{Installing Rzerone}
+
+To install the Rzerone R package, simply run this command from the
+\texttt{zerone} directory.
+
+\begin{verbatim}
+R CMD INSTALL Rzerone
+\end{verbatim}
+
+Note that you need to have R installed on your computer. If this in not the
+case, run the command \texttt{sudo apt-get install r-base} on Ubuntu.
+
+\section{Zerone basics}
+
+\section{Troubleshooting}
+
+In case Zerone crashes, start by recompiling it in debug mode. To do so,
+run the following commands from the \texttt{zerone} directory.
+
+\begin{verbatim}
+make clean
+make debug
+\end{verbatim}
+
+Then repeat the actions that triggered the crash and contact
+\href{mailto:guillaume.filion@gmail.com}{guillaume.filion@gmail.com}
+attaching the debug information.
+
+% TODO: Add R crashing part.
+
+\end{document}
+
+% finish with a troubleshooting guide (recompile with make debug and contact me attaching the debug information)
+% examples with tiny data sets so that the user can get familiar with the output and the way to call Zerone
+% Just explain what the output means (including the output of the SVM)
