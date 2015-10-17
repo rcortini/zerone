@@ -371,7 +371,7 @@ test_autoparse
 
    lnk = lookup_or_insert("chr6", hashtab);
    test_assert_critical(lnk != NULL);
-   test_assert(lnk->counts->array[317504] == 2);
+   test_assert(lnk->counts->array[317504] == 1);
 
    lnk = lookup_or_insert("chr18", hashtab);
    test_assert_critical(lnk != NULL);
@@ -417,7 +417,7 @@ test_autoparse
 
    lnk = lookup_or_insert("ref1", hashtab);
    test_assert_critical(lnk != NULL);
-   test_assert(lnk->counts->array[0] == 6);
+   test_assert(lnk->counts->array[0] == 5);
 
    destroy_hash(hashtab);
 

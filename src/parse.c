@@ -22,6 +22,7 @@ int    ERR;
 
 // Prime number for the size of hash table.
 #define HSIZE 997
+#define BSIZE 100000000
 
 // Shortcut to acces position of hash table.
 #define hv(a) djb2(a) % HSIZE
@@ -38,18 +39,21 @@ struct hash_t;
 struct link_t;
 struct rod_t;
 struct loc_t;
-// Iterator states.
+
 struct bgzf_state_t;
 struct generic_state_t;
 
+// Type definitions.
 typedef struct link_t link_t;
-typedef struct rod_t rod_t;
 typedef struct loc_t loc_t;
+typedef struct rod_t rod_t;
+
 typedef struct bgzf_state_t bgzf_state_t;
 typedef struct generic_state_t generic_state_t;
 
 // Shortcuts.
 typedef link_t * hash_t;
+typedef char * bloom_t;
 
 // Special functions.
 typedef int     (*iter_t)   (loc_t *);
@@ -109,6 +113,7 @@ int      parse_bed (loc_t *, char *);
 
 // Hash handling functions.
 int      add_to_rod (rod_t **, uint32_t);
+int      bloom_query_and_set(const char *, int, bloom_t);
 void     destroy_hash(hash_t *);
 link_t * lookup_or_insert (const char *, hash_t *);
 ChIP_t * merge_hashes (hash_t **, int);
@@ -324,14 +329,25 @@ autoparse
 )
 {
 
-   loc_t loc;
+   int status = SUCCESS;
+
+   bloom_t bloom = NULL;
+   loc_t loc = {0};
 
    // Find an iterator for the given file type.
    iter_t iterate = choose_iterator(fname);
 
    if (iterate == NULL) {
       debug_print("%s", "choosing iterator failed\n");
-      return FAILURE;
+      status = FAILURE;
+      goto clean_and_return;
+   }
+
+   bloom = calloc(1, BSIZE);
+   if (bloom == NULL) {
+      debug_print("%s", "memory error\n");
+      status = FAILURE;
+      goto clean_and_return;
    }
 
    ERR = 0;
@@ -340,27 +356,35 @@ autoparse
       // 'loc.name' is set to NULL for unmapped reads.
       if (loc.name == NULL) continue;
 
+      // Check in Bloom filter whether the read was seen before.
+      if (bloom_query_and_set(loc.name, loc.pos, bloom)) continue;
+
       link_t *lnk = lookup_or_insert(loc.name, hashtab);
 
       if (lnk == NULL) {
          debug_print("%s", "hash query failed\n");
-         return FAILURE;
+         status = FAILURE;
+         goto clean_and_return;
       }
 
       // Add read to counts.
       if (!add_to_rod(&lnk->counts, loc.pos / BIN_SIZE)) {
          debug_print("%s", "adding read failed\n");
-         return FAILURE;
+         status = FAILURE;
+         goto clean_and_return;
       }
 
    }
 
    if (ERR) {
       // Unexpected exit from iteration.
-      return FAILURE;
+      status = FAILURE;
+      goto clean_and_return;
    }
 
-   return SUCCESS;
+clean_and_return:
+   free(bloom);
+   return status;
 
 }
 
@@ -914,5 +938,32 @@ lookup_or_insert
    htab[hv(s)] = new;
 
    return new;
+
+}
+
+int
+bloom_query_and_set
+(
+   const char  * name,
+         int     pos,
+         bloom_t bloom
+)
+{
+
+   uint32_t a = (djb2(name) + pos) % (8*BSIZE);
+   uint32_t b = (a + pos) % (8*BSIZE);
+
+   int abyte = a/8, abit = a%8;
+   int bbyte = a/8, bbit = b%8;
+
+   // Get bits.
+   int a_yes = (bloom[abyte] >> (abit)) & 1;
+   int b_yes = (bloom[bbyte] >> (bbit)) & 1;
+
+   // Set bits.
+   bloom[abyte] |= (1 << abit);
+   bloom[bbyte] |= (1 << bbit);
+
+   return a_yes && b_yes;
 
 }
