@@ -13,6 +13,7 @@ Filion\,$^{1,2}$\footnote{to whom correspondence should be addressed}}
 Programme, Centre for Genomic Regulation (CRG), The Barcelona Institute of
 Science and Technology, Dr. Aiguader 88, Barcelona 08003, Spain.\\
 $^{2}$Universitat Pompeu Fabra (UPF), Barcelona, Spain.}
+% The CRG affiliation is compliant (October 17, 2015).
 
 \history{Received on XXXXX; revised on XXXXX; accepted on XXXXX}
 
@@ -555,10 +556,20 @@ showcase this feature of Zerone on the ChIP-seq profile of HDAC6.
 The issue with this protein is that it is almost exclusively
 cytoplasmic, but that it is reported to have some enzymatic
 activity in the nucleus \citep{XXX}. Is the amount of protein in
-the nucleus sufficient to obtain good qualith ChIP-seq profile?
+the nucleus sufficient to obtain good quality ChIP-seq profiles?
 
-The ENCODE consortium, who published this data, concluded that
-it is. 
+We used Zerone to discretize a ChIP-seq profile of HDAC6 in
+K562 cells produced by the ENCODE consortium. The outcome of the
+quality control is that the discretization is invalid. The
+question is whether it is a botch of Zerone, or whether the data
+is poor quality.
+
+Find a ENCODE input that correlates well with the HDAC6.
+If cannot, remove this section (or find another argument).
+
+Do the fit of XXX signal with ZINB. Show that the signals are very
+different.
+
 
 \section{Discussion and conclusions}
 
@@ -608,11 +619,13 @@ automatically adjusts conservativity and sensitivity in a sensible way.
 \section*{Acknowledgement}
 
 \paragraph{Funding\textcolon}
-P.C. fellowship is partly financed by the Spanish Ministry of Economy and
-Competitiveness (State Training Subprogram: predoctoral fellowships for the
-training of PhD students (FPI) 2013).
-We acknowledge support of the Spanish Ministry of Economy and Competitiveness,
-`Centro de Excelencia Severo Ochoa 2013-2017', SEV-2012-0208.
+% These acknowledgements are compliant (October 17, 2015).
+The fellowship of P.C. is partly financed by the Spanish Ministry
+of Economy and Competitiveness (State Training Subprogram: predoctoral
+fellowships for the training of PhD students (FPI) 2013).
+We acknowledge support of the Spanish Ministry of Economy and
+Competitiveness, `Centro de Excelencia Severo Ochoa 2013-2017',
+SEV-2012-0208.
 
 \bibliographystyle{natbib}
 \bibliography{document,extra}
