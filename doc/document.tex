@@ -508,7 +508,7 @@ the performance of Zerone is outstanding on this dataset, as suggested
 by the middle panel of Fig.~\ref{fig:pareto}.
 
 \subsubsection{H3K36me3-enriched domains.}
-Unlike the previous cases, there is no consensus sequence
+Unlike in the previous cases, there is no consensus sequence
 to determine the location of histone modifications. However, it is
 known that the bodies of active genes are enriched in H3K36me3
 \citep{pmid16122420,pmid23739122}. Therefore, the genes that contain
@@ -524,12 +524,14 @@ the others, which is consistent with the previous observations
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{histone_venn_color_names.pdf}}
-\caption{Enriched genomic windows called by the different software.
-Circle size represents the enriched portion of the genome according to
-each of the programs, and the overlap between circles approximates the
-amount of windows found enriched by two or more programs. Note the
-almost complete overlap between the BayesPeak discretizations on the
-two replicates.}\label{fig:venn}
+\caption{
+  Overlap between H3K36me3 targets. Each circle represents the
+  H3K36me3 targets identified by a program. The size of the circles
+  is proportional to the coverage of the targets, and their overlap
+  approximates the amount of targets shared by the programs. Note
+  the almost complete overlap between the BayesPeak discretizations
+  on the two replicates.
+}\label{fig:venn}
 \end{figure}
 
 \subsection{Automatic quality control}
@@ -551,24 +553,28 @@ classifier able to identify failed discretization attempts
 with 95\% accuracy (\textit{c.f.} section \ref{sub:training}).
 
 Computer-assisted quality control is essential for high throughput
-pipelines and for cases with no prior knowledge. We decided to
-showcase this feature of Zerone on the ChIP-seq profile of HDAC6.
-The issue with this protein is that it is almost exclusively
-cytoplasmic, but that it is reported to have some enzymatic
-activity in the nucleus \citep{XXX}. Is the amount of protein in
-the nucleus sufficient to obtain good quality ChIP-seq profiles?
+pipelines and for cases with no prior knowledge. To showcase this
+feature, we decided to discretize ENCODE ChIP-seq profiles obtained
+in human H1 ES cells. Upon discretizing the lysine-demethylase
+JARID1A, the quality control module of Zerone reported a failure.
 
-We used Zerone to discretize a ChIP-seq profile of HDAC6 in
-K562 cells produced by the ENCODE consortium. The outcome of the
-quality control is that the discretization is invalid. The
-question is whether it is a botch of Zerone, or whether the data
-is poor quality.
+Further investigation immediately revealed the nature of the issue.
+In one of the replicates, the signal is lacking entirely, as if
+the immuno-precipitation was non specific (Fig.~\ref{fig:jarid}).
+Once aware of the issue, users can handle it properly (for instance
+by discarding the protein or by working with a single replicate).
+Such cases are easy to miss in automatic pipelines, and automatic
+quality control can be of great help.
 
-Find a ENCODE input that correlates well with the HDAC6.
-If cannot, remove this section (or find another argument).
 
-Do the fit of XXX signal with ZINB. Show that the signals are very
-different.
+\begin{figure}[!tpb]
+\centerline{\includegraphics[scale=0.5]{jarid.pdf}}
+\caption{
+  ChIP-seq profiles of JARID1A in H1 ES cells (300 bp windows).
+  The first replicate is not similar to the second, and it does not
+  contain any target.
+}\label{fig:jarid}
+\end{figure}
 
 
 \section{Discussion and conclusions}
@@ -615,6 +621,16 @@ discretizations on the Pareto front, adjusting the threshold to the
 conditions would be challenging for lack of an underlying model.
 This is one of the major strengths of Zerone: the statistical model
 automatically adjusts conservativity and sensitivity in a sensible way.
+
+Finally, Zerone proposes an original solution to the problem of
+data heterogeneity. First, the statistical model will be fitted
+in order to harmonize the replicates and solve conflicts by maximum
+likelihood. Second, an automatic quality control is performed
+after the discretization. The principle of this step is somewhat
+similar to anomaly detection. As examples of trusted ChIP-seq
+discretizations will increase, the classifier can be refined to
+reach greater accuracy.
+
 
 \section*{Acknowledgement}
 
