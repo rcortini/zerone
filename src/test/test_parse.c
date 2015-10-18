@@ -3,6 +3,30 @@
 #include <time.h>
 #include "parse.c"
 
+
+void
+test_bloom
+(void)
+{
+
+   bloom_t bloom = calloc(1, BSIZE);
+   if (bloom == NULL) {
+      fprintf(stderr, "error in test function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return;
+   }
+
+   test_assert(bloom_query_and_set("text", 33, bloom) == 0);
+   test_assert(bloom_query_and_set("text", 33, bloom) == 1);
+
+   test_assert(bloom_query_and_set("aaa", 159753, bloom) == 0);
+   test_assert(bloom_query_and_set("aaa", 159753, bloom) == 1);
+
+   free(bloom);
+
+}
+
+
 void
 test_add_to_rod
 (void)

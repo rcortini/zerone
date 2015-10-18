@@ -46,6 +46,7 @@ main(
       {"hmm/block_viterbi (NAs)", test_block_viterbi_NA},
       {"hmm/update_trans",        test_update_trans},
       {"hmm/bw_zinm",             test_bw_zinm},
+      {"parse/bloom",             test_bloom},
       {"parse/add_to_rod",        test_add_to_rod},
       {"parse/djb2",              test_djb2},
       {"parse/lookup_or_insert",  test_lookup_or_insert},
