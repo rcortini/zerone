@@ -190,12 +190,9 @@ int main(int argc, char **argv) {
    debug_print("%.3f %.3f %.3f\n", Z->Q[0], Z->Q[3], Z->Q[6]);
    debug_print("%.3f %.3f %.3f\n", Z->Q[1], Z->Q[4], Z->Q[7]);
    debug_print("%.3f %.3f %.3f\n", Z->Q[2], Z->Q[5], Z->Q[8]);
-   for (int j = 0 ; j < 3 ; j++) {
-      for (int i = 0 ; i < Z->r+1 ; i++) {
-         debug_print("%.3f ", Z->p[i + j*(Z->r+1)]);
-      }
-      debug_print("\n");
-   }
+   debug_print("p0(0): %.3f\n", Z->p[0*(Z->r+1)]);
+   debug_print("p0(1): %.3f\n", Z->p[1*(Z->r+1)]);
+   debug_print("p0(2): %.3f\n", Z->p[2*(Z->r+1)]);
 
    // Quality control.
    double QCscore = zerone_predict(Z);
@@ -234,11 +231,12 @@ int main(int argc, char **argv) {
 //                  300*(j+1), Z->path[wid++]);
 // XXX //
             fprintf(stdout, "%s\t%d\t%d\t%d", name, 300*j + 1,
-                  300*(j+1), Z->path[wid++]);
+                  300*(j+1), Z->path[wid]);
             for (int k = 0 ; k < Z->ChIP->r ; k++) {
-               fprintf(stdout, "\t%d", Z->ChIP->y[k+j*Z->ChIP->r]);
+               fprintf(stdout, "\t%d", Z->ChIP->y[k+wid*Z->ChIP->r]);
             }
             fprintf(stdout, "\n");
+            wid++;
 // XXX //
          }
       }

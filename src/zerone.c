@@ -123,8 +123,8 @@ do_zerone
       if (Z->p[i*(r+1)] > Z->p[XL*(r+1)]) XL = i;
    }
 
-   Z->map[0] = XS;
-   Z->map[2] = XL;
+   Z->map[2] = XS;
+   Z->map[0] = XL;
    Z->map[1] = 3-XS-XL;
 
    // Run the Viterbi algorithm.
@@ -138,7 +138,7 @@ do_zerone
    }
 
    for (size_t i = 0 ; i < 3 ; i++) initp[i] = log(1.0/3);
-   for (size_t i = 0 ; i < 9 ; i++) log_Q[i] = log(Q[i]);
+   for (size_t i = 0 ; i < 9 ; i++) log_Q[i] = log(Z->Q[i]);
 
    // Find Viterbi path.
    block_viterbi(m, ChIP->nb, ChIP->sz, log_Q, initp, Z->pem, path);
