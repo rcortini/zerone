@@ -115,18 +115,16 @@ do_zerone
 
    // Reorder the states in case they got scrambled.
    // We use the value of p0 as a sort key.
-   int tmp, map[3] = {0,1,2};
-   if (Z->p[0*(r+1)] < Z->p[1*(r+1)]) {
-      tmp = map[0]; map[0] = map[1]; map[1] = tmp;
-   }
-   if (Z->p[1*(r+1)] < Z->p[2*(r+1)]) {
-      tmp = map[1]; map[1] = map[2]; map[2] = tmp;
-   }
-   if (Z->p[0*(r+1)] < Z->p[1*(r+1)]) {
-      tmp = map[0]; map[0] = map[1]; map[1] = tmp;
+   int XS = 0;
+   int XL = 0;
+   for (int i = 1 ; i < 3 ; i++) {
+      if (Z->p[i*(r+1)] < Z->p[XS*(r+1)]) XS = i;
+      if (Z->p[i*(r+1)] > Z->p[XL*(r+1)]) XL = i;
    }
 
-   memcpy(Z->map, map, 3*sizeof(int));
+   Z->map[0] = XS;
+   Z->map[2] = XL;
+   Z->map[1] = 3-XS-XL;
 
    // Run the Viterbi algorithm.
    double log_Q[9] = {0};
