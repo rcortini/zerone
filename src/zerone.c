@@ -1,3 +1,4 @@
+#include "debug.h"
 #include "zerone.h"
 
 #define sq(x) ((x)*(x))
@@ -591,6 +592,14 @@ bw_zinm
    const double         pi   = zerone->pi;
    const double         R    = (zerone->p[1]) / zerone->p[0];
 
+   debug_print("n: %ld\n", n);
+   debug_print("m: %ld\n", m);
+   debug_print("r: %ld\n", r);
+   debug_print("nb: %d\n", nb);
+   debug_print("a: %.3f\n", a);
+   debug_print("pi: %.3f\n", pi);
+   debug_print("R: %.3f\n", R);
+
    // Variables optimized by the Baum-Welch algorithm.
    double *p = zerone->p;
    double *Q = zerone->Q;
@@ -778,6 +787,7 @@ new_zerone
    if (new == NULL || newQ == NULL || newp == NULL) return NULL;
 
    new->m = m;
+   new->r = r;
    new->ChIP = ChIP;
    new->Q = newQ;
    new->p = newp;

@@ -23,9 +23,18 @@ extractfeat
    // XXX This bit is confusing. Needs to be discussed. XXX //
    unsigned int r = ChIP->r + 1;
 
+   // 'map' contains the permutation of the states.
+   int *map = zerone->map;
+
    // Add the values of the transition matrix Q to the feature vector...
+   feat[0] = zerone->Q[map[0] + map[1]*m];
+   feat[1] = zerone->Q[map[1] + map[1]*m];
+   feat[2] = zerone->Q[map[2] + map[1]*m];
+   feat[3] = zerone->Q[map[0] + map[2]*m];
+   feat[4] = zerone->Q[map[1] + map[2]*m];
+   feat[5] = zerone->Q[map[2] + map[2]*m];
+
    int f = m * m - m;
-   for (int i = 0; i < f; i++) feat[i] = zerone->Q[i];
 
    // ...the min, max and mean values of the ratios between the values of p...
    double ummin = 1.0;
@@ -37,9 +46,6 @@ extractfeat
    double ummean = 0.0;
    double ubmean = 0.0;
    double mbmean = 0.0;
-
-   // 'map' contains the permutation of the states.
-   int *map = zerone->map;
 
    for (int i = 2; i < r; i++) {
 //      double umratio = (p[    i] / (1 - p[0])) / (p[  r + i] / (1 - p[  r]));
@@ -96,8 +102,9 @@ extractfeat
    for (int i = 0; i < n; i++) meanpath += map[zerone->path[i]];
    feat[f++] = meanpath / n;
 
-   // TODO: remove this feature!
-   feat[f++] = zerone->l;
+   for (int i = 0 ; i < DIM ; i++) {
+      debug_print("feature %d: %.3f\n", i, feat[i]);
+   }
 
    return feat;
 
@@ -110,8 +117,13 @@ zscale
 )
 {
    // Z-score scaling.
-   for (int i = 0; i < DIM; i++) feat[i] = (feat[i] - CENTER[i]) / SCALE[i];
+   for (int i = 0; i < DIM; i++) {
+      feat[i] = (feat[i] - CENTER[i]) / SCALE[i];
+      debug_print("scaled feature %d: %.3f\n", i, feat[i]);
+   }
+
    return feat;
+
 }
 
 double
@@ -156,6 +168,7 @@ zerone_predict
 
    double feat[DIM] = {0};
    zscale(extractfeat(zerone, feat));
+
    return predict(feat);
 
 }

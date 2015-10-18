@@ -30,6 +30,7 @@ struct ChIP_t {
 
 struct zerone_t {
    int      m;      // number of states (3) //
+   int      r;      // number of dimensions of 'y' //
    int      map[3]; // state map (map[2] is target) //
    ChIP_t * ChIP;   // observations //
    double * Q;      // transitions //

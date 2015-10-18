@@ -185,6 +185,18 @@ int main(int argc, char **argv) {
       exit(EXIT_FAILURE);
    }
 
+   debug_print("map: %d, %d, %d\n", Z->map[0], Z->map[1], Z->map[2]);
+   debug_print("%s", "Q:\n");
+   debug_print("%.3f %.3f %.3f\n", Z->Q[0], Z->Q[3], Z->Q[6]);
+   debug_print("%.3f %.3f %.3f\n", Z->Q[1], Z->Q[4], Z->Q[7]);
+   debug_print("%.3f %.3f %.3f\n", Z->Q[2], Z->Q[5], Z->Q[8]);
+   for (int j = 0 ; j < 3 ; j++) {
+      for (int i = 0 ; i < Z->r+1 ; i++) {
+         debug_print("%.3f ", Z->p[i + j*(Z->r+1)]);
+      }
+      debug_print("\n");
+   }
+
    // Quality control.
    double QCscore = zerone_predict(Z);
    fprintf(stdout, "# QC score: %.3f\n", QCscore);
