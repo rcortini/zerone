@@ -80,9 +80,9 @@ for signals that may have very different properties. For instance compare
 the megabase scale domains of Lamin \citep{pmid18463634} to the 6~bp
 binding sites of typical transcription factors.
 
-Large consortia such as ENCODE have brought to light a more severe type
-of issue related to the quality of ChIP-seq data. Conflicts between
-replicates are common, and
+Large consortia such as ENCODE \citep{encode} have brought to light
+a more severe type of issue related to the quality of ChIP-seq data.
+Conflicts between replicates are common, and
 sometimes laboratory effects are clearly detectable in the data,
 even when experimentalists use the same material and follow the same
 protocol (our unpublished observations). The most popular remedy is to
@@ -230,9 +230,10 @@ poor data quality in ChIP-seq correspond to low signal-to-noise ratio
 repdroducibility between replicates (\textit{e.g.} when samples are
 swapped). To cover these cases, we included in the trusted set
 38 other cases obtained by discretizing non-replicates
-(\textit{e.g.} CTCF and Pol2) and controls without immuno-precipitation. Thus,
-a total of 182 (91 positive and 91 negative) cases were used to build a balanced
-dataset.
+(\textit{e.g.} CTCF and Pol2) and controls without immuno-precipitation.
+Thus, a total of 182 (91 positive and 91 negative) cases were used to build
+a balanced dataset (see supplementary material for detail).
+% TODO: which were the files used in each group?
 
 To identify discretization failures, we used the paremeters of the
 fitted HMM. Based on the transition matrix, the emission paramaters,
@@ -273,7 +274,7 @@ model trained by the SVM to classify the discretizations and
 suggest whether they should be accepted or discarded.
 
 \subsection{Datasets and preprocessing}
-We used all the ChIP-seq profiles produced by the ENCODE consortium
+We used all the ChIP-seq profiles produced by the ENCODE Consortium
 on the human myelogenous leukemia cell line K562. We did not make use
 of preprocessed mapped reads because they could have been mapped with
 different software and could therefore disagree on its results
@@ -290,7 +291,8 @@ To compare Zerone to other discretizers, we analysed three different
 ChIP-seq data sets: CCCTC-binding factor (CTCF), tri-methylated histone H3 at
 lysine 36 (H3K36me3) and RNA polymerase II (Pol2)---that represent punctate,
 broad and mixed type signals respectively. Each data set consisted of an input
-profile and two replicate target profiles.
+profile and two replicate target profiles. The ENCODE accession numbers for
+these three datasets are ENCSR000DWE, ENCSR000DWB and ENCSR000EHP respectively.
 
 To make the comparisons fair, we merged all contiguous windows that were called
 as enriched by Zerone, in the same way the other programs do. Otherwise, the
@@ -316,7 +318,6 @@ similar to the model implemented in Zerone, and JAMM because, as
 Zerone, it can perform joint discretization of experimental replicates.
 
 \subsection{Speed and memory footprint}
-
 We compared the running times of the different programs on discretizing
 three data sets of similar size that represent the three major types of
 ChIP-seq signal usually observed. The CTCF signal consists of sharp
@@ -340,9 +341,8 @@ multiple inputs simultaneously. This makes a difference for pipelines
 where all files have to be processed in parallel with the minimum
 amount of resources. In our benchmark, Zerone used twice as much memory
 as MACS, but it also processed twice as many files. For the same amount
-of available memory, a Zerone pipeline would run twice faster than a
+of available memory, a Zerone pipeline would run two times faster than a
 MACS pipeline, and with only half the computer power.
-
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{performance.pdf}}
@@ -425,7 +425,6 @@ facts.
 This representation shows that Zerone produces discretizations that
 are sensitive and adapted to the profile being discretized.
 
-
 \subsubsection{Identification of CTCF binding sites.}
 CTCF binds a 20~bp consensus sequence that is highly conserved in
 vertebrates. In humans, nearly 80\% of the CTCF binding
@@ -468,7 +467,6 @@ replicates by separate.}
 In summary, Zerone achieves a good balance between sensitivity and
 specificity for transcription factor profiles, as was suggested by
 the left panel of Fig.~\ref{fig:pareto}.
-
 
 \subsubsection{Pol2 binding around transcription start sites.}
 % Pol2 is on TSSs
@@ -520,7 +518,7 @@ This can be visualized in the Venn diagram of Fig.~\ref{fig:venn},
 where Zerone is shown to be able to detect most of the windows detected
 by other software, while discovering new enriched windows not found by
 the others, which is consistent with the previous observations
-(Table~\ref{tab:ctcf} and Fig.~\ref{fig:expr}).
+(Table~\ref{tab:ctcf} and Fig.~\ref{fig:pareto}).
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{histone_venn_color_names.pdf}}
@@ -535,7 +533,6 @@ the others, which is consistent with the previous observations
 \end{figure}
 
 \subsection{Automatic quality control}
-
 The most novel feature of Zerone is an embedded automatic quality
 control step taking place after the discretization. This not only
 ensures that the discretization is sensible, but also that the
@@ -566,7 +563,6 @@ by discarding the protein or by working with a single replicate).
 Such cases are easy to miss in automatic pipelines, and automatic
 quality control can be of great help.
 
-
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{jarid.pdf}}
 \caption{
@@ -576,9 +572,7 @@ quality control can be of great help.
 }\label{fig:jarid}
 \end{figure}
 
-
 \section{Discussion and conclusions}
-
 Zerone was developed ground up for scalibility and throughput.
 Part of the speed is due to indexing methods that dramatically
 cut down the computation time during the Baum-Welch cycles. Zerone
@@ -631,8 +625,8 @@ similar to anomaly detection. As examples of trusted ChIP-seq
 discretizations will increase, the classifier can be refined to
 reach greater accuracy.
 
-
 \section*{Acknowledgement}
+% acknowledge the ENCODE Consortium and the ENCODE production laboratory(s) generating the particular dataset(s)??
 
 \paragraph{Funding\textcolon}
 % These acknowledgements are compliant (October 17, 2015).

@@ -10,8 +10,9 @@
 \section{Building instructions}
 
 Zerone is available as a Linux command line application and as an R package.
-You can download the source code of Zerone from Github with
-the following command on a standard terminal.
+
+We recommend that you use git to keep Zerone updated. You can clone the
+repository from Github with the following command on a standard terminal.
 
 \begin{verbatim}
 git clone git@github.com:gui11aume/zerone
@@ -22,8 +23,18 @@ and that the computer you are working on has an SSH key registered
 on Github. If this is not the case, follow the instructions from
 \url{https://help.github.com/articles/generating-ssh-keys/}.
 
-This should download a directory named \texttt{zerone}. To build
-Zerone, execute the following.
+Alternatively, if you prefer not to use git, you can download the source code
+from \url{https://github.com/gui11aume/zerone/archive/master.zip} with the
+following commands.
+
+\begin{verbatim}
+wget https://github.com/gui11aume/zerone/archive/master.zip
+unzip zerone-master.zip
+mv zerone-master zerone
+\end{verbatim}
+
+This should create a directory named \texttt{zerone}. To build Zerone,
+execute the following.
 
 \begin{verbatim}
 cd zerone
@@ -58,10 +69,19 @@ To install the Rzerone R package, simply run this command from the
 R CMD INSTALL Rzerone
 \end{verbatim}
 
-Note that you need to have R installed on your computer. If this in not the
+Note that you need to have R installed on your computer. If this is not the
 case, run the command \texttt{sudo apt-get install r-base} on Ubuntu.
 
 \section{Zerone basics}
+
+To run Zerone, you have to specify the files that contain the mapped reads.
+These can be in BED, SAM/BAM, GEM (.map) formats.
+type in the following commands from the \texttt{zerone} directory.
+
+\begin{verbatim}
+./zerone --mock file1.bam,file2.bam --chip file3.bam,file4.bam
+./zerone -l -0 file1.map -1 file2.map -1 file4.map
+\end{verbatim}
 
 \section{Troubleshooting}
 

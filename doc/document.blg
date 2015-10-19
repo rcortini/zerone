@@ -5,45 +5,45 @@ The style file: natbib.bst
 Database file #1: document.bib
 Database file #2: extra.bib
 Warning--I didn't find a database entry for "XXX"
-You've used 25 entries,
+You've used 26 entries,
             2378 wiz_defined-function locations,
-            691 strings with 9367 characters,
-and the built_in function-call counts, 13609 in all, are:
-= -- 1161
-> -- 1034
-< -- 7
-+ -- 314
-- -- 314
-* -- 1412
-:= -- 2464
-add.period$ -- 119
-call.type$ -- 25
-change.case$ -- 150
-chr.to.int$ -- 25
-cite$ -- 25
-duplicate$ -- 479
-empty$ -- 778
-format.name$ -- 345
-if$ -- 2614
+            697 strings with 9477 characters,
+and the built_in function-call counts, 14005 in all, are:
+= -- 1202
+> -- 1045
+< -- 8
++ -- 317
+- -- 317
+* -- 1445
+:= -- 2533
+add.period$ -- 123
+call.type$ -- 26
+change.case$ -- 156
+chr.to.int$ -- 26
+cite$ -- 26
+duplicate$ -- 497
+empty$ -- 809
+format.name$ -- 349
+if$ -- 2694
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 22
-newline$ -- 129
-num.names$ -- 100
-pop$ -- 144
+missing$ -- 23
+newline$ -- 134
+num.names$ -- 104
+pop$ -- 148
 preamble$ -- 1
-purify$ -- 153
+purify$ -- 159
 quote$ -- 0
-skip$ -- 304
+skip$ -- 316
 stack$ -- 0
-substring$ -- 742
-swap$ -- 93
+substring$ -- 770
+swap$ -- 96
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 225
+type$ -- 234
 warning$ -- 0
-while$ -- 101
+while$ -- 105
 width$ -- 0
-write$ -- 328
+write$ -- 341
 (There was 1 warning)

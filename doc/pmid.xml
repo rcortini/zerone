@@ -2325,9 +2325,9 @@
             <Day>08</Day>
         </DateCompleted>
         <DateRevised>
-            <Year>2014</Year>
-            <Month>09</Month>
-            <Day>24</Day>
+            <Year>2015</Year>
+            <Month>08</Month>
+            <Day>13</Day>
         </DateRevised>
         <Article PubModel="Print">
             <Journal>
@@ -2471,6 +2471,10 @@
                     <Agency>NHGRI NIH HHS</Agency>
                     <Country>United States</Country>
                 </Grant>
+                <Grant>
+                    <Agency>Intramural NIH HHS</Agency>
+                    <Country>United States</Country>
+                </Grant>
             </GrantList>
             <PublicationTypeList>
                 <PublicationType UI="D016428">Journal Article</PublicationType>
@@ -2503,84 +2507,8 @@
         <CitationSubset>IM</CitationSubset>
         <CommentsCorrectionsList>
             <CommentsCorrections RefType="Cites">
-                <RefSource>Nat Genet. 2006 Jun;38(6):626-35</RefSource>
-                <PMID Version="1">16645617</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Science. 2006 Apr 14;312(5771):269-72</RefSource>
-                <PMID Version="1">16614224</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Cell. 2006 Jul 28;126(2):403-13</RefSource>
-                <PMID Version="1">16873069</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nat Genet. 2006 Nov;38(11):1289-97</RefSource>
-                <PMID Version="1">17013392</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Annu Rev Genomics Hum Genet. 2006;7:81-102</RefSource>
-                <PMID Version="1">16722805</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nature. 2000 May 25;405(6785):482-5</RefSource>
-                <PMID Version="1">10839546</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nature. 2000 May 25;405(6785):486-9</RefSource>
-                <PMID Version="1">10839547</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Curr Biol. 2000 Jul 13;10(14):853-6</RefSource>
-                <PMID Version="1">10899010</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Trends Genet. 2001 Sep;17(9):520-7</RefSource>
-                <PMID Version="1">11525835</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Annu Rev Genet. 2001;35:193-208</RefSource>
-                <PMID Version="1">11700282</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Cancer Res. 2002 Jan 1;62(1):48-52</RefSource>
-                <PMID Version="1">11782357</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Annu Rev Biochem. 2001;70:313-40</RefSource>
-                <PMID Version="1">11395410</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nat Rev Genet. 2002 Jun;3(6):415-28</RefSource>
-                <PMID Version="1">12042769</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Genome Res. 2002 Jun;12(6):996-1006</RefSource>
-                <PMID Version="1">12045153</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Semin Cancer Biol. 2002 Oct;12(5):399-414</RefSource>
-                <PMID Version="1">12191639</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Curr Biol. 2003 Mar 18;13(6):R242-54</RefSource>
-                <PMID Version="1">12646153</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Biochem Cell Biol. 2003 Jun;81(3):161-7</RefSource>
-                <PMID Version="1">12897849</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Science. 2004 Jan 9;303(5655):238-40</RefSource>
-                <PMID Version="1">14716017</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Cell. 2004 Jan 23;116(2):247-57</RefSource>
-                <PMID Version="1">14744435</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Mol Cell. 2004 Jan 30;13(2):291-8</RefSource>
-                <PMID Version="1">14759373</PMID>
+                <RefSource>Genome Res. 2005 Aug;15(8):1034-50</RefSource>
+                <PMID Version="1">16024819</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
                 <RefSource>Cell. 2004 Feb 20;116(4):499-509</RefSource>
@@ -2609,6 +2537,18 @@
             <CommentsCorrections RefType="Cites">
                 <RefSource>Science. 1990 Sep 14;249(4974):1288-90</RefSource>
                 <PMID Version="1">1697983</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Cold Spring Harb Symp Quant Biol. 2004;69:245-50</RefSource>
+                <PMID Version="1">16117655</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Annu Rev Genomics Hum Genet. 2006;7:81-102</RefSource>
+                <PMID Version="1">16722805</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nature. 2005 Aug 11;436(7052):876-80</RefSource>
+                <PMID Version="1">15988478</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
                 <RefSource>Oncogene. 1990 Dec;5(12):1743-53</RefSource>
@@ -2679,20 +2619,56 @@
                 <PMID Version="1">15961485</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
-                <RefSource>Nucleic Acids Res. 2005 Jul 1;33(Web Server issue):W389-92</RefSource>
-                <PMID Version="1">15980495</PMID>
+                <RefSource>Nature. 2000 May 25;405(6785):482-5</RefSource>
+                <PMID Version="1">10839546</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
-                <RefSource>Genome Res. 2005 Aug;15(8):1034-50</RefSource>
-                <PMID Version="1">16024819</PMID>
+                <RefSource>Nature. 2000 May 25;405(6785):486-9</RefSource>
+                <PMID Version="1">10839547</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
-                <RefSource>Nature. 2005 Aug 11;436(7052):876-80</RefSource>
-                <PMID Version="1">15988478</PMID>
+                <RefSource>Curr Biol. 2000 Jul 13;10(14):853-6</RefSource>
+                <PMID Version="1">10899010</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
-                <RefSource>Cold Spring Harb Symp Quant Biol. 2004;69:245-50</RefSource>
-                <PMID Version="1">16117655</PMID>
+                <RefSource>Trends Genet. 2001 Sep;17(9):520-7</RefSource>
+                <PMID Version="1">11525835</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Annu Rev Genet. 2001;35:193-208</RefSource>
+                <PMID Version="1">11700282</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Cancer Res. 2002 Jan 1;62(1):48-52</RefSource>
+                <PMID Version="1">11782357</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Annu Rev Biochem. 2001;70:313-40</RefSource>
+                <PMID Version="1">11395410</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nat Rev Genet. 2002 Jun;3(6):415-28</RefSource>
+                <PMID Version="1">12042769</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Genome Res. 2002 Jun;12(6):996-1006</RefSource>
+                <PMID Version="1">12045153</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Semin Cancer Biol. 2002 Oct;12(5):399-414</RefSource>
+                <PMID Version="1">12191639</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Curr Biol. 2003 Mar 18;13(6):R242-54</RefSource>
+                <PMID Version="1">12646153</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Biochem Cell Biol. 2003 Jun;81(3):161-7</RefSource>
+                <PMID Version="1">12897849</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Science. 2004 Jan 9;303(5655):238-40</RefSource>
+                <PMID Version="1">14716017</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
                 <RefSource>Science. 2005 Sep 2;309(5740):1559-63</RefSource>
@@ -2711,8 +2687,36 @@
                 <PMID Version="1">16413492</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
+                <RefSource>Science. 2006 Apr 14;312(5771):269-72</RefSource>
+                <PMID Version="1">16614224</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nat Genet. 2006 Jun;38(6):626-35</RefSource>
+                <PMID Version="1">16645617</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
                 <RefSource>Proc Natl Acad Sci U S A. 2006 Jul 11;103(28):10684-9</RefSource>
                 <PMID Version="1">16815976</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Cell. 2006 Jul 28;126(2):403-13</RefSource>
+                <PMID Version="1">16873069</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nat Genet. 2006 Nov;38(11):1289-97</RefSource>
+                <PMID Version="1">17013392</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nucleic Acids Res. 2005 Jul 1;33(Web Server issue):W389-92</RefSource>
+                <PMID Version="1">15980495</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Cell. 2004 Jan 23;116(2):247-57</RefSource>
+                <PMID Version="1">14744435</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Mol Cell. 2004 Jan 30;13(2):291-8</RefSource>
+                <PMID Version="1">14759373</PMID>
             </CommentsCorrections>
         </CommentsCorrectionsList>
         <MeshHeadingList>
@@ -3302,8 +3306,8 @@
         </DateCompleted>
         <DateRevised>
             <Year>2015</Year>
-            <Month>02</Month>
-            <Day>03</Day>
+            <Month>10</Month>
+            <Day>02</Day>
         </DateRevised>
         <Article PubModel="Print-Electronic">
             <Journal>
@@ -3467,12 +3471,76 @@
         <CitationSubset>IM</CitationSubset>
         <CommentsCorrectionsList>
             <CommentsCorrections RefType="Cites">
-                <RefSource>Methods Mol Biol. 2006;338:245-60</RefSource>
-                <PMID Version="1">16888363</PMID>
+                <RefSource>Nucleic Acids Res. 2012 Sep 1;40(17):e128</RefSource>
+                <PMID Version="1">22610855</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Genome Biol. 2012;13(3):R24</RefSource>
+                <PMID Version="1">22458515</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>PLoS Comput Biol. 2013;9(9):e1003214</RefSource>
+                <PMID Version="1">24039567</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nucleic Acids Res. 2014 Jan;42(Database issue):D148-55</RefSource>
+                <PMID Version="1">24214955</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
                 <RefSource>Bioinformatics. 2000 Jan;16(1):16-23</RefSource>
                 <PMID Version="1">10812473</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nucleic Acids Res. 2000 Jan 1;28(1):235-42</RefSource>
+                <PMID Version="1">10592235</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Genome Biol. 2012;13(8):418</RefSource>
+                <PMID Version="1">22889292</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nucleic Acids Res. 2002 Oct 15;30(20):4442-51</RefSource>
+                <PMID Version="1">12384591</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nucleic Acids Res. 2004 Jan 1;32(Database issue):D91-4</RefSource>
+                <PMID Version="1">14681366</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nat Rev Genet. 2004 Apr;5(4):276-87</RefSource>
+                <PMID Version="1">15131651</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Genome Biol. 2004;5(10):R80</RefSource>
+                <PMID Version="1">15461798</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Science. 2004 Oct 22;306(5696):636-40</RefSource>
+                <PMID Version="1">15499007</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Proc Natl Acad Sci U S A. 1994 Apr 12;91(8):3368-72</RefSource>
+                <PMID Version="1">8159753</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>J Biol Chem. 1995 Jun 30;270(26):15628-33</RefSource>
+                <PMID Version="1">7797561</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nucleic Acids Res. 1999 Jan 15;27(2):470-8</RefSource>
+                <PMID Version="1">9862967</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nucleic Acids Res. 2006 Jan 1;34(Database issue):D95-7</RefSource>
+                <PMID Version="1">16381983</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Methods Mol Biol. 2006;338:245-60</RefSource>
+                <PMID Version="1">16888363</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nucleic Acids Res. 2008 Jan;36(Database issue):D102-6</RefSource>
+                <PMID Version="1">18006571</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
                 <RefSource>Genome Biol. 2007;8(10):R207</RefSource>
@@ -3507,40 +3575,8 @@
                 <PMID Version="1">20628599</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
-                <RefSource>Nucleic Acids Res. 2000 Jan 1;28(1):235-42</RefSource>
-                <PMID Version="1">10592235</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
                 <RefSource>Science. 2010 Dec 24;330(6012):1787-97</RefSource>
                 <PMID Version="1">21177974</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nucleic Acids Res. 2002 Oct 15;30(20):4442-51</RefSource>
-                <PMID Version="1">12384591</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nucleic Acids Res. 2004 Jan 1;32(Database issue):D91-4</RefSource>
-                <PMID Version="1">14681366</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nat Rev Genet. 2004 Apr;5(4):276-87</RefSource>
-                <PMID Version="1">15131651</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Genome Biol. 2004;5(10):R80</RefSource>
-                <PMID Version="1">15461798</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Science. 2004 Oct 22;306(5696):636-40</RefSource>
-                <PMID Version="1">15499007</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Proc Natl Acad Sci U S A. 1994 Apr 12;91(8):3368-72</RefSource>
-                <PMID Version="1">8159753</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>J Biol Chem. 1995 Jun 30;270(26):15628-33</RefSource>
-                <PMID Version="1">7797561</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
                 <RefSource>Science. 2010 Dec 24;330(6012):1775-87</RefSource>
@@ -3555,40 +3591,8 @@
                 <PMID Version="1">22304916</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
-                <RefSource>Genome Biol. 2012;13(3):R24</RefSource>
-                <PMID Version="1">22458515</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nucleic Acids Res. 2012 Sep 1;40(17):e128</RefSource>
-                <PMID Version="1">22610855</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
                 <RefSource>Cell. 2013 Jan 17;152(1-2):327-39</RefSource>
                 <PMID Version="1">23332764</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>PLoS Comput Biol. 2013;9(9):e1003214</RefSource>
-                <PMID Version="1">24039567</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nucleic Acids Res. 2014 Jan;42(Database issue):D148-55</RefSource>
-                <PMID Version="1">24214955</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Genome Biol. 2012;13(8):418</RefSource>
-                <PMID Version="1">22889292</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nucleic Acids Res. 1999 Jan 15;27(2):470-8</RefSource>
-                <PMID Version="1">9862967</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nucleic Acids Res. 2006 Jan 1;34(Database issue):D95-7</RefSource>
-                <PMID Version="1">16381983</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nucleic Acids Res. 2008 Jan;36(Database issue):D102-6</RefSource>
-                <PMID Version="1">18006571</PMID>
             </CommentsCorrections>
         </CommentsCorrectionsList>
         <MeshHeadingList>

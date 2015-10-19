@@ -27,6 +27,11 @@ Dempster, A.~P., Laird, N.~M., and Rubin, D.~B. (1977).
 \newblock {\em JOURNAL OF THE ROYAL STATISTICAL SOCIETY, SERIES B\/}, {\bf
   39}(1), 1--38.
 
+\bibitem[{ENCODE Project Consortium}(2012){ENCODE Project Consortium}]{encode}
+{ENCODE Project Consortium} (2012).
+\newblock {An integrated encyclopedia of DNA elements in the human genome.}
+\newblock {\em {Nature}\/}, {\bf 489}(7414), 57--74.
+
 \bibitem[Grant {\em et~al.}(2011)Grant, Bailey, and Noble]{pmid21330290}
 Grant, C.~E., Bailey, T.~L., and Noble, W.~S. (2011).
 \newblock {FIMO: scanning for occurrences of a given motif.}
