@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
          {0, 0, 0, 0}
       };
 
-      int c = getopt_long(argc, argv, "0:1:h",
+      int c = getopt_long(argc, argv, "0:1:hl",
             long_options, &option_index);
 
       // Done parsing named options. //

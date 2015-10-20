@@ -11,6 +11,8 @@
 
 Zerone is available as a Linux command line application and as an R package.
 
+\subsection{Downloading}
+
 We recommend that you use git to keep Zerone updated. You can clone the
 repository from Github with the following command on a standard terminal.
 
@@ -20,7 +22,7 @@ git clone git@github.com:gui11aume/zerone
 
 Note that this requires that you already have a Github account
 and that the computer you are working on has an SSH key registered
-on Github. If this is not the case, follow the instructions from
+on GitHub. If this is not the case, follow the instructions from
 \url{https://help.github.com/articles/generating-ssh-keys/}.
 
 Alternatively, if you prefer not to use git, you can download the source code
@@ -33,8 +35,11 @@ unzip zerone-master.zip
 mv zerone-master zerone
 \end{verbatim}
 
-This should create a directory named \texttt{zerone}. To build Zerone,
-execute the following.
+This should create a directory named \texttt{zerone}.
+
+\subsection{Compiling}
+
+To build Zerone, execute the following from the \texttt{zerone} directory.
 
 \begin{verbatim}
 cd zerone
@@ -45,8 +50,11 @@ This should succeed on most Linux systems because \texttt{make} is
 available by default. If this is not the case, you can obtain it by
 typing \texttt{sudo apt-get install make} on the Ubuntu terminal.
 
-Calling \texttt{make} should create an executable called
-\texttt{zerone}. To check that the building is successful, test Zerone with
+Calling \texttt{make} should create an executable called \texttt{zerone}.
+
+\subsection{Testing}
+
+To check that the building was successful, test Zerone with
 the following commands.
 
 \begin{verbatim}
@@ -56,11 +64,11 @@ cd ../..
 \end{verbatim}
 
 If it passes the tests without any error message, then everything went fine
-and you are done with the build. If not, then something went
+and you are done with the build. If not, something went
 wrong. In this case, you can explain how to reproduce the problem
 on \url{https://github.com/gui11aume/zerone/issues}.
 
-\subsection{Installing Rzerone}
+\subsection*{Installing Rzerone}
 
 To install the Rzerone R package, simply run this command from the
 \texttt{zerone} directory.
@@ -74,14 +82,67 @@ case, run the command \texttt{sudo apt-get install r-base} on Ubuntu.
 
 \section{Zerone basics}
 
-To run Zerone, you have to specify the files that contain the mapped reads.
-These can be in BED, SAM/BAM, GEM (.map) formats.
-type in the following commands from the \texttt{zerone} directory.
+To run Zerone, you have to specify the files that contain the mapped reads
+of the ChIP-seq experiment you want to discretize. These can be in BED,
+SAM/BAM and GEM (.map) formats. You can include as many negative control
+files and as many experimental replicates as you need. Just enter controls
+after the \texttt{-0} or \texttt{--mock} option, and targets
+after the \texttt{-1} or \texttt{--chip} option.
+
+For example, you can type in the following commands from the \texttt{zerone}
+directory.
 
 \begin{verbatim}
 ./zerone --mock file1.bam,file2.bam --chip file3.bam,file4.bam
-./zerone -l -0 file1.map -1 file2.map -1 file4.map
 \end{verbatim}
+
+Where file1.bam and file2.bam are negative controls done without antibody,
+and file2.bam and file3.bam are two experimental replicates.
+
+This should produce an output like the following.
+
+% TODO put a nicer output, invented maybe, just 0s is so boring
+\begin{verbatim}
+chrX    1       300     0   0   0   0
+chrX    301     600     0   0   0   0
+chrX    601     900     0   0   0   0
+chrX    901     1200    0   0   0   0
+chrX    1201    1500    0   0   0   0
+chrX    1501    1800    0   0   0   0
+chrX    1801    2100    0   0   0   0
+chrX    2101    2400    0   0   0   0
+\end{verbatim}
+
+% TODO fix weird tilde
+Note that path expansion will not work with comma separated file names, so if
+ou want to use path names starting with $\sim$, you can simply
+specify the mock and chip options as many times as needed, as shown below.
+
+\begin{verbatim}
+./zerone -l -0 file1.map -1 file2.map -1 file3.map
+\end{verbatim}
+
+\pagebreak%\newpage
+% XXX
+With the \texttt{-l} or \texttt{--list-output} option, Zerone produces an
+alternative, BED-like output.
+% XXX
+
+% TODO why is the window size 600 when --list-output is set?
+\begin{verbatim}
+chrX    1       600
+chrX    601     1200
+chrX    1201    1800
+chrX    1801    2400
+chrX    2401    3000
+chrX    3001    3600
+chrX    3601    4200
+chrX    4201    4800
+\end{verbatim}
+
+
+Enter the option \texttt{-h} or \texttt{--help} for usage instructions and
+\texttt{--version} to print the version number.
 
 \section{Troubleshooting}
 
