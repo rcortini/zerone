@@ -24,27 +24,31 @@ $^{2}$Universitat Pompeu Fabra (UPF), Barcelona, Spain.}
 \begin{abstract}
 
 \section{Motivation:}
-Chromatin immunoprecipitation followed by high-throughput sequencing
-is the standard method to investigate chromatin protein composition. As the
-number of community-available ChIP-seq profiles increases, it becomes more
-common to use data from different sources, which makes joint analysis
-challenging. Issues such as lack of reproducibility, heterogeneous quality and
-conflicts between replicates become evident when comparing data sets, especially
-when they are produced by different laboratories.
+  Chromatin immunoprecipitation followed by high-throughput sequencing
+  (ChIP-seq) is the standard method to investigate chromatin protein
+  composition. As the number of community-available ChIP-seq profiles
+  increases, it becomes more common to use data from different sources,
+  which makes joint analysis challenging. Issues such as lack of
+  reproducibility, heterogeneous quality and conflicts between
+  replicates become evident when comparing data sets, especially when
+  they are produced by different laboratories.
 
 \section{Results:}
-Here we present Zerone, a ChIP-seq discretizer with built-in quality control.
-Zerone is powered by a Hidden Markov Model with zero-inflated negative
-multinomial emissions, which allows it to merge several replicates into a single
-discretized profile. To identify low quality or irreproducible data, we trained
-a Support Vector Machine and integrated it as part of the discretization
-process. Zerone identified low quality data with 95\% accuracy. In terms of
-performance, Zerone is more than 4 times faster than MACS for a similar
-accuracy.
+  Here we present Zerone, a ChIP-seq discretizer with built-in quality
+  control. Zerone is powered by a Hidden Markov Model with zero-inflated
+  negative multinomial emissions, which allows it to merge several
+  replicates into a single discretized profile. To identify low quality
+  or irreproducible data, we trained a Support Vector Machine and
+  integrated it as part of the discretization process. Zerone detects
+  low quality data with 95\% accuracy. Zerone is also flexible, fast
+  and accurate: it discretizes broad or peaky profiles, it
+  runs in a few minutes on modern hardware while using under 800 MB of
+  memory and produces high quality discretizations.
+
 
 \section{Availability:}
-Zerone is available as a command line tool and as an R package. The C
-source code and R scripts can be downloaded from
+  Zerone is available as a command line tool and as an R package. The C
+  source code and R scripts can be downloaded from
 \href{https://github.com/gui11aume/jahmm}{https://github.com/gui11aume/jahmm}.
 
 \section{Contact:}
@@ -52,33 +56,33 @@ source code and R scripts can be downloaded from
 \end{abstract}
 
 \section{Introduction}
-One of the major challenges of biology is to understand how transcription
-factors and chromatin proteins coordinate genome-dependent processes
-such as transcription, replication and repair. Massive research efforts
-are invested into collecting protein-genome interaction data in order
-to gain insight into the organization of the genome as a whole. Chromatin
-immunoprecipitation followed by high throughput sequencing (ChIP-seq)
-emerged as the standard method to identify the targets of a transcription
-factor or a histone modification in a cell population. However, ChIP is not
-fully understood and artifacts are still discovered more than 10 years after
-its adoption \citep{pmid24349523, pmid24173036}. Besides, the constant
-improvement of sequencing technologies makes analysis of ChIP-seq profiles
-difficult to standardize. There is thus a continuous need to develop and
-improve computational tools to analyse ChIP-seq data.
+One of the major challenges of biology is to understand how
+transcription factors and chromatin proteins coordinate transcription,
+replication and repair. In front of this colossal task, the community
+invests massive research efforts into collecting protein-genome
+interaction data. Chromatin immunoprecipitation followed by high
+throughput sequencing (ChIP-seq) has become the standard method to
+identify the targets of a transcription factor or a histone
+modification in a cell population. However, ChIP is not fully
+understood and artifacts are still discovered more than 10 years
+after its adoption as a standard \citep{pmid24349523, pmid24173036}.
+Besides, the constant improvement of sequencing technologies makes
+analysis of ChIP-seq profiles difficult to standardize. There is thus
+a continuous need to develop and improve computational tools to
+analyse ChIP-seq data.
 
 One of the most common analyses performed on ChIP-seq profiles is to
-discretize the signal, \textit{i.e.} make calls whether the feature is
-present or absent for every locus of the genome. This may seem
-dubious at first glance because the biological reality is intrinsically
-quantitative, but there are good reasons to discretize ChIP-seq
-profiles: it makes the signal simpler to interpret from the human
-perspective, it removes part of the experimental noise,
-it simplifies downstream analyses and it allows to compare or
-combine profiles of different nature. This raises a challenge at the
-computational level because discretization has to be carried out uniformly
-for signals that may have very different properties. For instance compare
-the megabase scale domains of Lamin \citep{pmid18463634} to the 6~bp
-binding sites of typical transcription factors.
+discretize the signal, \textit{i.e.} tell for each locus of the genome
+whether the transcription factor (or other feature) is present or
+absent. This makes the signal simpler to interpret from the human
+perspective, it removes part of the experimental noise, it simplifies
+downstream analyses and it allows comparing or combining profiles of
+different nature. This raises a challenge at the computational level
+because discretization has to be carried out uniformly for signals
+that may be very different. For instance, lamins bind in 
+megabase-scale domains covering 40\% of the genome
+\citep{pmid18463634}, whereas transcription factors may bind as few
+as 6~bp with a coverage below 1\%.
 
 Large consortia such as ENCODE \citep{encode} have brought to light
 a more severe type of issue related to the quality of ChIP-seq data.
@@ -107,11 +111,9 @@ order to detect potential anomalies, and when applicable rejects the
 output as a whole. Internally, the first step implements a Hidden Markov
 Model (HMM) with zero-inflated negative multinomial (ZINM) emissions, and
 the second implements a Support Vector Machine (SVM) trained using ENCODE
-ChIP-seq data. HMM-based discretization is agnostic to the shape of the
+ChIP-seq data. HMM-based discretization is agnostic about the shape of the
 signal (broad or peaky) and the ZINM distribution captures the essential
-features of the read count distribution in ChIP-seq data. These two
-properties provide a unified framework to discretize ChIP-seq data of
-different kinds.
+features of the read count distribution in ChIP-seq data.
 
 Zerone is designed for large volume pipelines aiming to combine many
 ChIP-seq profiles with little human intervention. To this end, it is
@@ -119,20 +121,21 @@ compatible with the standard SAM and BAM formats \citep{pmid19505943},
 it produces congruent window-based outputs, and it can process hundreds
 of experiments per day on average hardware. We benchmarked Zerone against
 MACS \citep{pmid18798982}, BayesPeak \citep{pmid19772557} and
-JAMM \citep{pmid25223640} on the core
-task of discretizing ChIP-seq profiles of CTCF, H3K36me3 and Pol2. Our
-results show that Zerone is competitive in terms of speed and accuracy.
+JAMM \citep{pmid25223640} on the core task of discretizing ChIP-seq
+profiles of CTCF, Pol2 and H3K36me3. Our results show that Zerone is
+competitive in terms of speed and accuracy.
 
 \begin{methods}
 \section{Methods}
 
 \subsection{Emission model}
 \label{sub:emissions}
-It is natural to model read counts in genomic windows by an unbounded
+It is natural to model read counts per genomic window by an unbounded
 discrete distribution. The Poisson distribution is an obvious candidate,
-but it is a poor choice because the variance of read counts is typically
-higher than the mean in ChIP-seq data. The reason is that windows are non
-homogeneous, which increases the dispersion. More specifically, windows
+but it is a poor choice because in ChIP-seq data the variance of read
+counts is usually higher than the mean. The reason is that windows
+are non homogeneous, which increases the dispersion. More specifically,
+windows
 are not equally PCR-prone and not equally mappable. The negative binomial
 (NB) distribution is thus a better choice because it allows some variation
 between windows. However, genomes are fraught with repeats, which creates
@@ -170,36 +173,39 @@ fit to ChIP-seq data than Poisson and NB distributions.
 
 The NB distribution can be interpreted as a Gamma-Poisson process,
 which gives a straightforward extension to a multivariate
-distribution called the Negative Multinomial (NM) and to its
-corresponding zero-inflated version the Zero-Inflated Negative
-Multinomial (ZINM, see supplementary material for detail). In this model,
-windows have an intrinsic ChIP-seq bias due to their sequence composition,
-mappability and other inherent properties, which gives a baseline
-variation present in all ChIP-seq experiments performed in the same
-conditions. All the replicates of a ChIP-seq experiment can thus be
-combined with the negative controls in a single multivariate
-distribution.
+distribution called the Negative Multinomial (NM) and to the
+zero-inflated version called Zero-Inflated Negative Multinomial
+distribution (ZINM, see supplementary material for detail). In this
+model, windows have an intrinsic ChIP-seq bias due to their sequence
+composition, mappability and other inherent properties, which gives
+a baseline variation present in all ChIP-seq experiments performed
+in the same conditions. The dependency between replicates is
+explicitly modeled by the ZINM distribution, which gives more
+accurate probabilities than assuming independence.
+
 
 \subsection{Discretization}
 Discretization is performed by fitting an HMM
-with ZINM emissions (see section \ref{sub:emissions}). The HMM has three
+with ZINM emissions. The HMM has three
 states corresponding to ``low'', ``medium'' and ``high'' abundance of
 the given chromatin feature. We have observed that in many ChIP-seq
-profiles, the baseline signal shows block-wise variations of low amplitude
+profiles, the baseline signal shows piece-wise variations of low amplitude
 but large size (typically 10-100 Kb). This will sometimes be the dominant
 signal and a two-state HMM will identify these blocks instead of the
 targets. Dedicating two states to fit the baseline is a way to make sure
 that the ``high'' state corresponds to the targets of the chromatin
-feature.
+feature. In what follows, targets are always considered windows
+with ``high'' abundance of ChIP-seq reads.
 
 Fitting is performed with the Baum-Welch algorithm \citep{baum1966},
-which is a special case of EM algorithm \citep{Dempster77maximumlikelihood}.
+which is a special case of the EM algorithm
+\citep{Dempster77maximumlikelihood}.
 Discrete variables take only a small number of distinct values, which
 allows to save computation time by hashing the observations. With this
 technique, we need to compute each value of the emission probabilities
 only once per cycle of the Baum-Welch algorithm. Transition parameters
 are updated through the forward-backward algorithm, and emission
-parameters are updated by solving maximum likelihood equations directly
+parameters are updated by solving maximum likelihood equations
 with the Newton-Raphson method (see supplementary material for detail).
 Approximately 3/4 of the computation time is spent in foward-backward
 cycles, and 1/4 in updating emission parameters (the time spent computing
@@ -211,9 +217,9 @@ algorithm \citep{1054010}.
 
 The shape parameter and the mixture ratio of the ZINM distribution
 are fitted directly from the negative control profiles and they are
-considered constant throughout. Overall, the total number of estimated
-parameters is $3(r+1)$, where $r$ is the number of replicate experiments
-(excluding negative controls).
+considered constant throughout the Baum-Welch cycles. Overall, the
+total number of estimated parameters is $3r+9$, where $r$ is the
+number of replicate experiments (excluding mock profiles).
 
 \subsection{Classification and training}
 \label{sub:training}
@@ -222,17 +228,17 @@ failures. We first prepared a high confidence data set where the
 output of Zerone was labelled positive (success) or negative (failure).
 We discretized 144 replicated ChIP-seq experiments, together with their
 respective input control.
-We labelled the output for the discretization as positive (91 cases)
-or negative (53 cases), based visual inspection and on the available
+We labelled the output of the discretization as positive (XX cases)
+or negative (XX cases), based on visual inspection and on the available
 literature about the chromatin features. The most common cases of
 poor data quality in ChIP-seq correspond to low signal-to-noise ratio
-(\textit{e.g.} when the antibody is unspecific), and lack of
+(\textit{e.g.} when the antibody is not specific enough), and lack of
 repdroducibility between replicates (\textit{e.g.} when samples are
 swapped). To cover these cases, we included in the trusted set
-38 other cases obtained by discretizing non-replicates
+XX other cases obtained by discretizing non replicate profiles
 (\textit{e.g.} CTCF and Pol2) and controls without immuno-precipitation.
-Thus, a total of 182 (91 positive and 91 negative) cases were used to build
-a balanced dataset (see supplementary material for detail).
+Thus, a total of XX cases (XX positive and XX negative) were used to
+build a balanced dataset.
 % TODO: which were the files used in each group?
 
 To identify discretization failures, we used the paremeters of the
@@ -288,16 +294,17 @@ the data sets used in the benchmarks (see Section \ref{sec:results}).
 
 \subsection{Benchmark conditions}
 To compare Zerone to other discretizers, we analysed three different
-ChIP-seq data sets: CCCTC-binding factor (CTCF), tri-methylated histone H3 at
-lysine 36 (H3K36me3) and RNA polymerase II (Pol2)---that represent punctate,
-broad and mixed type signals respectively. Each data set consisted of an input
-profile and two replicate target profiles. The ENCODE accession numbers for
-these three datasets are ENCSR000DWE, ENCSR000DWB and ENCSR000EHP respectively.
+ChIP-seq data sets: CCCTC-binding factor (CTCF), tri-methylated histone
+H3 at lysine 36 (H3K36me3) and RNA polymerase II (Pol2)---that
+represent punctate, broad and mixed type signals respectively. Each
+data set consisted of an input profile and two replicate target
+profiles. The ENCODE accession numbers for these three datasets are
+ENCSR000DWE, ENCSR000DWB and ENCSR000EHP respectively.
 
-To make the comparisons fair, we merged all contiguous windows that were called
-as enriched by Zerone, in the same way the other programs do. Otherwise, the
-number of enriched regions in the genome would be higher and Zerone performance
-would look poorer than the actual.
+To make the comparisons fair, we merged all contiguous windows that
+were called as enriched by Zerone, in the same way the other programs
+do. Otherwise, the number of enriched regions in the genome would be
+higher and Zerone performance would look poorer than the actual.
 
 We tested MACS \texttt{callpeak} version 2.1.0.20140616, BayesPeak
 version 1.20.0 and JAMM version 1.0.7rev1. All tests were performed on
@@ -413,14 +420,12 @@ This representation reveals that discretizing the CTCF profile yields
 similar outputs regardless of the software (Fig.~\ref{fig:pareto},
 left panel). On the other hand, discretizing the Pol2 or the H3K36me3
 profile yields very distinct outputs (middle and right panels). In
-all the cases, Zerone produces the discretization capturing the most reads.
-For CTCF and Pol2, it lies on the Pareto front at a kink of the curve,
-\textit{i.e.} where the amount of reads per target starts to vanish. For
-H3K36me3, it lies off the Pareto front, but at a sensible location.
-Indeed, it has long been observed that histone modifications have more
-ChIP targets than transcription factors \citep{XXX}. Of the other tools,
-only JAMM produces a discretization that is consistent with those
-facts.
+all the cases, Zerone produces the discretization capturing the most
+reads. For CTCF and Pol2, it lies on the Pareto front. For H3K36me3,
+it lies somewhat off the Pareto front, but at a sensible location.
+As detailed below, H3K36me3 is deposited on transcribed genes
+\citep{pmid16122420,pmid23739122} so the coverage is expected to
+be higher than for transcription factors.
 
 This representation shows that Zerone produces discretizations that
 are sensitive and adapted to the profile being discretized.
@@ -471,10 +476,11 @@ the left panel of Fig.~\ref{fig:pareto}.
 \subsubsection{Pol2 binding around transcription start sites.}
 % Pol2 is on TSSs
 To compare the behavior of the discretizers on the Pol2 profile,
-we determined the extent to which the enriched regions contained Transcription
-Start Sites (TSS), as Pol2 is expected to bind near annotated TSS. Data about
-TSS positioning was extracted from the knownGene table of the UCSC Genes
-annotation for the hg19 genome \citep{Karolchik2004}.
+we determined the extent to which the enriched regions contained
+Transcription Start Sites (TSS), as Pol2 is expected to bind near
+annotated TSS. Data about TSS positioning was extracted from the
+knownGene table of the UCSC Genes annotation for the hg19 genome
+\citep{Karolchik2004}.
 
 \begin{table}[!t]
 \processtable{Performance on the Pol2 data set.
@@ -506,24 +512,36 @@ the performance of Zerone is outstanding on this dataset, as suggested
 by the middle panel of Fig.~\ref{fig:pareto}.
 
 \subsubsection{H3K36me3-enriched domains.}
-Unlike in the previous cases, there is no consensus sequence
-to determine the location of histone modifications. However, it is
-known that the bodies of active genes are enriched in H3K36me3
-\citep{pmid16122420,pmid23739122}. Therefore, the genes that contain
-peaks or windows determined as enriched in H3K36me3 by the different
-discretizers should be more expressed than the background.
+There is no consensus sequence to determine the location of histone
+modifications. However, it is known that the bodies of active genes
+are enriched in H3K36me3 \citep{pmid16122420,pmid23739122}. Therefore,
+the genes that contain peaks or windows determined as enriched in
+H3K36me3 by the different discretizers should be more expressed than
+the background.
 
-The majority of the enriched windows are detected by most programs.
-This can be visualized in the Venn diagram of Fig.~\ref{fig:venn},
-where Zerone is shown to be able to detect most of the windows detected
-by other software, while discovering new enriched windows not found by
-the others, which is consistent with the previous observations
-(Table~\ref{tab:ctcf} and Fig.~\ref{fig:pareto}).
+We benchmarked the quality of the discretization with expression
+data obtained in the same cell. We used the number of RNA reads
+as a response variable and computed the amount of variance
+explained by the binarized profile of H3K36me3. The discretization
+produced by Zerone is the best predictor of expression
+(Fig.~\ref{fig:venn}). It is also the one with highest coverage
+(Fig.~\ref{fig:pareto}), which shows that the increased number of
+targets does not come at the cost of accuracy. On the contrary,
+the high coverage of H3K36me3 is confirmed by expression data.
+
+A Venn diagram gives a graphical overview of the relationships
+between the discretizations (Fig.~\ref{fig:venn}). Zerone finds
+most of the targets detected by the other discretizers (except JAMM),
+while discovering enriched windows not found by the others.
 
 \begin{figure}[!tpb]
-\centerline{\includegraphics[scale=0.5]{histone_venn_color_names.pdf}}
+\centerline{\includegraphics[scale=0.4]{histone_venn_color_names.pdf}}
 \caption{
-  Overlap between H3K36me3 targets. Each circle represents the
+  Left panel: quality of the H3K36me3 discretization. Each bar
+  represents the relative fraction of variance in RNA reads
+  explained by the discretization of H3K36me3. The value for MACS was
+  set to 1.0 and all other values were scaled accordingly. Right
+  panel: Overlap between H3K36me3 targets. Each circle represents the
   H3K36me3 targets identified by a program. The size of the circles
   is proportional to the coverage of the targets, and their overlap
   approximates the amount of targets shared by the programs. Note
@@ -574,7 +592,7 @@ quality control can be of great help.
 
 \section{Discussion and conclusions}
 Zerone was developed ground up for scalibility and throughput.
-Part of the speed is due to indexing methods that dramatically
+Part of the speed is due to hashing methods that dramatically
 cut down the computation time during the Baum-Welch cycles. Zerone
 also rests on sound statistical bases. Theoretical arguments and
 experimental observations suggest that the Zero-Inflated Negative
