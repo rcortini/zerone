@@ -502,7 +502,11 @@ test_block_viterbi
    };
 
    int *path = malloc(n * sizeof(int));
-   test_assert_critical(path != NULL);
+   if (path == NULL) {
+      fprintf(stderr, "error in test function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return;
+   }
 
    int nblocks = 2;
    uint size[2] = {5,5};

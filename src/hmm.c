@@ -439,7 +439,7 @@ block_viterbi
    const unsigned int *          size,
    const double       * restrict Q,
    const double       * restrict init,
-   const double       * restrict prob,
+         double       * restrict prob,
    // output //
                   int * restrict path
 )
@@ -466,13 +466,6 @@ block_viterbi
 //                                                                       
 // SIDE EFFECTS:                                                         
 //   Updates 'path' in place.                                            
-//                                                                       
-// XXX NOTE XXX:                                                         
-//   By using the index, the computation of the log probabilities can    
-//   be made much faster. So far, this was not needed because the        
-//   Viterbi algorithm is run only once per time series. In case of      
-//   extremely long time series, this could make a significant           
-//   difference.                                                         
 {
 
    int n = 0;
@@ -551,31 +544,30 @@ block_viterbi
       return -1;
    }
 
-   // Either way we make a copy of the emission probabilities
-   // because we will replace undefined emissions by 0.0. Copying
-   // 'init' and 'Q' is simpler for consistency.
-   // XXX In Zerone, this copy is very expensive. XXX //
-   double *log_p = malloc(n*m *sizeof(double));
-   if (log_p == NULL) {
-      debug_print("%s", "memory error\n");
-      free(log_Q);
-      free(log_i);
-      return 1;
-   }
+   double *log_p = NULL;
    if (args_in_lin_space) {
-      // Copy variables.
+      log_p = malloc(n*m *sizeof(double));
+      if (log_p == NULL) {
+         debug_print("%s", "memory error\n");
+         free(log_Q);
+         free(log_i);
+         return 1;
+      }
       for (int i = 0 ; i < n*m ; i++) log_p[i] = log(prob[i]);
       for (int i = 0 ; i < m*m ; i++) log_Q[i] = log(Q[i]);
       for (int i = 0 ; i < m ; i++)   log_i[i] = log(init[i]);
    }
    else {
-      for (int i = 0 ; i < n*m ; i++) log_p[i] = prob[i];
+      // IMPORTANT: we will replace undefined emissions by 0.0.
+      // Copying 'init' and 'Q' is simpler for consistency.
+      log_p = prob;
       for (int i = 0 ; i < m*m ; i++) log_Q[i] = Q[i];
       for (int i = 0 ; i < m ; i++)   log_i[i] = init[i];
    }
 
    // If an emssion probability is not available at some step, all
-   // the log values are set to 0.
+   // the log values are set to 0. Observations do not contribute
+   // to te path (only the transition probabilities).
    int offset = 0;
    for (int i = 0 ; i < nblocks ; i++) {
       for (int k = 0 ; k < size[i] ; k++) {
@@ -596,7 +588,10 @@ block_viterbi
 
    free(log_Q);
    free(log_i);
-   free(log_p);
+
+   if (args_in_lin_space) {
+      free(log_p);
+   }
 
    return 0;
 
