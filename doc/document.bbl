@@ -27,11 +27,6 @@ Dempster, A.~P., Laird, N.~M., and Rubin, D.~B. (1977).
 \newblock {\em JOURNAL OF THE ROYAL STATISTICAL SOCIETY, SERIES B\/}, {\bf
   39}(1), 1--38.
 
-\bibitem[{ENCODE Project Consortium}(2012){ENCODE Project Consortium}]{encode}
-{ENCODE Project Consortium} (2012).
-\newblock {An integrated encyclopedia of DNA elements in the human genome.}
-\newblock {\em {Nature}\/}, {\bf 489}(7414), 57--74.
-
 \bibitem[Grant {\em et~al.}(2011)Grant, Bailey, and Noble]{pmid21330290}
 Grant, C.~E., Bailey, T.~L., and Noble, W.~S. (2011).
 \newblock {FIMO: scanning for occurrences of a given motif.}
@@ -78,13 +73,6 @@ Kim, T.~H., Abdullaev, Z.~K., Smith, A.~D., Ching, K.~A., Loukinov, D.~I.,
 Kimura, H. (2013).
 \newblock {Histone modifications for human epigenome analysis.}
 \newblock {\em {J. Hum. Genet.}}, {\bf 58}(7), 439--45.
-
-\bibitem[Li {\em et~al.}(2009)Li, Handsaker, Wysoker, Fennell, Ruan, Homer,
-  Marth, Abecasis, and and]{pmid19505943}
-Li, H., Handsaker, B., Wysoker, A., Fennell, T., Ruan, J., Homer, N., Marth,
-  G., Abecasis, G., and and, R.~D. (2009).
-\newblock {The Sequence Alignment/Map format and SAMtools.}
-\newblock {\em {Bioinformatics}\/}, {\bf 25}(16), 2078--9.
 
 \bibitem[Li {\em et~al.}(2011)Li, Brown, Huang, and Bickel]{li2011}
 Li, Q., Brown, J.~B., Huang, H., and Bickel, P.~J. (2011).

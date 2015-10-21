@@ -84,7 +84,7 @@ megabase-scale domains covering 40\% of the genome
 \citep{pmid18463634}, whereas transcription factors may bind as few
 as 6~bp with a coverage below 1\%.
 
-Large consortia such as ENCODE \citep{encode} have brought to light
+Large consortia such as ENCODE have brought to light
 a more severe type of issue related to the quality of ChIP-seq data.
 Conflicts between replicates are common, and
 sometimes laboratory effects are clearly detectable in the data,
@@ -111,13 +111,13 @@ order to detect potential anomalies, and when applicable rejects the
 output as a whole. Internally, the first step implements a Hidden Markov
 Model (HMM) with zero-inflated negative multinomial (ZINM) emissions, and
 the second implements a Support Vector Machine (SVM) trained using ENCODE
-ChIP-seq data. HMM-based discretization is agnostic about the shape of the
-signal (broad or peaky) and the ZINM distribution captures the essential
-features of the read count distribution in ChIP-seq data.
+ChIP-seq data. HMM-based discretization is agnostic about
+the shape of the signal (broad or peaky) and the ZINM distribution captures
+the essential features of the read count distribution in ChIP-seq data.
 
 Zerone is designed for large volume pipelines aiming to combine many
 ChIP-seq profiles with little human intervention. To this end, it is
-compatible with the standard SAM and BAM formats \citep{pmid19505943},
+compatible with the standard BED, SAM/BAM, and GEM formats,
 it produces congruent window-based outputs, and it can process hundreds
 of experiments per day on average hardware. We benchmarked Zerone against
 MACS \citep{pmid18798982}, BayesPeak \citep{pmid19772557} and
@@ -233,12 +233,12 @@ or negative (53 cases), based on visual inspection and on the available
 literature about the chromatin features. The most common cases of
 poor data quality in ChIP-seq correspond to low signal-to-noise ratio
 (\textit{e.g.} when the antibody is not specific enough), and lack of
-repdroducibility between replicates (\textit{e.g.} when samples are
+reproducibility between replicates (\textit{e.g.} when samples are
 swapped). To cover these cases, we included in the trusted set
 38 other cases obtained by discretizing non replicate profiles
 (\textit{e.g.} CTCF and Pol2) and controls without immuno-precipitation.
 Thus, a total of 182 cases (91 positive and 91 negative) were used to
-build a balanced dataset.
+build a balanced data set.
 
 To identify discretization failures, we used the paremeters of the
 fitted HMM. Based on the transition matrix, the emission paramaters,
@@ -257,7 +257,7 @@ they require only one hyperparameter to be fitted, which were
 advantages over other approaches such as neural networks.
 
 \begin{figure}[!tpb]
-\centerline{\includegraphics[scale=0.4]{pca_bw.pdf}}
+\centerline{\includegraphics[scale=0.282]{pca_bw.pdf}}
 \caption{
   Principal Component Analysis of the training data set.
   Each symbol represents a discretization performed by Zerone. The
@@ -278,7 +278,7 @@ We then implemented a prediction function in Zerone that used the
 model trained by the SVM to classify the discretizations and
 suggest whether they should be accepted or discarded.
 
-\subsection{Datasets and preprocessing}
+\subsection{Data sets and preprocessing}
 We used all the ChIP-seq fastq files produced by the ENCODE Consortium
 on the human leukemia cell line K562. The data was
 downloaded from repository
@@ -288,9 +288,8 @@ genome assemblies \citep{pmid21059603}.
 Instead, we mapped all the raw reads onto the
 hg19 assembly of the human genome with GEM \citep{pmid23103880}, using
 the options \texttt{--unique-mapping} and \texttt{-q ignore} of gem-mapper
-version 1.376 beta (and gem-indexer version 1.423 beta).
-
-POL: EXPLAIN THAT WE TRANSFORM THE DATA TO .SAM
+version 1.376 beta (and gem-indexer version 1.423 beta). For convenience,
+we converted the mapped files to SAM format with gem-2-sam version 1.423 beta.
 
 \subsection{Benchmark conditions}
 To compare Zerone to other discretizers, we analysed three different
@@ -299,7 +298,7 @@ ChIP-seq data sets: CCCTC-binding factor (CTCF), RNA polymerase II
 represent peaky, mixed and broad signals, respectively. Each
 data set consisted of a mock profile without immunoprecipitation
 and two replicate ChIP-seq profiles.
-The ENCODE accession numbers for these three datasets are
+The ENCODE accession numbers for these three data sets are
 ENCSR000DWE, ENCSR000DWB and ENCSR000EHP respectively.
 
 We tested MACS \texttt{callpeak} version 2.1.0.20140616, BayesPeak
@@ -331,21 +330,22 @@ at promoters and potentially broad domains on transcribed genes.
 The results were similar between experiments, and Zerone was
 consistenty the fastest tool, with a running time around 5 minutes
 (Fig.~\ref{fig:perf}, top row). The advantage is only marginal over
-MACS, wihch ran for around 10 minutes, but it is substantial over
+MACS, which ran for around 10 minutes, but it is substantial over
 BayesPeak and JAMM, which ran in over 9 hours. The results for peak
 memory usage were more variable between experiments (Fig.~\ref{fig:perf},
 bottom row). MACS achieved the best performance with a memory
-footprint around 0.5~GB, followed by Zerone around 1.0~GB.
+footprint around 0.5~GB, followed by Zerone around 0.7~GB.
 BayesPeak and JAMM each used more than 1.5~GB.
 
 The benchmark is partly confounded by the fact that BayesPeak and MACS
 discretize a single input per run, whereas Zerone and JAMM discretize
 multiple inputs simultaneously. This makes a difference for pipelines
 where all files have to be processed in parallel with the minimum
-amount of resources. In our benchmark, Zerone used twice as much memory
-as MACS, but it also processed twice as many files. For the same amount
+amount of resources. In our benchmark, Zerone used around 40\% more memory
+than MACS, but it processed twice as many files. For the same amount
 of available memory, a Zerone pipeline would run two times faster than a
 MACS pipeline, and with only half the computer power.
+% This last sentence is unclear to me (and the proportions changed).
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{performance.pdf}}
@@ -434,13 +434,13 @@ determine the capacity of the different programs to call peaks of CTCF
 binding, we compared the discretized profiles against a data set of CTCF
 binding motifs. We used FIMO \citep{pmid21330290} from the MEME suite
 version 4.10.1 \citep{pmid19458158} to identify and map CTCF motifs in
-the human genome. We obtained a reference data aset containing 85,690
+the human genome. We obtained a reference data set containing 85,690
 CTCF motifs.
 
 Table \ref{tab:ctcf} shows that Zerone outperforms the other tools
 in terms of the $F_1$ score (the harmonic mean between precision and
-recall). It has a the second higest recall score, close to that of JAMM,
-and it achievs the highest precision.
+recall). It has the second higest recall score, close to that of JAMM,
+and it achieves the highest precision.
 
 \begin{table}[!t]
 \processtable{Performance on the CTCF motifs data set.
@@ -504,7 +504,7 @@ Table \ref{tab:tss} shows that, as in the previous case, Zerone
 achieves the highest $F_1$ score. Here it achieves both better
 precision and better recall than the other discretizers, with a
 very neat advantage in precision. These results confirm that
-the performance of Zerone is outstanding on this dataset, as suggested
+the performance of Zerone is outstanding on this data set, as suggested
 by the middle panel of Fig.~\ref{fig:pareto}.
 
 \subsubsection{H3K36me3-enriched domains.}
@@ -521,7 +521,7 @@ as a response variable and computed the amount of variance
 explained by the binarized profile of H3K36me3. The discretization
 produced by Zerone is the best predictor of expression
 (Fig.~\ref{fig:venn}). It is also the one with highest coverage
-(Fig.~\ref{fig:pareto}), which shows that the increased number of
+(Fig.~\ref{fig:pareto}, right panel), which shows that the increased number of
 targets does not come at the cost of accuracy. On the contrary,
 the high coverage of H3K36me3 is confirmed by expression data.
 
@@ -556,12 +556,12 @@ on the idea that estimating distributional parameters from
 overly noisy or divergent profiles should give a signature that
 can be picked up by a specially trained classifier.
 
-We identified 18 summary statistics that characterize the
+We identified 8 summary statistics that characterize the
 discretization (including the transition parameters of the HMM,
 the mean number of targets and their mean posterior probability)
 and trained an SVM to recognize failures. We thus obtained a
 classifier able to identify failed discretization attempts
-with 95\% accuracy (\textit{c.f.} section \ref{sub:training}).
+with 98\% accuracy (\textit{c.f.} section \ref{sub:training}).
 
 Computer-assisted quality control is essential for high throughput
 pipelines and for cases with no prior knowledge. To showcase this
@@ -597,7 +597,7 @@ Multinomial distribution is appropriate to model ChIP-seq data
 and sensitivity for very different profiles.
 
 Here we introduced a way to compare discretizers with an intuitive
-grpahical representation (Fig.~\ref{fig:expl}). On this plane,
+graphical representation (Fig.~\ref{fig:expl}). On this plane,
 the coordinates of a discretization indicate the number of targets
 (or occupancy) and the amount of reads captured by these targets.
 The Pareto front captures the inherent trade-off between sensitivity
@@ -619,7 +619,7 @@ choice, and is usually tacit in the case of ChIP-seq discretizers.
 Out of two equally conservative discretizers, one may be more sensitive,
 \textit{i.e.} discover more targets. The merit of the representation
 introduced here is to highlight these characteristics and to guide users
-when choosing the most appropriate tool fo their need.
+when choosing the most appropriate tool for their need.
 
 This representation naturally suggests a naive approach to discretize
 ChIP-seq profiles. Indeed, one could sort the genomic windows by
@@ -640,8 +640,6 @@ discretizations will increase, the classifier can be refined to
 reach greater accuracy.
 
 \section*{Acknowledgement}
-% acknowledge the ENCODE Consortium and the ENCODE production laboratory(s) generating the particular dataset(s)??
-
 \paragraph{Funding\textcolon}
 % These acknowledgements are compliant (October 17, 2015).
 The fellowship of P.C. is partly financed by the Spanish Ministry
