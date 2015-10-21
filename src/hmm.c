@@ -554,6 +554,7 @@ block_viterbi
    // Either way we make a copy of the emission probabilities
    // because we will replace undefined emissions by 0.0. Copying
    // 'init' and 'Q' is simpler for consistency.
+   // XXX In Zerone, this copy is very expensive. XXX //
    double *log_p = malloc(n*m *sizeof(double));
    if (log_p == NULL) {
       debug_print("%s", "memory error\n");
