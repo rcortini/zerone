@@ -40,7 +40,7 @@ $^{2}$Universitat Pompeu Fabra (UPF), Barcelona, Spain.}
   replicates into a single discretized profile. To identify low quality
   or irreproducible data, we trained a Support Vector Machine and
   integrated it as part of the discretization process. Zerone detects
-  low quality data with 95\% accuracy. Zerone is also flexible, fast
+  low quality data with 98\% accuracy. Zerone is also flexible, fast
   and accurate: it discretizes broad or peaky profiles, it
   runs in a few minutes on modern hardware while using under 800 MB of
   memory and produces high quality discretizations.
@@ -228,31 +228,30 @@ failures. We first prepared a high confidence data set where the
 output of Zerone was labelled positive (success) or negative (failure).
 We discretized 144 replicated ChIP-seq experiments, together with their
 respective input control.
-We labelled the output of the discretization as positive (XX cases)
-or negative (XX cases), based on visual inspection and on the available
+We labelled the output of the discretization as positive (91 cases)
+or negative (53 cases), based on visual inspection and on the available
 literature about the chromatin features. The most common cases of
 poor data quality in ChIP-seq correspond to low signal-to-noise ratio
 (\textit{e.g.} when the antibody is not specific enough), and lack of
 repdroducibility between replicates (\textit{e.g.} when samples are
 swapped). To cover these cases, we included in the trusted set
-XX other cases obtained by discretizing non replicate profiles
+38 other cases obtained by discretizing non replicate profiles
 (\textit{e.g.} CTCF and Pol2) and controls without immuno-precipitation.
-Thus, a total of XX cases (XX positive and XX negative) were used to
+Thus, a total of 182 cases (91 positive and 91 negative) were used to
 build a balanced dataset.
-% TODO: which were the files used in each group?
 
 To identify discretization failures, we used the paremeters of the
 fitted HMM. Based on the transition matrix, the emission paramaters,
 the Viterbi Path and the posterior probabilities,
-we computed 18 features expected to vary with the quality
+we computed 8 features expected to vary with the quality
 of the discretization, and we used them to train a classifier.
 
 Our first attempts with logistic regression suggested that linear
 classifiers are unable to properly separate these two classes because
 they overlap in the feature space (Fig.~\ref{fig:pca_bw}). To obtain more
 complex, nonlinear separation, we used a Support Vector Machine
-(SVM, \citealp{Chang2011,e1071}), as this approach guarantees the lowest
-overfitting upper bound and allows nonlinear classification by mapping
+(SVM, \citealp{Chang2011,e1071}), as this approach
+allows nonlinear classification by mapping
 the training data to a kernel space. Also, SVMs are fast to train and
 they require only one hyperparameter to be fitted, which were
 advantages over other approaches such as neural networks.
@@ -262,7 +261,7 @@ advantages over other approaches such as neural networks.
 \caption{
   Principal Component Analysis of the training data set.
   Each symbol represents a discretization performed by Zerone. The
-  18 features extracted from each discretization are projected on the
+  8 features extracted from each discretization are projected on the
   first two principal components. Positive examples (black circles)
   are similar to each other, while negative examples (grey crosses)
   are different from each other and from positive examples. The two
@@ -274,37 +273,34 @@ advantages over other approaches such as neural networks.
 We trained the SVM with a radial basis function kernel and
 selected the hyperparameters that maximized the prediction
 performance on test sets using a 10-fold cross-validation scheme.
-The prediction accuracy on the trusted set was 95\%.
+The prediction accuracy on the trusted set was 98.3\%.
 We then implemented a prediction function in Zerone that used the
 model trained by the SVM to classify the discretizations and
 suggest whether they should be accepted or discarded.
 
 \subsection{Datasets and preprocessing}
-We used all the ChIP-seq profiles produced by the ENCODE Consortium
-on the human myelogenous leukemia cell line K562. We did not make use
-of preprocessed mapped reads because they could have been mapped with
-different software and could therefore disagree on its results
-\citep{pmid21059603}. Instead, we mapped all the raw reads onto the
+We used all the ChIP-seq fastq files produced by the ENCODE Consortium
+on the human leukemia cell line K562. The data was
+downloaded from repository
+\href{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC}{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC} in November 2013.
+We did not use mapped files because they were mapped in different
+genome assemblies \citep{pmid21059603}.
+Instead, we mapped all the raw reads onto the
 hg19 assembly of the human genome with GEM \citep{pmid23103880}, using
 the options \texttt{--unique-mapping} and \texttt{-q ignore} of gem-mapper
-version 1.376 (beta). The version of gem-indexer was 1.423 (beta). We
-preprocessed the data in the same way both for training the classifier
-and for benchmarking. We also used the same genome assembly to generate
-the data sets used in the benchmarks (see Section \ref{sec:results}).
+version 1.376 beta (and gem-indexer version 1.423 beta).
+
+POL: EXPLAIN THAT WE TRANSFORM THE DATA TO .SAM
 
 \subsection{Benchmark conditions}
 To compare Zerone to other discretizers, we analysed three different
-ChIP-seq data sets: CCCTC-binding factor (CTCF), tri-methylated histone
-H3 at lysine 36 (H3K36me3) and RNA polymerase II (Pol2)---that
-represent punctate, broad and mixed type signals respectively. Each
-data set consisted of an input profile and two replicate target
-profiles. The ENCODE accession numbers for these three datasets are
+ChIP-seq data sets: CCCTC-binding factor (CTCF), RNA polymerase II
+(Pol2) and tri-methylated histone H3 at lysine 36 (H3K36me3) --- that
+represent peaky, mixed and broad signals, respectively. Each
+data set consisted of a mock profile without immunoprecipitation
+and two replicate ChIP-seq profiles.
+The ENCODE accession numbers for these three datasets are
 ENCSR000DWE, ENCSR000DWB and ENCSR000EHP respectively.
-
-To make the comparisons fair, we merged all contiguous windows that
-were called as enriched by Zerone, in the same way the other programs
-do. Otherwise, the number of enriched regions in the genome would be
-higher and Zerone performance would look poorer than the actual.
 
 We tested MACS \texttt{callpeak} version 2.1.0.20140616, BayesPeak
 version 1.20.0 and JAMM version 1.0.7rev1. All tests were performed on
