@@ -7,7 +7,6 @@ zerone
 *.gcno
 *.gcov
 *.log
-doc/document.pdf
 src/test/gmon.out
 src/test/analysis.txt
 src/test/runtests
