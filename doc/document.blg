@@ -4,10 +4,9 @@ The top-level auxiliary file: document.aux
 The style file: natbib.bst
 Database file #1: document.bib
 Database file #2: extra.bib
-Warning--I didn't find a database entry for "XXX"
 You've used 26 entries,
             2378 wiz_defined-function locations,
-            697 strings with 9477 characters,
+            695 strings with 9471 characters,
 and the built_in function-call counts, 14005 in all, are:
 = -- 1202
 > -- 1045
@@ -46,4 +45,3 @@ warning$ -- 0
 while$ -- 105
 width$ -- 0
 write$ -- 341
-(There was 1 warning)
