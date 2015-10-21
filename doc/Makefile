@@ -11,3 +11,7 @@ document.bib: pubmed2bibtex.xsl pmid.xml
 
 pmid.xml: getref.py pmid.txt
 	./getref.py pmid.txt > $@
+
+tuto:
+	pdflatex tutorial.tex
+	rm tutorial.aux tutorial.log tutorial.out
