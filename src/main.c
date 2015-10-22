@@ -125,7 +125,6 @@ int main(int argc, char **argv) {
 
       switch (c) {
       case 0:
-         // A flag was set //
          break;
 
       case '0':
@@ -139,6 +138,10 @@ int main(int argc, char **argv) {
       case 'h':
          say_usage();
          return EXIT_SUCCESS;
+
+      case 'l':
+         list_flag = 1;
+         break;
 
       case 'v':
          say_version();
