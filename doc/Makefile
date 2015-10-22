@@ -1,4 +1,4 @@
-all: document.pdf
+all: document.pdf tutorial.pdf
 
 document.pdf: document.tex document.bib
 	pdflatex document.tex

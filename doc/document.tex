@@ -43,9 +43,8 @@ $^{2}$Universitat Pompeu Fabra (UPF), Barcelona, Spain.}
   low quality data with 98\% accuracy. Here we also introduce a
   graphical representation to compare discretizers and we show that
   Zerone achieves outstanding accuracy. Finally, on current hardware,
-  Zerone discretizes ChIP-seq experiment on mammalian genomes in about
-  5 minutes using less than 800 MB of memory.
-
+  Zerone discretizes a ChIP-seq experiment on mammalian genomes in about
+  5 minutes using less than 700 MB of memory.
 
 \section{Availability:}
   Zerone is available as a command line tool and as an R package. The C
@@ -183,7 +182,6 @@ in the same conditions. The dependency between replicates is
 explicitly modeled by the ZINM distribution, which gives more
 accurate probabilities than assuming independence.
 
-
 \subsection{Discretization}
 Discretization is performed by fitting an HMM
 with ZINM emissions. The HMM has three
@@ -294,8 +292,7 @@ gem-mapper version 1.376 beta (and gem-indexer version 1.423 beta).
 For convenience, we converted the mapped files to SAM format with
 gem-2-sam version 1.423 beta.
 The negative control file use to prepare Fig.~\ref{fig:ZINB_fit}
-was wgEncodeSydhTfbsK562InputRawData.fastq.gz.
-
+was wgEncodeSydhTfbsK562InputRawData.fastq.
 
 \subsection{Benchmark conditions}
 To compare Zerone to other discretizers, we analysed three different
@@ -337,7 +334,7 @@ discretization (including the transition parameters of the HMM,
 the mean number of targets and their mean posterior probability)
 and trained an SVM to recognize failures. We thus obtained a
 classifier able to identify failed discretization attempts
-with 98\% accuracy (\textit{c.f.} section \ref{sub:training}).
+with 98.3\% accuracy (\textit{c.f.} section \ref{sub:training}).
 
 We tested discretizing ENCODE ChIP-seq profiles obtained in human H1
 ES cells. Upon discretizing the lysine-demethylase
@@ -358,50 +355,6 @@ quality control can be of great help.
   The first replicate is not similar to the second, and it does not
   contain any target.
 }\label{fig:jarid}
-\end{figure}
-
-
-\subsection{Speed and memory footprint}
-We benchmarked Zerone against three other ChIP-seq discretizers.
-We included MACS as the standard method for ChIP-seq peak calling,
-BayesPeak because it is powered by an HMM with ZINB emissions
-similar to the model implemented in Zerone, and JAMM because, as
-Zerone, it can perform joint discretization of experimental replicates.
-
-We compared the running times of the different programs on discretizing
-three data sets of similar size that represent the three major types of
-ChIP-seq signal usually observed. The CTCF signal consists of sharp
-peaks at the transcription factor binding site, the H3K36me3 signal
-consists of broad domains, and the Pol2 signal consists of  peaks
-at promoters and potentially broad domains on transcribed genes.
-
-The results were similar between experiments, and Zerone was
-consistenty the fastest tool, with a running time around 5 minutes
-(Fig.~\ref{fig:perf}, top row). The advantage is only marginal over
-MACS, which ran for around 10 minutes, but it is substantial over
-BayesPeak and JAMM, which ran in over 9 hours. The results for peak
-memory usage were more variable between experiments (Fig.~\ref{fig:perf},
-bottom row). MACS achieved the best performance with a memory
-footprint around 0.5~GB, followed by Zerone around 0.7~GB.
-BayesPeak and JAMM each used more than 1.5~GB.
-
-The benchmark is partly confounded by the fact that BayesPeak and MACS
-discretize a single input per run, whereas Zerone and JAMM discretize
-multiple inputs simultaneously. This makes a difference for pipelines
-where all files have to be processed in parallel with the minimum
-amount of resources. In this benchmark, Zerone processed twice as
-many files per run as MACS. Per processed file, Zerone is thus
-four time faster than MACS while using 30\% less memory.
-
-\begin{figure}[!tpb]
-\centerline{\includegraphics[scale=0.5]{performance.pdf}}
-\caption{
-  Running times and peak memory footprint of the
-  discretizers on the three ChIP-seq data sets. For programs that only
-  allow single-profile discretization (\textit{i.e.} BayesPeak and MACS),
-  mean values (not the sum) are shown. Note the logarithmic scale in the
-  running times.
-}\label{fig:perf}
 \end{figure}
 
 \subsection{Accuracy}
@@ -452,8 +405,7 @@ targets.
   When discretizing the CTCF and the Pol2 profile (left and middle),
   Zerone produces discretizations that are very close to the Pareto
   front. In the case of H3K36me3, the discretization is off the
-  Pareto front, but it is more sensitive and more sensible than the
-  others.
+  Pareto front, but it is more sensible than the others.
 }
 \label{fig:pareto}
 \end{figure*}
@@ -592,6 +544,48 @@ while discovering enriched windows not found by the others.
 }\label{fig:venn}
 \end{figure}
 
+\subsection{Speed and memory footprint}
+We benchmarked Zerone against three other ChIP-seq discretizers.
+We included MACS as the standard method for ChIP-seq peak calling,
+BayesPeak because it is powered by an HMM with ZINB emissions
+similar to the model implemented in Zerone, and JAMM because, as
+Zerone, it can perform joint discretization of experimental replicates.
+
+We compared the running times of the different programs on discretizing
+three data sets of similar size that represent the three major types of
+ChIP-seq signal usually observed. The CTCF signal consists of sharp
+peaks at the transcription factor binding site, the H3K36me3 signal
+consists of broad domains, and the Pol2 signal consists of  peaks
+at promoters and potentially broad domains on transcribed genes.
+
+The results were similar between experiments, and Zerone was
+consistenty the fastest tool, with a running time around 5 minutes
+(Fig.~\ref{fig:perf}, top row). The advantage is only marginal over
+MACS, which ran for around 10 minutes, but it is substantial over
+BayesPeak and JAMM, which ran in over 9 hours. The results for peak
+memory usage were more variable between experiments (Fig.~\ref{fig:perf},
+bottom row). MACS achieved the best performance with a memory
+footprint around 0.5~GB, followed by Zerone around 0.7~GB.
+BayesPeak and JAMM each used more than 1.5~GB.
+
+The benchmark is partly confounded by the fact that BayesPeak and MACS
+discretize a single input per run, whereas Zerone and JAMM discretize
+multiple inputs simultaneously. This makes a difference for pipelines
+where all files have to be processed in parallel with the minimum
+amount of resources. In this benchmark, Zerone processed twice as
+many files per run as MACS. Per processed file, Zerone is thus
+four time faster than MACS while using 30\% less memory.
+
+\begin{figure}[!tpb]
+\centerline{\includegraphics[scale=0.5]{performance.pdf}}
+\caption{
+  Running times and peak memory footprint of the
+  discretizers on the three ChIP-seq data sets. For programs that only
+  allow single-profile discretization (\textit{i.e.} BayesPeak and MACS),
+  mean values (not the sum) are shown. Note the logarithmic scale in the
+  running times.
+}\label{fig:perf}
+\end{figure}
 
 \section{Discussion and conclusions}
 Zerone was developed ground up for scalibility and throughput.
