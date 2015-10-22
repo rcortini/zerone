@@ -318,35 +318,6 @@ CTCF motifs were obtained from the JASPAR database version
 \label{sec:results}
 
 \subsection{Automatic quality control}
-The most novel feature of Zerone is an embedded automatic quality
-control step taking place after the discretization.
-Computer-assisted quality control is essential for high throughput
-pipelines and for cases with no prior knowledge. This not only
-ensures that the discretization is sensible, but also that the
-replicates are similar to each other and that ChIP-seq profiles
-are not too similar to the mock controls. Our approach is based
-on the idea that estimating distributional parameters from
-overly noisy or divergent profiles should give a signature that
-can be picked up by a specially trained classifier.
-
-We identified 8 summary statistics that characterize the
-discretization (including the transition parameters of the HMM,
-the mean number of targets and their mean posterior probability)
-and trained an SVM to recognize failures. We thus obtained a
-classifier able to identify failed discretization attempts
-with 98.3\% accuracy (\textit{c.f.} section \ref{sub:training}).
-
-We tested discretizing ENCODE ChIP-seq profiles obtained in human H1
-ES cells. Upon discretizing the lysine-demethylase
-JARID1A, the quality control module of Zerone reported a failure.
-
-Further investigation immediately revealed the nature of the issue.
-In one of the replicates, the signal is lacking entirely, as if
-the immuno-precipitation was non specific (Fig.~\ref{fig:jarid}).
-Once aware of the issue, users can handle it properly (for instance
-by discarding the protein or by working with a single replicate).
-Such cases are easy to miss in automatic pipelines, and automatic
-quality control can be of great help.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{jarid.pdf}}
@@ -356,6 +327,35 @@ quality control can be of great help.
   contain any target.
 }\label{fig:jarid}
 \end{figure}
+
+The most novel feature of Zerone is an embedded automatic quality
+control step taking place after the discretization. It not only
+ensures that the discretization is sensible, but also that the
+replicates are similar to each other and that ChIP-seq profiles
+are not too similar to the mock controls. Our approach is based
+on the idea that estimating distributional parameters from
+overly noisy or divergent profiles should give a signature that
+can be picked up by a specially trained classifier.
+
+We identified 8 summary statistics that characterize the quality of
+the discretization (including the transition parameters of the HMM,
+the mean number of targets and their mean posterior probability)
+and trained an SVM to recognize failures. We thus obtained a
+classifier able to identify failed discretization attempts
+with 98.3\% accuracy (\textit{c.f.} section \ref{sub:training}).
+
+This feature is essential for high throughput automatic pipelines.
+When discretizing ENCODE ChIP-seq profiles obtained in human H1
+ES cells, we noticed that the lysine-demethylase JARID1A did
+not pass the quality control.
+Further investigation immediately revealed the nature of the issue.
+In one of the replicates, the signal is lacking entirely, as if
+the immuno-precipitation was non specific (Fig.~\ref{fig:jarid}).
+Once aware of the issue, users can handle it properly (for instance
+by discarding the protein or by working with a single replicate).
+Automatic quality control can be of great help. Without Zerone, 
+the low quality of the first replicate would have been missed
+entirely.
 
 \subsection{Accuracy}
 The purpose of discretizers is to identify the targets of a
@@ -386,17 +386,6 @@ them with a partial order, as explained below.
 \label{fig:expl}
 \end{figure}
 
-When arranging genomic windows from high to low amount of ChIP-seq
-reads, the cumulative number of reads forms a Pareto front.
-It represents the largest amount of reads that can be captured by the
-given amount of targets, or alternatively the smallest number of
-targets that can catpure the given amount of reads
-(Fig.~\ref{fig:expl}). A discretization can be represented as a point
-on the $xy$ plane.  By construction, no discretization can lie on the
-left of the Pareto front, and those on the front represent an
-optimum. Others are suboptimal, since fewer windows can capture more
-targets.
-
 \begin{figure*}
 \centerline{\includegraphics[scale=0.4]{pareto_front.pdf}}
 \caption{
@@ -409,6 +398,18 @@ targets.
 }
 \label{fig:pareto}
 \end{figure*}
+
+When arranging genomic windows from high to low amount of ChIP-seq
+reads, the cumulative number of reads forms a Pareto front.
+It represents the largest amount of reads that can be captured by the
+given amount of targets, or alternatively the smallest number of
+targets that can catpure the given amount of reads
+(Fig.~\ref{fig:expl}). A discretization can be represented as a point
+on the $xy$ plane.  By construction, no discretization can lie on the
+left of the Pareto front, and those on the front represent an
+optimum. Others are suboptimal, since fewer windows can capture more
+targets.
+
 
 This representation reveals that discretizing the CTCF profile yields
 similar outputs regardless of the software (Fig.~\ref{fig:pareto},
