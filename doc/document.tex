@@ -40,10 +40,11 @@ $^{2}$Universitat Pompeu Fabra (UPF), Barcelona, Spain.}
   replicates into a single discretized profile. To identify low quality
   or irreproducible data, we trained a Support Vector Machine and
   integrated it as part of the discretization process. Zerone detects
-  low quality data with 98\% accuracy. Zerone is also flexible, fast
-  and accurate: it discretizes broad or peaky profiles, it
-  runs in a few minutes on modern hardware while using under 800 MB of
-  memory and produces high quality discretizations.
+  low quality data with 98\% accuracy. Here we also introduce a
+  graphical representation to compare discretizers and we show that
+  Zerone achieves outstanding accuracy. Finally, on current hardware,
+  Zerone discretizes ChIP-seq experiment on mammalian genomes in about
+  5 minutes using less than 800 MB of memory.
 
 
 \section{Availability:}
@@ -154,10 +155,9 @@ fit to ChIP-seq data than Poisson and NB distributions.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.55]{ZINB_fit.pdf}}
-% XX is wgEncodeSydhTfbsK562InputRawData.bed.gz %
 \caption{
   Using the ZINB distribution to model ChIP-seq data. Reads from
-  the negative control data set XX were mapped on the human genome and
+  a mock control data set were mapped onto the human genome and
   pooled in 300~bp windows after removing duplicates. The histogram of
   the read counts is shown in black (no immunoprecipitation was
   performed in this experiment, so this variation corresponds to the
@@ -261,12 +261,14 @@ advantages over other approaches such as neural networks.
 \caption{
   Principal Component Analysis of the training data set.
   Each symbol represents a discretization performed by Zerone. The
-  8 features extracted from each discretization are projected on the
-  first two principal components. Positive examples (black circles)
-  are similar to each other, while negative examples (grey crosses)
-  are different from each other and from positive examples. The two
-  groups overlap, which creates an ambiguous zone where failures and
-  successes are indistinguishable.
+  8 features extracted from each discretization are projected onto
+  the first three principal components. Positive examples (black
+  circles) are similar to each other, while negative examples (white
+  triangles) are different from each other and from positive examples.
+  The two groups overlap, which creates an ambiguous zone where
+  failures and successes are indistinguishable. The right panel
+  suggests that non linear classification is more appropriate to
+  classify discretizations.
 }\label{fig:pca_bw}
 \end{figure}
 
@@ -284,12 +286,16 @@ on the human leukemia cell line K562. The data was
 downloaded from repository
 \href{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC}{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC} in November 2013.
 We did not use mapped files because they were mapped in different
-genome assemblies \citep{pmid21059603}.
+genome assemblies.
 Instead, we mapped all the raw reads onto the
-hg19 assembly of the human genome with GEM \citep{pmid23103880}, using
-the options \texttt{--unique-mapping} and \texttt{-q ignore} of gem-mapper
-version 1.376 beta (and gem-indexer version 1.423 beta). For convenience,
-we converted the mapped files to SAM format with gem-2-sam version 1.423 beta.
+hg19 assembly of the human genome with GEM \citep{pmid23103880},
+using the options \texttt{--unique-mapping} and \texttt{-q ignore} of
+gem-mapper version 1.376 beta (and gem-indexer version 1.423 beta).
+For convenience, we converted the mapped files to SAM format with
+gem-2-sam version 1.423 beta.
+The negative control file use to prepare Fig.~\ref{fig:ZINB_fit}
+was wgEncodeSydhTfbsK562InputRawData.fastq.gz.
+
 
 \subsection{Benchmark conditions}
 To compare Zerone to other discretizers, we analysed three different
@@ -313,13 +319,55 @@ CTCF motifs were obtained from the JASPAR database version
 
 \section{Results}
 \label{sec:results}
+
+\subsection{Automatic quality control}
+The most novel feature of Zerone is an embedded automatic quality
+control step taking place after the discretization.
+Computer-assisted quality control is essential for high throughput
+pipelines and for cases with no prior knowledge. This not only
+ensures that the discretization is sensible, but also that the
+replicates are similar to each other and that ChIP-seq profiles
+are not too similar to the mock controls. Our approach is based
+on the idea that estimating distributional parameters from
+overly noisy or divergent profiles should give a signature that
+can be picked up by a specially trained classifier.
+
+We identified 8 summary statistics that characterize the
+discretization (including the transition parameters of the HMM,
+the mean number of targets and their mean posterior probability)
+and trained an SVM to recognize failures. We thus obtained a
+classifier able to identify failed discretization attempts
+with 98\% accuracy (\textit{c.f.} section \ref{sub:training}).
+
+We tested discretizing ENCODE ChIP-seq profiles obtained in human H1
+ES cells. Upon discretizing the lysine-demethylase
+JARID1A, the quality control module of Zerone reported a failure.
+
+Further investigation immediately revealed the nature of the issue.
+In one of the replicates, the signal is lacking entirely, as if
+the immuno-precipitation was non specific (Fig.~\ref{fig:jarid}).
+Once aware of the issue, users can handle it properly (for instance
+by discarding the protein or by working with a single replicate).
+Such cases are easy to miss in automatic pipelines, and automatic
+quality control can be of great help.
+
+\begin{figure}[!tpb]
+\centerline{\includegraphics[scale=0.5]{jarid.pdf}}
+\caption{
+  ChIP-seq profiles of JARID1A in H1 ES cells (300 bp windows).
+  The first replicate is not similar to the second, and it does not
+  contain any target.
+}\label{fig:jarid}
+\end{figure}
+
+
+\subsection{Speed and memory footprint}
 We benchmarked Zerone against three other ChIP-seq discretizers.
 We included MACS as the standard method for ChIP-seq peak calling,
 BayesPeak because it is powered by an HMM with ZINB emissions
 similar to the model implemented in Zerone, and JAMM because, as
 Zerone, it can perform joint discretization of experimental replicates.
 
-\subsection{Speed and memory footprint}
 We compared the running times of the different programs on discretizing
 three data sets of similar size that represent the three major types of
 ChIP-seq signal usually observed. The CTCF signal consists of sharp
@@ -341,11 +389,9 @@ The benchmark is partly confounded by the fact that BayesPeak and MACS
 discretize a single input per run, whereas Zerone and JAMM discretize
 multiple inputs simultaneously. This makes a difference for pipelines
 where all files have to be processed in parallel with the minimum
-amount of resources. In our benchmark, Zerone used around 40\% more memory
-than MACS, but it processed twice as many files. For the same amount
-of available memory, a Zerone pipeline would run two times faster than a
-MACS pipeline, and with only half the computer power.
-% This last sentence is unclear to me (and the proportions changed).
+amount of resources. In this benchmark, Zerone processed twice as
+many files per run as MACS. Per processed file, Zerone is thus
+four time faster than MACS while using 30\% less memory.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{performance.pdf}}
@@ -368,8 +414,8 @@ and the amount of reads they represent are therefore critical
 characteristics of a discretization. Unfortunately, there is no gold
 standard to estimate the trade-off between false positives and false
 negatives in ChIP-seq experiments, and thus there is no objective way
-to rank discretizers. However, we can compare them with a partial order,
-as explained below.
+to rank discretizers \citep{pmid21059603}. However, we can compare
+them with a partial order, as explained below.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{pareto_front_explanation.pdf}}
@@ -546,45 +592,6 @@ while discovering enriched windows not found by the others.
 }\label{fig:venn}
 \end{figure}
 
-\subsection{Automatic quality control}
-The most novel feature of Zerone is an embedded automatic quality
-control step taking place after the discretization. This not only
-ensures that the discretization is sensible, but also that the
-replicates are similar to each other and that ChIP-seq profiles
-are not too similar to the mock controls. Our approach is based
-on the idea that estimating distributional parameters from
-overly noisy or divergent profiles should give a signature that
-can be picked up by a specially trained classifier.
-
-We identified 8 summary statistics that characterize the
-discretization (including the transition parameters of the HMM,
-the mean number of targets and their mean posterior probability)
-and trained an SVM to recognize failures. We thus obtained a
-classifier able to identify failed discretization attempts
-with 98\% accuracy (\textit{c.f.} section \ref{sub:training}).
-
-Computer-assisted quality control is essential for high throughput
-pipelines and for cases with no prior knowledge. To showcase this
-feature, we decided to discretize ENCODE ChIP-seq profiles obtained
-in human H1 ES cells. Upon discretizing the lysine-demethylase
-JARID1A, the quality control module of Zerone reported a failure.
-
-Further investigation immediately revealed the nature of the issue.
-In one of the replicates, the signal is lacking entirely, as if
-the immuno-precipitation was non specific (Fig.~\ref{fig:jarid}).
-Once aware of the issue, users can handle it properly (for instance
-by discarding the protein or by working with a single replicate).
-Such cases are easy to miss in automatic pipelines, and automatic
-quality control can be of great help.
-
-\begin{figure}[!tpb]
-\centerline{\includegraphics[scale=0.5]{jarid.pdf}}
-\caption{
-  ChIP-seq profiles of JARID1A in H1 ES cells (300 bp windows).
-  The first replicate is not similar to the second, and it does not
-  contain any target.
-}\label{fig:jarid}
-\end{figure}
 
 \section{Discussion and conclusions}
 Zerone was developed ground up for scalibility and throughput.
@@ -594,7 +601,7 @@ also rests on sound statistical bases. Theoretical arguments and
 experimental observations suggest that the Zero-Inflated Negative
 Multinomial distribution is appropriate to model ChIP-seq data
 (Fig.~\ref{fig:ZINB_fit}). This gives Zerone good specificity
-and sensitivity for very different profiles.
+and sensitivity for very different profiles (Fig.~\ref{fig:pareto}).
 
 Here we introduced a way to compare discretizers with an intuitive
 graphical representation (Fig.~\ref{fig:expl}). On this plane,
@@ -633,7 +640,7 @@ automatically adjusts conservativity and sensitivity in a sensible way.
 Finally, Zerone proposes an original solution to the problem of
 data heterogeneity. First, the statistical model will be fitted
 in order to harmonize the replicates and solve conflicts by maximum
-likelihood. Second, an automatic quality control is performed
+likelihood. Second, automatic quality control is performed
 after the discretization. The principle of this step is somewhat
 similar to anomaly detection. As examples of trusted ChIP-seq
 discretizations will increase, the classifier can be refined to
