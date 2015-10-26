@@ -1,6 +1,7 @@
 \documentclass[12pt]{article}
 \usepackage{url}
 \usepackage{hyperref}
+\usepackage{mdframed}
 \title{Zerone tutorial}
 \author{Pol Cusc\'o and Guillaume Filion}
 
@@ -70,6 +71,7 @@ on \url{https://github.com/gui11aume/zerone/issues}.
 
 \subsection*{Installing Rzerone}
 
+% TODO Do you need sudo?
 To install the Rzerone R package, simply run this command from the
 \texttt{zerone} directory.
 
@@ -81,6 +83,8 @@ Note that you need to have R installed on your computer. If this is not the
 case, run the command \texttt{sudo apt-get install r-base} on Ubuntu.
 
 \section{Zerone basics}
+
+\subsection{Running Zerone}
 
 To run Zerone, you have to specify the files that contain the mapped reads
 of the ChIP-seq experiment you want to discretize. These can be in BED,
@@ -99,10 +103,25 @@ directory.
 Where file1.bam and file2.bam are negative controls done without antibody,
 and file2.bam and file3.bam are two experimental replicates.
 
-This should produce an output like the following.
+Note that path expansion will not work when using comma separated file names,
+so if you want to use path names starting with $\sim$, you can simply
+specify the mock and chip options as many times as needed, as shown below.
+
+\begin{verbatim}
+./zerone -0 file1.map -1 file2.map -1 file3.map
+\end{verbatim}
+
+Enter the option \texttt{-h} or \texttt{--help} for usage instructions and
+\texttt{--version} to print the version number.
+
+\subsection{Output}
+
+Running Zerone as shown before should produce an output like the following.
 
 % TODO put a nicer output, invented maybe, just 0s is so boring
 \begin{verbatim}
+# QC score: 0.732
+# advice: accept discretization.
 chrX    1       300     0   0   0   0
 chrX    301     600     0   0   0   0
 chrX    601     900     0   0   0   0
@@ -113,20 +132,36 @@ chrX    1801    2100    0   0   0   0
 chrX    2101    2400    0   0   0   0
 \end{verbatim}
 
-% TODO fix weird tilde
-Note that path expansion will not work when using comma separated file names,
-so if ou want to use path names starting with $\sim$, you can simply
-specify the mock and chip options as many times as needed, as shown below.
+\begin{mdframed}
+The first two lines contain the result of the \textbf{quality control}.
+It consists of a quality score followed by an advice to either
+\textbf{accept or reject} the discretization, if the score is positive or
+negative, respectively. If the score is higher than 1 (or lower than -1), the
+advice is extremely reliable.
+\end{mdframed}
 
-\begin{verbatim}
-./zerone -l -0 file1.map -1 file2.map -1 file3.map
-\end{verbatim}
+The rest of the lines contain the discretization proper. The first three columns
+specify the chromosome, start and end positions of each window.
 
-\pagebreak%\newpage
+\begin{mdframed}
+The fourth column represents the \textbf{enrichment}. Zerone classifies
+each window into one of three possible states. States 0 and 1 represent two
+types of background signal. State \textbf{2 represents an enriched window}.
+\end{mdframed}
+
+The fifth column contains the read count of all the control profiles summed
+together, and the rest of the columns contain the read count of each of the
+target profiles.
+
+\subsection{List output}
+
 With the \texttt{-l} or \texttt{--list-output} option, Zerone produces an
-alternative output in which all contiguous enriched windows are merged together.
+alternative output in which only enriched windows are shown. Also, all
+contiguous windows are merged together.
 
 \begin{verbatim}
+# QC score: 0.732
+# advice: accept discretization.
 chrX    2759401     2763000
 chrX    2772001     2786100
 chrX    3526801     3555900
@@ -138,8 +173,7 @@ chrX    6966901     6996300
 chrX    7000501     7003800
 \end{verbatim}
 
-Enter the option \texttt{-h} or \texttt{--help} for usage instructions and
-\texttt{--version} to print the version number.
+\pagebreak
 
 \section{Troubleshooting}
 
@@ -160,4 +194,3 @@ attaching the debug information.
 \end{document}
 
 % examples with tiny data sets so that the user can get familiar with the output and the way to call Zerone
-% Just explain what the output means (including the output of the SVM)
