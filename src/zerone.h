@@ -47,7 +47,7 @@ struct zerone_t {
 void       bw_zinm(zerone_t *);
 void       destroy_zerone_all(zerone_t *);
 zerone_t * do_zerone(ChIP_t *);
-ChIP_t   * new_ChIP(uint, uint, int *, char **, const uint *);
+ChIP_t   * new_ChIP(uint, uint, int *, const char **, const uint *);
 zerone_t * new_zerone(uint, ChIP_t *);
 uint       nobs(const ChIP_t *);
 ChIP_t   * read_file(FILE *);

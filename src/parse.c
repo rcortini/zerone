@@ -896,7 +896,7 @@ merge_hashes
    }
    }
 
-   ChIP_t *ChIP = new_ChIP(nhashes, nkeys, y, nptr, size);
+   ChIP_t *ChIP = new_ChIP(nhashes, nkeys, y, (const char **) nptr, size);
 
    free(size);
    free(name);
