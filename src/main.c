@@ -209,14 +209,15 @@ int main(int argc, char **argv) {
       for (int i = 0 ; i < ChIP->nb ; i++) {
          char *name = ChIP->nm + 32*i;
          for (int j = 0 ; j < ChIP->sz[i] ; j++) {
-            if (!target && Z->path[wid] == target) {
+            if (!target && Z->path[wid] == Z->map[2]) {
                fprintf(stdout, "%s\t%d\t", name, 300*j + 1);
                target = 1;
             }
-            else if (target && Z->path[wid] != target) {
+            else if (target && Z->path[wid] != Z->map[2]) {
                fprintf(stdout, "%d\n", 300*(j+1));
                target = 0;
             }
+            wid++;
          }
          if (target) {
             fprintf(stdout, "%d\n", 300 * ChIP->sz[i]);

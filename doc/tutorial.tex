@@ -123,22 +123,20 @@ specify the mock and chip options as many times as needed, as shown below.
 \end{verbatim}
 
 \pagebreak%\newpage
-% TODO check that this is true
 With the \texttt{-l} or \texttt{--list-output} option, Zerone produces an
-alternative, BED-like output.
+alternative output in which all contiguous enriched windows are merged together.
 
-% TODO why is the window size 600 when --list-output is set?
 \begin{verbatim}
-chrX    1       600
-chrX    601     1200
-chrX    1201    1800
-chrX    1801    2400
-chrX    2401    3000
-chrX    3001    3600
-chrX    3601    4200
-chrX    4201    4800
+chrX    2759401     2763000
+chrX    2772001     2786100
+chrX    3526801     3555900
+chrX    3526801     3555900
+chrX    3561301     3595500
+chrX    3622201     3625200
+chrX    3734101     3741900
+chrX    6966901     6996300
+chrX    7000501     7003800
 \end{verbatim}
-
 
 Enter the option \texttt{-h} or \texttt{--help} for usage instructions and
 \texttt{--version} to print the version number.
@@ -161,6 +159,5 @@ attaching the debug information.
 
 \end{document}
 
-% finish with a troubleshooting guide (recompile with make debug and contact me attaching the debug information)
 % examples with tiny data sets so that the user can get familiar with the output and the way to call Zerone
 % Just explain what the output means (including the output of the SVM)

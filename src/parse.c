@@ -69,7 +69,7 @@ struct link_t {
 };
 
 struct rod_t {
-   size_t sz; 
+   size_t sz;
    size_t mx;
    uint32_t array[];
 };
@@ -399,7 +399,7 @@ generic_iterator
    generic_state_t *state = (generic_state_t *) STATE;
    parser_t parse = state->parser;
    reader_t read = state->reader;
-   
+
    if (loc == NULL) {
       // Interruption.
       goto clean_and_return;
@@ -453,7 +453,7 @@ bgzf_iterator
    }
 
    int bytesread = bam_read1(state->file, state->bam);
-   
+
    if (bytesread < -1 || state->bam->core.tid < 0) {
       ERR = __LINE__;
       goto clean_and_return;
@@ -533,6 +533,11 @@ parse_sam
    char  *line
 )
 {
+   // Ignore header.
+   if (line[0] == '@') {
+      loc->name = NULL;
+      return SUCCESS;
+   }
 
                  strsep(&line, "\t"); // Discard QNAME.
                  strsep(&line, "\t"); // Discard FLAG.
@@ -541,6 +546,12 @@ parse_sam
 
    // Cannot find chromosome or position.
    if (chrom == NULL || tmp == NULL) return FAILURE;
+
+   // Unmapped read.
+   if (strcmp(chrom, "*") == 0) {
+      loc->name = NULL;
+      return SUCCESS;
+   }
 
    // Positions in the genome cannot be 0, so we can identify
    // failures of 'atoi' to convert numbers.
@@ -591,12 +602,12 @@ parse_bed
 uint32_t
 djb2
 (
-   const char * s 
+   const char * s
 )
 // The magic djb2 (http://www.cse.yorku.ca/~oz/hash.html).
 {
    uint32_t val = 5381;
-   for (int i = 0 ; i < 31 && s[i] != '\0' ; i++) 
+   for (int i = 0 ; i < 31 && s[i] != '\0' ; i++)
       val = val * 33 ^ s[i];
    return val;
 }
@@ -685,7 +696,7 @@ getgzline
       if (zstat != Z_OK) goto exit_io_error;
 
       is_initialized = 1;
-      
+
    }
 
    // Try getting newline character from buffer.
