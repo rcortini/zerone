@@ -56,12 +56,12 @@ main(
       {"parse/parse_gem",         test_parse_gem},
       {"parse/parse_sam",         test_parse_sam},
       {"parse/parse_bed",         test_parse_bed},
+//      {"parse/parse_wig",         test_parse_wig},
       {"parse/autoparse",         test_autoparse},
       {"parse/getgzline",         test_getgzline},
       {"parse/getgzline_err",     test_getgzline_err},
       {"parse/parse_input_files", test_parse_input_files},
       {"predict/predict",         test_predict},
-//    {"zerone/read_file",        test_read_file},
       {"zerone/eval_bw_f",        test_eval_bw_f},
       {NULL, NULL}
    };

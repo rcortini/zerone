@@ -110,6 +110,7 @@ ssize_t  getgzline (char **, size_t *, FILE *);
 int      parse_gem (loc_t *, char *);
 int      parse_sam (loc_t *, char *);
 int      parse_bed (loc_t *, char *);
+int      parse_wig (loc_t *, char *);
 
 // Hash handling functions.
 int      add_to_rod (rod_t **, uint32_t);
@@ -293,13 +294,25 @@ exit_bgzf_error:
       state->reader = getline;
       state->parser = parse_bed;
    }
+   else if (strcmp(".wig", fname + strlen(fname) - 4) == 0) {
+      state->reader = getline;
+      state->parser = parse_wig;
+   }
    else if (strcmp(".map.gz", fname + strlen(fname) - 7) == 0) {
       state->reader = getgzline;
       state->parser = parse_gem;
    }
+   else if (strcmp(".sam.gz", fname + strlen(fname) - 7) == 0) {
+      state->reader = getgzline;
+      state->parser = parse_sam;
+   }
    else if (strcmp(".bed.gz", fname + strlen(fname) - 7) == 0) {
       state->reader = getgzline;
       state->parser = parse_bed;
+   }
+   else if (strcmp(".wig.gz", fname + strlen(fname) - 7) == 0) {
+      state->reader = getgzline;
+      state->parser = parse_wig;
    }
    else {
       // XXX non debug error XXX //
@@ -589,6 +602,69 @@ parse_bed
 
    // Field position is not a number.
    if (start == 0 || end == 0) return FAILURE;
+
+   loc->name = chrom;
+   loc->pos = (start + end) / 2;
+
+   return SUCCESS;
+}
+
+
+int
+parse_wig
+(
+   loc_t *loc,
+   char  *line
+)
+{
+
+   // XXX CAUTION: this function is non-reentrant. XXX //
+   // XXX Use multithreading at your own risk.     XXX //
+
+   static int   fixedstep = 0;
+   static char *chrom     = NULL;
+   static int   fstart    = 1;
+   static int   step      = 1;
+   static int   span      = 0;
+   static int   iter      = 0;
+
+   // Skip track definition lines.
+   if (strncmp(line, "track", 5) == 0) return SUCCESS;
+
+   // Parse data definition lines.
+   if (strncmp(line, "variableStep", 12) == 0) {
+      fixedstep = 0;
+              strsep(&line, "\t");
+      chrom = strsep(&line, "\t") + 6;
+      if (line == NULL) span = 0;
+      else              span = atoi(line + 5);
+
+      return SUCCESS;
+   }
+
+   int start, end;
+
+   if (strncmp(line, "fixedStep", 9) == 0) {
+      fixedstep = 1;
+               strsep(&line, "\t");
+      chrom  = strsep(&line, "\t") + 6;
+      fstart = strsep(&line, "\t") + 6;
+      step   = strsep(&line, "\t") + 5;
+      if (line == NULL) span = 0;
+      else              span = atoi(line + 5);
+      iter = 0;
+
+      return SUCCESS;
+   }
+
+   // Parse data line.
+   if (fixedstep) {
+      start = fstart + iter++ * step;
+   } else {
+      start = atoi(strsep(&line, "\t"));
+   }
+
+   end = start + span;
 
    loc->name = chrom;
    loc->pos = (start + end) / 2;
