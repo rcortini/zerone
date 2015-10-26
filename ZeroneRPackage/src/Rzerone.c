@@ -5,10 +5,10 @@
 
 
 // Register the method 'zerone_R_call()'.
-SEXP zerone_R_call (SEXP);
+SEXP zerone_R_call (SEXP, SEXP, SEXP);
 
 R_CallMethodDef callMethods[] = {
-   {"zerone_R_call", (DL_FUNC) &zerone_R_call, 1},
+   {"zerone_R_call", (DL_FUNC) &zerone_R_call, 3},
    {NULL, NULL, 0},
 };
 
@@ -19,14 +19,29 @@ void R_init_zerone(DllInfo *info) {
 SEXP
 zerone_R_call
 (
-   SEXP Y
+   SEXP RNAMES,
+   SEXP RSIZE,
+   SEXP RY
 )
 {
 
-   const unsigned int r = length(Y) - 1;
-   const unsigned int n = length(VECTOR_ELT(Y, 0));
+   const unsigned int nb = length(RNAMES);
+   const unsigned int r  = length(RY) - 1;
+   const unsigned int n  = length(VECTOR_ELT(RY, 0));
 
-   // Get the values.
+   // Get/copy the values from R objects.
+   const char **name = malloc(nb * sizeof(char *));
+   if (name == NULL) {
+      Rprintf("Rzerone memory error %s:%d\n", __FILE__, __LINE__);
+      return R_NilValue;
+   }
+
+   for (int i = 0 ; i < nb ; i++) {
+      name[i] = CHAR(STRING_ELT(RNAMES, i));
+   }
+
+   int *size = INTEGER(RSIZE);
+
    int *y = malloc(n*r * sizeof(int));
    if (y == NULL) {
       Rprintf("Rzerone memory error %s:%d\n", __FILE__, __LINE__);
@@ -34,49 +49,11 @@ zerone_R_call
    }
 
    for (size_t i = 1 ; i < r+1 ; i++) {
-      int *v = INTEGER(coerceVector(VECTOR_ELT(Y, i), INTSXP));
+      int *v = INTEGER(coerceVector(VECTOR_ELT(RY, i), INTSXP));
       for (size_t j = 0 ; j < n ; j++) y[i-1+j*r] = v[j];
    }
 
-   // Get the blocks.
-   histo_t *histo = new_histo();
-   if (histo == NULL) {
-      Rprintf("Rzerone memory error %s:%d\n", __FILE__, __LINE__);
-      return R_NilValue;
-   }
-
-   int id_array[1] = {-1};
-   int *id = id_array;
-   char prev[256] = {0};
-
-   SEXP S = VECTOR_ELT(Y, 0);
-   switch (TYPEOF(S)) {
-      case STRSXP:
-         for (size_t i = 0 ; i < n ; i++) {
-            const char *block = CHAR(STRING_ELT(S, i));
-            if (strcmp(prev, block) != 0) {
-               strncpy(prev, block, 256);
-               (*id)++;
-            }
-            histo_push(&histo, *id);
-         }
-         break;
-      case INTSXP:
-         id = INTEGER(S);
-         for (size_t i = 0 ; i < n ; i++) {
-            histo_push(&histo, id[i]);
-         }
-   }
-
-   tab_t *tab = compress_histo(histo);
-   if (tab == NULL) {
-      Rprintf("Rzerone memory error %s:%d\n", __FILE__, __LINE__);
-      return R_NilValue;
-   }
-   ChIP_t *ChIP = new_ChIP(r, tab->size, y, tab->num);
-   free(histo);
-   free(tab);
-
+   ChIP_t *ChIP = new_ChIP(r, nb, y, name, size);
    zerone_t * zerone = do_zerone(ChIP);
 
    if (zerone == NULL) {
@@ -84,7 +61,7 @@ zerone_R_call
       return R_NilValue;
    }
 
-   // Jahmm uses 3 states.
+   // Zerone uses 3 states.
    const unsigned int m = 3;
 
    SEXP Q;

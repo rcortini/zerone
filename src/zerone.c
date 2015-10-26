@@ -821,11 +821,11 @@ set_zerone_par
 ChIP_t *
 new_ChIP
 (
-         uint     r,
-         uint     nb,
-         int   *  y,
-         char **  name, 
-   const uint  *  size
+         uint     r,     // Number of dimensions.
+         uint     nb,    // Number of blocks.
+         int   *  y,     // Observations.
+   const char **  name,  // Names of the blocks.
+   const uint  *  size   // Sizes of the blocks.
 )
 {
 

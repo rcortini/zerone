@@ -1,9 +1,9 @@
-Package: Rzerone
+Package: zerone
 Title: A ChIP-seq discretizer with built-in quality control
-Version: 0.1-1
-Date: 2014-12-15
+Version: 1.0
+Date: 2015-10-25
 Author: Guillaume Filion
 Maintainer: Guillaume Filion <guillaume.filion@gmail.com>
 LazyData: true
-Description: Provides HMM for mixture model negative binomial emissions.
+Description: Provides HMM for mixture model negative multinomial emissions.
 License: GPL (>=2)
