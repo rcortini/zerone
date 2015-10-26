@@ -337,6 +337,14 @@ test_parse_sam
       char line5[] = "a\tb\tc\t0\t...";
       test_assert(!parse_sam(&loc, line5));
 
+      char line6[] = "a\tb\t*\t0\t...";
+      test_assert(parse_sam(&loc, line6));
+      test_assert(loc.name == NULL);
+
+      char line7[] = "@\tb\tc\t0\t...";
+      test_assert(parse_sam(&loc, line7));
+      test_assert(loc.name == NULL);
+
       return;
 
 }
