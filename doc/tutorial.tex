@@ -69,14 +69,13 @@ and you are done with the build. If not, something went
 wrong. In this case, you can explain how to reproduce the problem
 on \url{https://github.com/gui11aume/zerone/issues}.
 
-\subsection*{Installing Rzerone}
+\subsection*{Installing the Zerone R package}
 
-% TODO Do you need sudo?
-To install the Rzerone R package, simply run this command from the
+To install the Zerone R package, simply run this command from the
 \texttt{zerone} directory.
 
 \begin{verbatim}
-R CMD INSTALL Rzerone
+R CMD INSTALL ZeroneRPackage
 \end{verbatim}
 
 Note that you need to have R installed on your computer. If this is not the
@@ -175,6 +174,16 @@ chrX    7000501     7003800
 
 \pagebreak
 
+\subsection*{The Zerone R package}
+
+You can load the package in R with this line.
+
+\begin{verbatim}
+library(zerone)
+\end{verbatim}
+
+Type \texttt{?zerone} from an R session to see the documentation.
+
 \section{Troubleshooting}
 
 In case Zerone crashes, start by recompiling it in debug mode. To do so,
@@ -193,4 +202,5 @@ attaching the debug information.
 
 \end{document}
 
-% examples with tiny data sets so that the user can get familiar with the output and the way to call Zerone
+% TODO examples with tiny data sets so that the user can
+% get familiar with the output and the way to call Zerone

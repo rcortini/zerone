@@ -1,8 +1,8 @@
-\name{wig2zerone}
-\alias{wig2zerone}
-\title{wig2zerone}
+\name{zerone}
+\alias{zerone}
+\title{zerone}
 \usage{
-wig2zerone(directory)
+zerone(directory)
 }
 \arguments{
   \item{directory}{directory where the wig files are. ChIP-seq Input profiles must contain the strings \code{input} or \code{control} (case-insensitive) in their file name in order to be recognized as Input.}
@@ -17,7 +17,7 @@ wig2zerone(directory)
 fit <- wig2zerone("./exampleDirectory")
 }
 \author{
-  Pol Cuscó. date: May 23, 2014.
+  Pol Cuscó and Guillaume Filion. date: October 27, 2015.
 }
 \seealso{
   \code{\link{zerone}}

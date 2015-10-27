@@ -646,10 +646,10 @@ parse_wig
 
    if (strncmp(line, "fixedStep", 9) == 0) {
       fixedstep = 1;
-               strsep(&line, "\t");
-      chrom  = strsep(&line, "\t") + 6;
-      fstart = strsep(&line, "\t") + 6;
-      step   = strsep(&line, "\t") + 5;
+                    strsep(&line, "\t");
+      chrom  =      strsep(&line, "\t") + 6;
+      fstart = atoi(strsep(&line, "\t") + 6);
+      step   = atoi(strsep(&line, "\t") + 5);
       if (line == NULL) span = 0;
       else              span = atoi(line + 5);
       iter = 0;
@@ -658,16 +658,14 @@ parse_wig
    }
 
    // Parse data line.
-   if (fixedstep) {
-      start = fstart + iter++ * step;
-   } else {
-      start = atoi(strsep(&line, "\t"));
-   }
+   if (fixedstep) start = fstart + iter++ * step;
+   else           start = atoi(strsep(&line, "\t"));
 
    end = start + span;
 
    loc->name = chrom;
    loc->pos = (start + end) / 2;
+   //int reads = atoi(line);
 
    return SUCCESS;
 }

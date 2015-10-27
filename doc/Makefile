@@ -15,4 +15,4 @@ pmid.xml: getref.py pmid.txt
 ../tutorial.pdf: tutorial.tex
 	pdflatex tutorial.tex
 	mv tutorial.pdf ..
-	#rm tutorial.aux tutorial.log tutorial.out
+	rm tutorial.aux tutorial.log tutorial.out
