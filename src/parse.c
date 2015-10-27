@@ -625,47 +625,58 @@ parse_wig
    static char *chrom     = NULL;
    static int   fstart    = 1;
    static int   step      = 1;
-   static int   span      = 0;
+   static int   span      = 1;
    static int   iter      = 0;
 
-   // Skip track definition lines.
+   // Ignore track definition lines.
    if (strncmp(line, "track", 5) == 0) return SUCCESS;
 
-   // Parse data definition lines.
-   if (strncmp(line, "variableStep", 12) == 0) {
-      fixedstep = 0;
-              strsep(&line, "\t");
-      chrom = strsep(&line, "\t") + 6;
-      if (line == NULL) span = 0;
-      else              span = atoi(line + 5);
-
-      return SUCCESS;
-   }
-
-   int start, end;
-
-   if (strncmp(line, "fixedStep", 9) == 0) {
-      fixedstep = 1;
-                    strsep(&line, "\t");
-      chrom  =      strsep(&line, "\t") + 6;
-      fstart = atoi(strsep(&line, "\t") + 6);
-      step   = atoi(strsep(&line, "\t") + 5);
-      if (line == NULL) span = 0;
-      else              span = atoi(line + 5);
-      iter = 0;
-
-      return SUCCESS;
-   }
+   // Detect type of format.
+   if  (strncmp(line, "variableStep", 12) == 0) fixedstep = 0;
+   else if (strncmp(line, "fixedStep", 9) == 0) fixedstep = 1;
 
    // Parse data line.
-   if (fixedstep) start = fstart + iter++ * step;
-   else           start = atoi(strsep(&line, "\t"));
+   else {
+      int start, end, reads;
 
-   end = start + span;
+      if (fixedstep) start = fstart + iter++ * step;
+      else {
+         start = atoi(strsep(&line, "\t"));
+         if (line == NULL) return FAILURE;
+      }
 
+      char *endptr;
+      // Not using read counts for now.
+      reads = strtol(line, &endptr, 10);
+      if (line == endptr) return FAILURE;
+
+      strsep(&line, "\t");
+      if (line != NULL) return FAILURE;
+
+      if (chrom == NULL || start <= 0 || reads < 0) return FAILURE;
+
+      end = start + span - 1;
+      loc->pos = (start + end) / 2;
+
+      return SUCCESS;
+   }
+
+   // Parse data definition lines.
+   free(chrom);
+                  strsep(&line, "\t");
+   chrom = strdup(strsep(&line, "\t") + 6);
    loc->name = chrom;
-   loc->pos = (start + end) / 2;
-   //int reads = atoi(line);
+
+   if (fixedstep) {
+      fstart = atoi(strsep(&line, "\t") + 6);
+      step   = atoi(strsep(&line, "\t") + 5);
+      iter   = 0;
+   }
+
+   if (line == NULL) span = 1;
+   else              span = atoi(line + 5);
+
+   if (fstart <= 0 || step <= 0 || span <= 0) return FAILURE;
 
    return SUCCESS;
 }

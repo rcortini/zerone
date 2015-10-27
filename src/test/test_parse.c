@@ -91,7 +91,7 @@ test_lookup_or_insert
    if (hashtab == NULL) {
       fprintf(stderr, "error in test function '%s()' %s:%d\n",
             __func__, __FILE__, __LINE__);
-      return;   
+      return;
    }
 
    link_t *lnk = NULL;
@@ -137,6 +137,7 @@ test_lookup_or_insert
 
 }
 
+
 void
 test_stress_hash
 (void)
@@ -146,7 +147,7 @@ test_stress_hash
    if (hashtab == NULL) {
       fprintf(stderr, "error in test function '%s()' %s:%d\n",
             __func__, __FILE__, __LINE__);
-      return;   
+      return;
    }
 
    srand(123);
@@ -164,6 +165,7 @@ test_stress_hash
 
 }
 
+
 void
 test_merge_hashes
 (void)
@@ -175,7 +177,7 @@ test_merge_hashes
    if (hashes[0] == NULL || hashes[1] == NULL) {
       fprintf(stderr, "error in test function '%s()' %s:%d\n",
             __func__, __FILE__, __LINE__);
-      return;   
+      return;
    }
 
    link_t *lnk = NULL;
@@ -220,7 +222,7 @@ test_choose_iterator
    generic_state_t * g_state = NULL;
    bgzf_state_t    * b_state = NULL;
    iter_t            iterate = NULL;
-   
+
    iterate = choose_iterator("test_file_good.map");
    test_assert(iterate == generic_iterator);
 
@@ -382,6 +384,102 @@ test_parse_bed
 
 }
 
+
+void
+test_parse_wig
+(void)
+{
+
+      loc_t loc;
+
+      char line1[] = "1";
+      test_assert(!parse_wig(&loc, line1));
+
+      char line2[] = "track type=wiggle_0";
+      test_assert(parse_wig(&loc, line2));
+
+      char line3[] = "variableStep\tchrom=chr1";
+      test_assert(parse_wig(&loc, line3));
+      test_assert(strcmp(loc.name, "chr1") == 0);
+
+      char line4[] = "1";
+      test_assert(!parse_wig(&loc, line4));
+
+      char line5[] = "1\twrong";
+      test_assert(!parse_wig(&loc, line5));
+
+      char line6[] = "wrong\t0";
+      test_assert(!parse_wig(&loc, line6));
+
+      char line7[] = "1\t0";
+      test_assert(parse_wig(&loc, line7));
+      test_assert(strcmp(loc.name, "chr1") == 0);
+      test_assert(loc.pos == 1);
+
+      char line8[] = "variableStep\tchrom=chr2\tspan=wrong";
+      test_assert(!parse_wig(&loc, line8));
+      test_assert(strcmp(loc.name, "chr2") == 0);
+
+      char line9[] = "variableStep\tchrom=chr2\tspan=3";
+      test_assert(parse_wig(&loc, line9));
+      test_assert(strcmp(loc.name, "chr2") == 0);
+
+      char line10[] = "1\t10";
+      test_assert(parse_wig(&loc, line10));
+      test_assert(strcmp(loc.name, "chr2") == 0);
+      test_assert(loc.pos == 2);
+
+      char line11[] = "fixedStep\tchrom=chr1\tstart=0\tstep=300";
+      test_assert(!parse_wig(&loc, line11));
+      test_assert(strcmp(loc.name, "chr1") == 0);
+
+      char line12[] = "fixedStep\tchrom=chr1\tstart=1\tstep=wrong";
+      test_assert(!parse_wig(&loc, line12));
+      test_assert(strcmp(loc.name, "chr1") == 0);
+
+      char line13[] = "fixedStep\tchrom=chr1\tstart=1\tstep=300";
+      test_assert(parse_wig(&loc, line13));
+      test_assert(strcmp(loc.name, "chr1") == 0);
+
+      char line14[] = "10";
+      test_assert(parse_wig(&loc, line14));
+      test_assert(strcmp(loc.name, "chr1") == 0);
+      test_assert(loc.pos == 1);
+
+      char line15[] = "10";
+      test_assert(parse_wig(&loc, line15));
+      test_assert(strcmp(loc.name, "chr1") == 0);
+      test_assert(loc.pos == 301);
+
+      char line16[] = "fixedStep\tchrom=chr2\tstart=1\tstep=300\tspan=-1";
+      test_assert(!parse_wig(&loc, line16));
+      test_assert(strcmp(loc.name, "chr2") == 0);
+
+      char line17[] = "fixedStep\tchrom=chr2\tstart=1\tstep=300\tspan=300";
+      test_assert(parse_wig(&loc, line17));
+      test_assert(strcmp(loc.name, "chr2") == 0);
+
+      char line18[] = "10";
+      test_assert(parse_wig(&loc, line18));
+      test_assert(strcmp(loc.name, "chr2") == 0);
+      test_assert(loc.pos == 150);
+
+      char line19[] = "10";
+      test_assert(parse_wig(&loc, line19));
+      test_assert(strcmp(loc.name, "chr2") == 0);
+      test_assert(loc.pos == 450);
+
+      char line20[] = "wrong";
+      test_assert(!parse_wig(&loc, line20));
+
+      char line21[] = "1\t0";
+      test_assert(!parse_wig(&loc, line21));
+
+      return;
+
+}
+
+
 void
 test_autoparse
 (void)
@@ -397,7 +495,7 @@ test_autoparse
             __func__, __FILE__, __LINE__);
       return;
    }
-      
+
    test_assert(autoparse("test_file_good.map", hashtab));
    test_assert_critical(hashtab != NULL);
 
@@ -493,13 +591,14 @@ test_getgzline
 
 }
 
+
 void
 test_getgzline_err
 (void)
 {
 
    FILE *fp = NULL;
-      
+
    fp = fopen("test_file_bad1.map", "r");
 
    if (fp == NULL) {
@@ -554,6 +653,7 @@ test_getgzline_err
    free(buff);
 
 }
+
 
 void
 test_parse_input_files
