@@ -96,7 +96,7 @@ For example, you can type in the following commands from the \texttt{zerone}
 directory.
 
 \begin{verbatim}
-./zerone --mock file1.bam,file2.bam --chip file3.bam,file4.bam
+./zerone --mock data/mock.sam --chip data/ctcf1.sam,data/ctcf2.sam
 \end{verbatim}
 
 Where file1.bam and file2.bam are negative controls done without antibody,
@@ -107,7 +107,7 @@ so if you want to use path names starting with $\sim$, you can simply
 specify the mock and chip options as many times as needed, as shown below.
 
 \begin{verbatim}
-./zerone -0 file1.map -1 file2.map -1 file3.map
+./zerone -0 data/mock.sam -1 data/ctcf1.sam -1 data/ctcf2.sam
 \end{verbatim}
 
 Enter the option \texttt{-h} or \texttt{--help} for usage instructions and
@@ -117,18 +117,18 @@ Enter the option \texttt{-h} or \texttt{--help} for usage instructions and
 
 Running Zerone as shown before should produce an output like the following.
 
-% TODO put a nicer output, invented maybe, just 0s is so boring
 \begin{verbatim}
-# QC score: 0.732
+# QC score: 1.289
 # advice: accept discretization.
-chrX    1       300     0   0   0   0
-chrX    301     600     0   0   0   0
-chrX    601     900     0   0   0   0
-chrX    901     1200    0   0   0   0
-chrX    1201    1500    0   0   0   0
-chrX    1501    1800    0   0   0   0
-chrX    1801    2100    0   0   0   0
-chrX    2101    2400    0   0   0   0
+chr1    1       300     1   0   0   0
+chr1    301     600     1   0   0   0
+chr1    601     900     1   0   0   0
+chr1    901     1200    1   0   0   0
+...
+chr1    998701  999000  2   1   11  4
+chr1    999001  999300  2   2   72  34
+chr1    999301  999600  2   2   128 69
+chr1    999601  999900  2   0   10  5
 \end{verbatim}
 
 \begin{mdframed}
@@ -159,17 +159,17 @@ alternative output in which only enriched windows are shown. Also, all
 contiguous windows are merged together.
 
 \begin{verbatim}
-# QC score: 0.732
+# QC score: 1.289
 # advice: accept discretization.
-chrX    2759401     2763000
-chrX    2772001     2786100
-chrX    3526801     3555900
-chrX    3526801     3555900
-chrX    3561301     3595500
-chrX    3622201     3625200
-chrX    3734101     3741900
-chrX    6966901     6996300
-chrX    7000501     7003800
+chr1    237601  238200
+chr1    521401  522000
+chr1    567301  567900
+chr1    714001  714900
+...
+chr1    975901  976500
+chr1    990001  990600
+chr1    994201  995400
+chr1    998701  999900
 \end{verbatim}
 
 \pagebreak
@@ -198,9 +198,4 @@ Then repeat the actions that triggered the crash and contact
 \href{mailto:guillaume.filion@gmail.com}{guillaume.filion@gmail.com}
 attaching the debug information.
 
-% TODO: Add R crashing part.
-
 \end{document}
-
-% TODO examples with tiny data sets so that the user can
-% get familiar with the output and the way to call Zerone

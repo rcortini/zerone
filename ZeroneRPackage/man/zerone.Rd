@@ -1,27 +1,51 @@
 \name{zerone}
 \alias{zerone}
-\title{zerone}
+\title{Zerone}
+\description{
+   Discretize multiple ChIP-seq profiles while performing a quality control.
+}
 \usage{
-zerone(directory)
+zerone(y)
 }
 \arguments{
-  \item{directory}{directory where the wig files are. ChIP-seq Input profiles must contain the strings \code{input} or \code{control} (case-insensitive) in their file name in order to be recognized as Input.}
-}
-\value{
-  A fitted HMM using the \code{zerone} discretizer. (See \code{zerone})
-}
-\description{
-  Wrapper for the zerone discretizer. Run zerone directly from wig files.
-}
-\examples{
-fit <- wig2zerone("./exampleDirectory")
-}
-\author{
-  Pol Cuscó and Guillaume Filion. date: October 27, 2015.
-}
-\seealso{
-  \code{\link{zerone}}
+    \item{y}{data.frame with at least three columns containing the data of
+    every window in your profiles. (See Details)}
 }
 \details{
-  The ChIP-seq profiles to discretize must be in the same directory. They consist in one or more Input profiles that will be used as baseline, and one or more Target profiles (these must have been obtained from the same DNA-binding protein and, ideally, they should be experimental replicates). Only \code{fixedStep} formatted wig files are supported.
+    The first column of \var{y} must contain the chromosome name of each
+    window, the second column must contain the summed read count of all your
+    control profiles, and the third and subsequent columns the read count of
+    each of your target profiles.
+}
+\value{
+    A list containing the parameters of the fitted HMM. \code{path} contains
+    the result of the discretization proper.
+    \item{Q}{The transition matrix.}
+    \item{a}{}
+    \item{pi}{}
+    \item{p}{}
+    \item{phi}{}
+    \item{pem}{}
+    \item{path}{The Viterbi path: the most likely state of each window.
+        \bold{State 2 represents an enrichment}.}
+    \item{l}{}
+}
+\author{
+    Pol Cuscó and Guillaume Filion. date: October 29, 2015
+}
+\references{
+    Cuscó, P. and Filion, G. (2015) Zerone: a ChIP-seq discretizer with
+    built-in quality control. Journal. \bold{vol},page--page
+}
+\examples{
+## Run this from the zerone directory:
+
+library(zerone)
+load('ZeroneRPackage/data/ZeroneExampleData.rda')
+fit <- zerone(ZeroneExampleData)
+
+## The window 534 is enriched (has state 2 in the Viterbi path).
+
+fit$path[530:540]
+# [1] 1 1 1 1 2 0 0 1 1 1 1
 }
