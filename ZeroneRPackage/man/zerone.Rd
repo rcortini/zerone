@@ -18,17 +18,8 @@ zerone(y)
     each of your target profiles.
 }
 \value{
-    A list containing the parameters of the fitted HMM. \code{path} contains
-    the result of the discretization proper.
-    \item{Q}{The transition matrix.}
-    \item{a}{}
-    \item{pi}{}
-    \item{p}{}
-    \item{phi}{}
-    \item{pem}{}
-    \item{path}{The Viterbi path: the most likely state of each window.
-        \bold{State 2 represents an enrichment}.}
-    \item{l}{}
+    A vector containing the Viterbi path: the most likely state of each
+    window, where \bold{State 2 represents an enrichment}.
 }
 \author{
     Pol Cuscó and Guillaume Filion. date: October 29, 2015
@@ -41,11 +32,10 @@ zerone(y)
 ## Run this from the zerone directory:
 
 library(zerone)
-load('ZeroneRPackage/data/ZeroneExampleData.rda')
-fit <- zerone(ZeroneExampleData)
+path <- zerone(ZeroneExampleData)
 
 ## The window 534 is enriched (has state 2 in the Viterbi path).
 
-fit$path[530:540]
+path[530:540]
 # [1] 1 1 1 1 2 0 0 1 1 1 1
 }
