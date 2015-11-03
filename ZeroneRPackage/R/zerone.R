@@ -1,4 +1,4 @@
-zerone <- function(y) {
+zerone <- function(y, returnall=FALSE) {
    # The data frame must contain seqname, mock and profiles.
    stopifnot(is.data.frame(y))
    stopifnot(ncol(y) > 2)
@@ -8,5 +8,10 @@ zerone <- function(y) {
    size <- as.integer(x$lengths)
    retval <- .Call(zerone_R_call, names, size, y)
    names(retval) <- c("Q", "a", "pi", "p", "phi", "pem", "path", "l")
-   return(retval)
+   if (returnall) {
+      return(retval)
+   }
+   else {
+      return(retval$path)
+   }
 }
