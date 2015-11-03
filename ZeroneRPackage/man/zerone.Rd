@@ -18,8 +18,8 @@ zerone(y)
     each of your target profiles.
 }
 \value{
-    A vector containing the Viterbi path: the most likely state of each
-    window, where \bold{State 2 represents an enrichment}.
+    A numeric vector containing the Viterbi path: the most likely state of
+    each window, where \bold{State 2 represents an enrichment}.
 }
 \author{
     Pol Cuscó and Guillaume Filion. date: October 29, 2015
