@@ -302,7 +302,8 @@ represent peaky, mixed and broad signals, respectively. Each
 data set consisted of a mock profile without immunoprecipitation
 and two replicate ChIP-seq profiles.
 The ENCODE accession numbers for these three data sets are
-ENCSR000DWE, ENCSR000DWB and ENCSR000EHP respectively.
+ENCSR000DWE, ENCSR000DWB and ENCSR000FAJ respectively. For the last dataset,
+we used the control experiment ENCSR000EWK.
 
 We tested MACS \texttt{callpeak} version 2.1.0.20140616, BayesPeak
 version 1.20.0 and JAMM version 1.0.7rev1. All tests were performed on
@@ -353,7 +354,7 @@ In one of the replicates, the signal is lacking entirely, as if
 the immuno-precipitation was non specific (Fig.~\ref{fig:jarid}).
 Once aware of the issue, users can handle it properly (for instance
 by discarding the protein or by working with a single replicate).
-Automatic quality control can be of great help. Without Zerone, 
+Automatic quality control can be of great help. Without Zerone,
 the low quality of the first replicate would have been missed
 entirely.
 
