@@ -302,7 +302,7 @@ represent peaky, mixed and broad signals, respectively. Each
 data set consisted of a mock profile without immunoprecipitation
 and two replicate ChIP-seq profiles.
 The ENCODE accession numbers for these three data sets are
-ENCSR000DWE, ENCSR000DWB and ENCSR000FAJ respectively. For the last dataset,
+ENCSR000DWE, ENCSR000DWB and ENCSR000FAJ, respectively. For the last dataset,
 we used the control experiment ENCSR000EWK.
 
 We tested MACS \texttt{callpeak} version 2.1.0.20140616, BayesPeak
@@ -343,7 +343,7 @@ the discretization (including the transition parameters of the HMM,
 the mean number of targets and their mean posterior probability)
 and trained an SVM to recognize failures. We thus obtained a
 classifier able to identify failed discretization attempts
-with 98.3\% accuracy (\textit{c.f.} section \ref{sub:training}).
+with 98.3\% accuracy (\textit{c.f.} Section \ref{sub:training}).
 
 This feature is essential for high throughput automatic pipelines.
 When discretizing ENCODE ChIP-seq profiles obtained in human H1
@@ -352,7 +352,7 @@ not pass the quality control.
 Further investigation immediately revealed the nature of the issue.
 In one of the replicates, the signal is lacking entirely, as if
 the immuno-precipitation was non specific (Fig.~\ref{fig:jarid}).
-Once aware of the issue, users can handle it properly (for instance
+Once aware of the issue, users can handle it properly (for instance,
 by discarding the protein or by working with a single replicate).
 Automatic quality control can be of great help. Without Zerone,
 the low quality of the first replicate would have been missed
@@ -404,7 +404,7 @@ When arranging genomic windows from high to low amount of ChIP-seq
 reads, the cumulative number of reads forms a Pareto front.
 It represents the largest amount of reads that can be captured by the
 given amount of targets, or alternatively the smallest number of
-targets that can catpure the given amount of reads
+targets that can capture the given amount of reads
 (Fig.~\ref{fig:expl}). A discretization can be represented as a point
 on the $xy$ plane.  By construction, no discretization can lie on the
 left of the Pareto front, and those on the front represent an
@@ -439,7 +439,7 @@ CTCF motifs.
 
 Table \ref{tab:ctcf} shows that Zerone outperforms the other tools
 in terms of the $F_1$ score (the harmonic mean between precision and
-recall). It has the second higest recall score, close to that of JAMM,
+recall). It has the second highest recall score, close to that of JAMM,
 and it achieves the highest precision.
 
 \begin{table}[!t]
@@ -547,7 +547,7 @@ while discovering enriched windows not found by the others.
 \end{figure}
 
 \subsection{Speed and memory footprint}
-We benchmarked Zerone against three other ChIP-seq discretizers.
+We benchmarked Zerone against three ChIP-seq discretizers.
 We included MACS as the standard method for ChIP-seq peak calling,
 BayesPeak because it is powered by an HMM with ZINB emissions
 similar to the model implemented in Zerone, and JAMM because, as
@@ -610,7 +610,7 @@ discretizations with high amount of reads per target (most specific)
 and points that are close to the top-right corner represent
 discretizations with many targets (most sensitive). The Pareto front
 also highlights an unachievable region whose shape depends on the
-structure of the signal, \textit{i.e.} on the feature being disretized
+structure of the signal, \textit{i.e.} on the feature being discretized
 (Fig.~\ref{fig:expl}). One of the challenges of discretizing ChIP-seq
 profiles is to find algorithms that perform well in all the cases.
 
@@ -634,9 +634,9 @@ This is one of the major strengths of Zerone: the statistical model
 automatically adjusts conservativity and sensitivity in a sensible way.
 
 Finally, Zerone proposes an original solution to the problem of
-data heterogeneity. First, the statistical model will be fitted
+data heterogeneity. Firstly, the statistical model will be fitted
 in order to harmonize the replicates and solve conflicts by maximum
-likelihood. Second, automatic quality control is performed
+likelihood. Secondly, automatic quality control is performed
 after the discretization. The principle of this step is somewhat
 similar to anomaly detection. As examples of trusted ChIP-seq
 discretizations will increase, the classifier can be refined to

@@ -1,0 +1,8 @@
+*.2bit
+*.fasta
+*.fastq.gz
+*.gem
+*.log
+*.map
+*.zerone
+twoBitToFa
