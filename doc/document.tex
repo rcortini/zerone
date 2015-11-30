@@ -134,7 +134,7 @@ It is natural to model read counts per genomic window by an unbounded
 discrete distribution. The Poisson distribution is an obvious candidate,
 but it is a poor choice because in ChIP-seq data the variance of read
 counts is usually higher than the mean. The reason is that windows
-are non homogeneous, which increases the dispersion. More specifically,
+are nonhomogeneous, which increases the dispersion. More specifically,
 windows
 are not equally PCR-prone and not equally mappable. The negative binomial
 (NB) distribution is thus a better choice because it allows some variation
@@ -233,12 +233,12 @@ poor data quality in ChIP-seq correspond to low signal-to-noise ratio
 (\textit{e.g.} when the antibody is not specific enough), and lack of
 reproducibility between replicates (\textit{e.g.} when samples are
 swapped). To cover these cases, we included in the trusted set
-38 other cases obtained by discretizing non replicate profiles
+38 other cases obtained by discretizing nonreplicate profiles
 (\textit{e.g.} CTCF and Pol2) and controls without immuno-precipitation.
 Thus, a total of 182 cases (91 positive and 91 negative) were used to
 build a balanced data set.
 
-To identify discretization failures, we used the paremeters of the
+To identify failed discretizations, we used the paremeters of the
 fitted HMM. Based on the transition matrix, the emission paramaters,
 the Viterbi Path and the posterior probabilities,
 we computed 8 features expected to vary with the quality
@@ -265,7 +265,7 @@ advantages over other approaches such as neural networks.
   triangles) are different from each other and from positive examples.
   The two groups overlap, which creates an ambiguous zone where
   failures and successes are indistinguishable. The right panel
-  suggests that non linear classification is more appropriate to
+  suggests that nonlinear classification is more appropriate to
   classify discretizations.
 }\label{fig:pca_bw}
 \end{figure}
@@ -277,6 +277,9 @@ The prediction accuracy on the trusted set was 98.3\%.
 We then implemented a prediction function in Zerone that used the
 model trained by the SVM to classify the discretizations and
 suggest whether they should be accepted or discarded.
+This is in contrast to other quality control methods such as the IDR, which
+evaluated the reliability of every enriched region independently of the rest
+of the profile.
 
 \subsection{Data sets and preprocessing}
 We used all the ChIP-seq fastq files produced by the ENCODE Consortium
@@ -351,7 +354,7 @@ ES cells, we noticed that the lysine-demethylase JARID1A did
 not pass the quality control.
 Further investigation immediately revealed the nature of the issue.
 In one of the replicates, the signal is lacking entirely, as if
-the immuno-precipitation was non specific (Fig.~\ref{fig:jarid}).
+the immuno-precipitation was nonspecific (Fig.~\ref{fig:jarid}).
 Once aware of the issue, users can handle it properly (for instance,
 by discarding the protein or by working with a single replicate).
 Automatic quality control can be of great help. Without Zerone,

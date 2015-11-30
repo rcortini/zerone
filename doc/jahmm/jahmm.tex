@@ -120,12 +120,12 @@ sequence of the human genome (hg19) in fasta format was downloaded from \url{htt
 
 We start with some generalities about Hidden Markov Models and then
 derive a model targeted to ChIP experiments with replicates.
-  
+
 \section{Hidden Markov Models}
 
     We will consider only discrete Hidden Markov models (HMMs) and
     will simply refer to them as Hidden Markov model, without mention
-    of the term `discrete' for simplicity.  HMMs are defined by 
+    of the term `discrete' for simplicity.  HMMs are defined by
 
     \begin{enumerate}
       \item a set $S$ of $m$ states numbered from 1 to $m$,
@@ -191,7 +191,7 @@ derive a model targeted to ChIP experiments with replicates.
     system is in state $i$ at time $k$ given the emissions
     $y_0, \ldots, y_k$, and the $\beta_{k|n}(\cdot)$ the numerical
     function such that $\phi_{k|n}(i) = \alpha_k(i)\beta_{k|n}(i)$.
-    
+
     \begin{align*}
       \alpha_k(i) &= \frac{1}{L_k}
       \sum_{i_0=1}^m \cdots \sum_{i_{k-1}=1}^m
@@ -242,7 +242,7 @@ derive a model targeted to ChIP experiments with replicates.
     When the $\alpha_k(i)$ and the $\beta_{k|n}(i)$ have been
     computed by the Forward-Backward algorithm, we also have access
     to the $\phi_{k-1,k|n}(i,j)$ by using formula (\ref{phiQ}).
-    
+
 \subsection{The Baum-Welch algorithm}
 \label{sec:Baum-Welch}
 
@@ -319,7 +319,7 @@ derive a model targeted to ChIP experiments with replicates.
     \begin{align*}
       &E_{\theta^{(t)}} \left\{ \log Q(i_{k-1}, i_k)
       \big| y_0, \ldots, y_n \right\} = \\
-      &E_{\theta^{(t)}} \left\{ \sum_{i=1}^m\sum_{j=1}^m 
+      &E_{\theta^{(t)}} \left\{ \sum_{i=1}^m\sum_{j=1}^m
       1_{\{(i_{k-1}, i_k) = (i,j)\}} \log Q(i,j)
       \big| y_0, \ldots, y_n \right\} = \\
       &\sum_{i=1}^m\sum_{j=1}^m E_{\theta^{(t)}} \left\{
@@ -343,7 +343,7 @@ derive a model targeted to ChIP experiments with replicates.
 
     $$ Q(i,j)^{(t+1)} = \frac{\sum_{k=1}^n \phi_{k-1,k}(i,j)}
       {\sum_{k=1}^n\sum_{l=1}^m\phi_{k-1,k}(i,l)}. $$
-    
+
     To complete the Baum-Welch algorithm, we need to compute the last
     term of (\ref{eq:QEM}), which requires making a model for the
     emissions.
@@ -428,7 +428,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
 
     \begin{equation}
 \label{eq:conditional_nm}
-      P(Y_1=y_1, \ldots, Y_r=y_r|\lambda) = 
+      P(Y_1=y_1, \ldots, Y_r=y_r|\lambda) =
       e^{-\gamma_1\lambda}\frac{(\gamma_1\lambda)^{y_1}}{y_1!}
       \ldots
       e^{-\gamma_r\lambda}\frac{(\gamma_r\lambda)^{y_r}}{y_r!}.
@@ -503,7 +503,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
     p_0^* &= \frac{1/\beta}{1/\beta + \gamma_s}, \; \text{and} \\
     p_s^* &= \frac{\gamma_i}{1/\beta + \gamma_s}.
     \end{align*}
-    
+
     Not surprisingly, we obtain a negative binomial distribution.
     More interestingly though, the parameters of this
     distribution are linked to the previous parameters
@@ -522,7 +522,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
     are never independent. This also holds for $r > 2$, which can be
     proved by induction from the observation that mutual independence
     entails pairwise independence.
-    
+
     Assume that $(Y_1,Y_2)$ has a negative multinomial distribution
     and that it is not degenerate (all the parameters are strictly
     positive).  Let us fix $y_2 = 0$. The terms
@@ -534,7 +534,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
     cannot be equal to the product of the marginal distributions.
 
     Note that the proof above assumes $p_0 > 0$, which is
-    a consequence of $\beta < \infty$. So as long as $\lambda$ is 
+    a consequence of $\beta < \infty$. So as long as $\lambda$ is
     distributed according to a proper Gamma distribution, which
     is a defining feature of the negative multinomial distribution, the
     variables cannot be independent.
@@ -660,7 +660,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
     \begin{equation}
 \label{eq:ml_nm}
       \ell = \sum_{k=1}^n \log\Gamma(\alpha+y_k) +
-      \log\Gamma(\alpha) -\log(y_k!) + 
+      \log\Gamma(\alpha) -\log(y_k!) +
       \alpha \log(p_0) + y_k\log(1-p_0).
     \end{equation}
 
@@ -694,7 +694,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
 
     \begin{equation}
 \label{eq:NR_f}
-      f(\alpha) = n \Big(\log(\alpha) - \psi(\alpha) 
+      f(\alpha) = n \Big(\log(\alpha) - \psi(\alpha)
       - \log (\alpha + \bar{y}) \Big)
       + \sum_{k=1}^n \psi(\alpha+y_k) = 0.
     \end{equation}
@@ -731,8 +731,8 @@ be useful to setup a model for emissions in ChIP-seq experiments.
 
 \subsection{Zero-Inflation}
 
-    The so called zero-inflated negative binomial (ZINB)is a mixture
-    model with a negative binomial and a constant equal to 0. This 
+    The so called zero-inflated negative binomial (ZINB) is a mixture
+    model with a negative binomial and a constant equal to 0. This
     inflates the term $P(Y=0)$, whence the name of the distribution.
     Zero-inflated distributions are good models for overdispered
     data (which can occur as a consequence of distribution mixture).
@@ -827,7 +827,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
     $y_1^* + \ldots + y_r^*$ is simply equal to the sum of all the
     observations.
     Substituting (\ref{eq:sub_pi}) and (\ref{eq:sub_mu}) in the
-    expression of $\partial\ell/dp_0$, we obtain 
+    expression of $\partial\ell/dp_0$, we obtain
 
     \begin{equation}
       f(p_0, \alpha) = \frac{\alpha(n-z_0)}{p_0(1-p_0^{\alpha})} -
@@ -846,7 +846,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
       z(k_1, \ldots, k_r) \Big(\psi(\alpha+k_1 + \ldots +k_r)
       -\psi(\alpha) +\alpha\log(p_0)\Big) \\
         &=& \frac{(n-z_0)\log(p_0)}{1-p_0^{\alpha}}
-        -(n-z_0) \psi(\alpha) \\ 
+        -(n-z_0) \psi(\alpha) \\
         &+& \sum_{k_1, \ldots, k_r \neq z_0} z(k_1, \ldots, k_r)
         \psi(\alpha+k_1 + \ldots +k_r) = 0.
     \end{eqnarray*}
@@ -918,7 +918,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
     it easier to find suitable intial conditions compared to
     the EM algorithm, in which there are three.
 
-    
+
 \section{An emission model for ChIP-seq}
 
     The readout of ChIP-seq and similar experiments is a sequence of
@@ -1071,7 +1071,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
 
     \begin{align}
       \sum_{i=1}^m\sum_{k \notin Z_0} &\phi_{k|n}(i)
-      \Big(\alpha\log(p_{0,i}) + y_{k,1}\log(p_{1,i}) + 
+      \Big(\alpha\log(p_{0,i}) + y_{k,1}\log(p_{1,i}) +
       \ldots + y_{k,r}\log(p_{r,i}) \Big) \nonumber \\
        &+ \sum_{i=1}^m\sum_{k \in Z_0} \phi_{k|n}(i)
       \log(\pi p_{0,i}^{\alpha} + 1-\pi)
@@ -1094,12 +1094,12 @@ be useful to setup a model for emissions in ChIP-seq experiments.
 
     \noindent
     where $A = \sum_{k \notin Z_0} \phi_{k|n}(i)$ and
-    $B =  \sum_{k \in Z_0} \phi_{k|n}(i)$. 
+    $B =  \sum_{k \in Z_0} \phi_{k|n}(i)$.
     The differentiation of (\ref{eq:expl_zinm}) with respect to the
     other variables yields the following equalities
 
     \begin{align}
-      \frac{\partial \ell}{\partial p_{s,i}} = 
+      \frac{\partial \ell}{\partial p_{s,i}} =
       \frac{1}{p_{s,i}} \sum_{k \notin Z_0} \phi_{k|n}(i) y_{k,s}
       = \left\{
       \begin{array}{ll}
@@ -1156,7 +1156,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
     $p_{0,i}^{(t+1)} = p_{0,i}^{(t)} -
     f(p_{0,i}^{(t)})/f'(p_{0,i}^{(t)})$.
 
-    
+
     \begin{align*}
       f'(p_{0,i}) &= 1 - E
       \left( \frac{D +\alpha A}{p_{0,i}}
@@ -1197,7 +1197,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
     We suppose that an unobserved variable $Z$ takes value 1 with
     probability $\theta$ and value 0 with probability $1-\theta$.
     $Z$ indicates which of the two distributions the
-    observation is drawn from. The full likelihood is 
+    observation is drawn from. The full likelihood is
 
     \begin{equation*}
     P(y, z) = \frac{\Gamma(a+y)}{\Gamma(\alpha)y!}
@@ -1387,7 +1387,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
 
     \begin{eqnarray*}
       \theta &=& \frac{n+n_0w}{n+n_0} \\
-      p &=& \frac{\alpha}{\alpha + y^*}, 
+      p &=& \frac{\alpha}{\alpha + y^*},
     \end{eqnarray*}
 
     \noindent
@@ -1421,7 +1421,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
 
     \begin{align*}
     \ell = \sum_{i=1}^m\sum_{k=1}^n \phi_{k|n}(i)
-      \log\Big(\theta p_{0,i}^{\alpha} \, p_{1,i}^{z_{k,1}} \ldots 
+      \log\Big(\theta p_{0,i}^{\alpha} \, p_{1,i}^{z_{k,1}} \ldots
       p_{r,i}^{z_{k,r}} +
       (1-\theta) q_{0,i}^{\alpha} \, q_{1,i}^{z_{k,1}} \ldots
       q_{r,i}^{z_{k,r}} \Big).
@@ -1429,7 +1429,7 @@ be useful to setup a model for emissions in ChIP-seq experiments.
 
     For simplicity, we introduce the terms $\theta_k(i)$ for
     $k = 1, \ldots, n$ and $i = 1, \ldots, m$ defined by
-  
+
     \begin{align}
     \theta_k(i) = \frac{\theta p_{0,i}^{\alpha} \, p_{1,i}^{z_{k,1}}
     \ldots p_{r,i}^{z_{k,r}}}
