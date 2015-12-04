@@ -361,6 +361,19 @@ be useful to setup a model for emissions in ChIP-seq experiments.
 \subsection{The Gamma-Poisson process}
 \label{sec:gamma_poisson}
 
+    The Gamma-Poisson process can describe many phenomena
+    because of the flexibility of the Gamma distribution. The
+    $\alpha$ parameter of the Gamma distribution is often referred
+    to as the ``shape'' parameter. For negative values of $\alpha$,
+    the distribution has a singularity at 0, whereas for positive
+    values, the distribution has a single ``bump''. The $\beta$
+    parameter is often referred to as the ``scale'' parameter
+    because it represents a stretching of the curve along the x-axis
+    that can fit different variances. As a result, the Gamma
+    distribution is a good choice for almost every continuous
+    distribution with positive values and a single mode. Combined
+    to the Poisson distribution, it allows to fit almost every
+    discrete distribution with positive values.
     In what follows, $y$ is a non negative integer (an element of
     $\mathbb{N}$). Let $Y$ be a discrete random variable distributed
     as a Poisson distribution with parameter $\lambda$. The
@@ -382,11 +395,12 @@ be useful to setup a model for emissions in ChIP-seq experiments.
          \frac{1}{\Gamma(\alpha)\beta^{\alpha}} e^{-\lambda/\beta}
          \lambda^{\alpha-1}. $$
 
+
     The marginal distribution of $Y$, \textit{i.e.} $P(Y=y)$, is found
     by integrating the equality above over $\lambda$.
 
     \begin{align}
-\label{eq:nb_distrib}
+\label{eq:nb_distrib_w_beta}
       P(Y=y) &= \frac{1}{\Gamma(\alpha)\beta^{\alpha}y!}
          \int_0^{+\infty} e^{-\lambda(1+1/\beta)} \lambda^{\alpha+y-1}
          d\lambda \nonumber \\
@@ -397,26 +411,28 @@ be useful to setup a model for emissions in ChIP-seq experiments.
           \left(\frac{\beta}{1+\beta}\right)^y.
     \end{align}
 
-    Equation (\ref{eq:nb_distrib}) is the expression of the negative
-    binomial distribution, with one of the many possible
-    parametrizations. We will refer to this distribution as a
-    negative binomial with parameters $(\alpha, 1/(1+\beta))$.
+    Equation (\ref{eq:nb_distrib_w_beta}) is the expression
+    of the negative binomial distribution. If we interpret
+    $p_0 = \frac{1}{1+\beta}$ and $p_1 = \frac{\beta}{1+\beta}$
+    as probabilities of mutually exclusive events, we obtain the
+    alternative parametrization
 
-    The Gamma-Poisson process can describe many phenomena
-    because of the flexibility of the Gamma distribution. The
-    $\alpha$ parameter of the Gamma distribution is often referred
-    to as the ``shape'' parameter. For negative values of $alpha$,
-    the distribution has a singularity at 0, whereas for positive
-    values, the distribution has a single ``bump''. The $\beta$
-    parameter is often referred to as the ``scale'' parameter
-    because it represents a stretching of the curve along the x-axis
-    that can fit different variances. As a result, the Gamma
-    distribution is a good choice for almost every continuous
-    distribution with positive values and a single mode. Combined
-    to the Poisson distribution, it allows to fit almost every
-    discrete distribution with positive values.
+    \begin{equation}
+\label{eq:nb_distrib}
+        P(Y=y) = \frac{\Gamma(\alpha+y)}{\Gamma(\alpha)y!}
+          p_0^{\alpha} p_1^y.
+    \end{equation}
+
+    In R, the \texttt{nbinom} family of functions use a
+    $(\alpha, p_0)$ parametrization, but dropping $p_0$ instead
+    of $p_1$ is more convenient when there are more variables
+    (see section \ref{section:nm} below), so we will refer to it
+    as the negative binomial disribution with parameters
+    $(\alpha, p_1)$.
+
 
 \subsection{The negative multinomial distribution}
+\label{section:nm}
 
     We now introduce the case of $r$ Poisson variables that are
     conditionally independent given $\lambda$. Intuitively, this
@@ -627,6 +643,11 @@ be useful to setup a model for emissions in ChIP-seq experiments.
     does not depend on either $\alpha$ nor $p_0$, which proves
     that the $n$ marginal sums represent a sufficient statistic
     for $\alpha$ and $p_0$.
+
+\subsection{Alternative parametrization}
+\label{sec:alternative_parametrization}
+
+    In equation (\ref{eq:nb_distrib_w_beta}), the appearance of the terms
 
 \subsection{Negative multinomial parameter estimation}
 \label{sec:param_est_nm}
