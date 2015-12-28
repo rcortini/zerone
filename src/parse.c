@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -431,9 +432,15 @@ generic_iterator
       goto clean_and_return;
    }
 
+   // Many parsers modify the line in place. For purposes
+   // of reporting errors we make a copy of it beforehand.
+   char buffer[64] = {0};
+   strncpy(buffer, state->buff, 63);
+
+   // TODO: Make error report cleaner.
    if (!parse(loc, state->buff)) {
       // XXX non debug error XXX //
-      fprintf(stderr, "format conflict in line:\n%s", state->buff);
+      fprintf(stderr, "format conflict in line:\n%s", buffer);
       ERR = __LINE__;
       goto clean_and_return;
    }
@@ -593,21 +600,31 @@ parse_bed
    char *tmp2  = strsep(&line, "\t");
 
    // Cannot find chromosome or position.
-   if (chrom == NULL || tmp1 == NULL || tmp2 == NULL) return FAILURE;
+   if (chrom == NULL || tmp1 == NULL || tmp2 == NULL)
+      return FAILURE;
 
-   // TODO: The bed format is 0-based, so we need to check the
-   // format of the field before using 'atoi()', or use another
-   // function altogether.
-   int start = atoi(tmp1);
-   int end = atoi(tmp2);
+   // The bed format is 0-based. We cannot use 'atoi()' to
+   // parse the coodrinates.
+   char *endptr = NULL;
 
-   // Field position is not a number.
-   if (start == 0 || end == 0) return FAILURE;
+   errno = 0;
+   int start = 1 + strtoul(tmp1, &endptr, 10);
+   if (endptr == tmp1 || endptr == NULL || *endptr != '\0')
+      return FAILURE;
+
+   int end = 1 + strtoul(tmp2, &endptr, 10);
+   if (endptr == tmp2 || endptr == NULL || *endptr != '\0')
+      return FAILURE;
+
+   // 'strtoul' may set 'errno' in case of overflow.
+   if (errno)
+      return FAILURE;
 
    loc->name = chrom;
    loc->pos = (start + end) / 2;
 
    return SUCCESS;
+
 }
 
 

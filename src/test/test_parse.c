@@ -360,16 +360,16 @@ test_parse_bed
       loc_t loc;
 
       // NOTE that we cannot pass constant strings to
-      // 'parse_sam()' because it modifies them in general.
+      // 'parse_bed()' because it modifies them in general.
       char line1[] = "chr1\t1\t3";
       test_assert(parse_bed(&loc, line1));
       test_assert(strcmp(loc.name, "chr1") == 0);
-      test_assert(loc.pos == 2);
+      test_assert(loc.pos == 3);
 
       char line2[] = "chr2\t345\t345";
       test_assert(parse_bed(&loc, line2));
       test_assert(strcmp(loc.name, "chr2") == 0);
-      test_assert(loc.pos == 345);
+      test_assert(loc.pos == 346);
 
       char line3[] = "abc0chr18:-:16507402:A35";
       test_assert(!parse_bed(&loc, line3));
@@ -379,6 +379,21 @@ test_parse_bed
 
       char line5[] = "a\t45\twrong";
       test_assert(!parse_bed(&loc, line5));
+
+      char line6[] = "a\t45\t";
+      test_assert(!parse_bed(&loc, line6));
+
+      char line7[] = "a\t45";
+      test_assert(!parse_bed(&loc, line7));
+
+      char line8[] = "a\t45\123y";
+      test_assert(!parse_bed(&loc, line8));
+
+      char line9[] = "a\t\t45";
+      test_assert(!parse_bed(&loc, line9));
+
+      char line10[] = "a\t123y\t45";
+      test_assert(!parse_bed(&loc, line10));
 
       return;
 
