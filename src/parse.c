@@ -434,13 +434,14 @@ generic_iterator
 
    // Many parsers modify the line in place. For purposes
    // of reporting errors we make a copy of it beforehand.
+   size_t sz = strlen(state->buff);
    char buffer[64] = {0};
    strncpy(buffer, state->buff, 63);
 
-   // TODO: Make error report cleaner.
    if (!parse(loc, state->buff)) {
       // XXX non debug error XXX //
-      fprintf(stderr, "format conflict in line:\n%s", buffer);
+      fprintf(stderr, "format conflict in line:\n%s%s", buffer,
+            sz > 63 ? "...\n" : "");
       ERR = __LINE__;
       goto clean_and_return;
    }
@@ -682,6 +683,7 @@ parse_wig
    // Parse data definition lines.
    free(chrom);
                   strsep(&line, "\t");
+   // FIXME: The string duplication causes a small memory leak. //
    chrom = strdup(strsep(&line, "\t") + 6);
    loc->name = chrom;
 
@@ -697,6 +699,7 @@ parse_wig
    if (fstart <= 0 || step <= 0 || span <= 0) return FAILURE;
 
    return SUCCESS;
+
 }
 
 

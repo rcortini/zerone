@@ -1,3 +1,5 @@
+#include "unittest.h"
+#include "utils.h"
 #include "zerone.c"
 
 void

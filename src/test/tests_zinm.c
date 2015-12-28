@@ -1,4 +1,5 @@
-#include "zinb.c"
+#include "unittest.h"
+#include "zinm.c"
 
 void
 test_new_histo

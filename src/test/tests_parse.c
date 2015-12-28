@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+#include "unittest.h"
 #include "parse.c"
 
 
@@ -528,10 +530,10 @@ test_autoparse
 
    // Try parsing a non gem file.
    redirect_stderr();
-   test_assert(!autoparse("test_parse.c", hashtab));
+   test_assert(!autoparse("tests_parse.c", hashtab));
    unredirect_stderr();
    test_assert(hashtab != NULL);
-   test_assert(strncmp("unknown format for file test_parse.c",
+   test_assert(strncmp("unknown format for file tests_parse.c",
             caught_in_stderr(), 25) == 0);
 
    // Try parsing bad gem files.
@@ -563,6 +565,23 @@ test_autoparse
    lnk = lookup_or_insert("ref1", hashtab);
    test_assert_critical(lnk != NULL);
    test_assert(lnk->counts->array[0] == 5);
+
+   // Now test .bed format. Also check the error message.
+   redirect_stderr();
+   test_assert(!autoparse("test_file_bad1.bed", hashtab));
+   unredirect_stderr();
+   test_assert(hashtab != NULL);
+   test_assert(strcmp("format conflict in line:\nchr1\t34\twrong\n",
+            caught_in_stderr()) == 0);
+
+   redirect_stderr();
+   test_assert(!autoparse("test_file_bad2.bed", hashtab));
+   unredirect_stderr();
+   test_assert(hashtab != NULL);
+   test_assert(strcmp("format conflict in line:\n"
+               "a_very_long_chromosome_name\t1\t"
+               "some_shit_that_will_cause_a_failu...\n",
+            caught_in_stderr()) == 0);
 
    destroy_hash(hashtab);
 
