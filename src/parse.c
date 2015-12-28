@@ -595,8 +595,9 @@ parse_bed
    // Cannot find chromosome or position.
    if (chrom == NULL || tmp1 == NULL || tmp2 == NULL) return FAILURE;
 
-   // Positions in the genome cannot be 0, so we can identify
-   // failures of 'atoi' to convert numbers.
+   // TODO: The bed format is 0-based, so we need to check the
+   // format of the field before using 'atoi()', or use another
+   // function altogether.
    int start = atoi(tmp1);
    int end = atoi(tmp2);
 
