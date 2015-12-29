@@ -24,8 +24,8 @@ ENV DIR /discretize
 RUN mkdir $DIR
 COPY $DIR/datasets.md5 $DIR/
 COPY $DIR/ignore_random_chrom.py $DIR/
-COPY /BayesPeak/BayesPeak.R /BayesPeak/
 COPY /BayesPeak/BayesPeak2bed.py /BayesPeak/
-COPY $DIR/Makefile $DIR/
+COPY /BayesPeak/BayesPeak.R /BayesPeak/
 RUN mkdir /benchmark
 COPY /benchmark/Makefile /benchmark/
+COPY $DIR/Makefile $DIR/

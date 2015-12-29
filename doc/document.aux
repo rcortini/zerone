@@ -26,46 +26,46 @@
 \citation{e1071}
 \citation{pmid23103880}
 \citation{pmid24194598}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces  Principal Component Analysis of the training data set. Each symbol represents a discretization performed by Zerone. The 8 features extracted from each discretization are projected onto the first three principal components. Positive examples (black circles) are similar to each other, while negative examples (white triangles) are different from each other and from positive examples. The two groups overlap, which creates an ambiguous zone where failures and successes are indistinguishable. The right panel suggests that non linear classification is more appropriate to classify discretizations. }}{3}}
+\citation{pmid21330290}
+\citation{pmid19458158}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces  Principal Component Analysis of the training data set. Each symbol represents a discretization performed by Zerone. The 8 features extracted from each discretization are projected onto the first three principal components. Positive examples (black circles) are similar to each other, while negative examples (white triangles) are different from each other and from positive examples. The two groups overlap, which creates an ambiguous zone where failures and successes are indistinguishable. The right panel suggests that nonlinear classification is more appropriate to classify discretizations. }}{3}}
 \newlabel{fig:pca_bw}{{2}{3}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.4}}Data sets and preprocessing}{3}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces  ChIP-seq profiles of JARID1A in H1 ES cells (300 bp windows). The first replicate is not similar to the second, and it does not contain any target. }}{3}}
 \newlabel{fig:jarid}{{3}{3}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.5}}Benchmark conditions}{3}}
-\@writefile{toc}{\contentsline {section}{\numberline {3}Results}{3}}
-\newlabel{sec:results}{{3}{3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {{3.1}}Automatic quality control}{3}}
+\newlabel{sub:bench_cond}{{{2.5}}{3}}
 \citation{pmid21059603}
 \citation{pmid16122420}
 \citation{pmid23739122}
 \citation{pmid17382889}
-\citation{pmid21330290}
-\citation{pmid19458158}
-\citation{Karolchik2004}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Results}{4}}
+\newlabel{sec:results}{{3}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{3.1}}Automatic quality control}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{3.2}}Accuracy}{4}}
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces  Graphical representation of discretizations. Genomic windows of the ChIP-seq profile are ordered by decreasing amount of reads on the $x$ axis, and the cumulative amount of reads is plotted on the $y$ axis. This line forms a Pareto front representing the maximum number of reads for a given number of windows. Discretizations are represented as a single point on this plane (black disc) whose coordinates are the number of targets and the total number of reads in the targets. The dark triangle represents discretizations that are more conservative and discover more targets. }}{4}}
 \newlabel{fig:expl}{{4}{4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {{3.2}}Accuracy}{4}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Performance on the CTCF motifs data set. The table lists the total number of peaks found by the different programs, how many of those peaks contain at least one CTCF motif, and the associated precision, recall and $F_{1}$ score relative to the CTCF motif data set. }}{4}}
-\newlabel{tab:ctcf}{{1}{4}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.1}}Identification of CTCF binding sites.}{4}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.2}}Pol2 binding around transcription start sites.}{4}}
+\citation{Karolchik2004}
 \citation{pmid16122420}
 \citation{pmid23739122}
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces  Characteristics of the discretizations for different programs. The representation is obtained as shown on Fig.\nobreakspace  {}4\hbox {}. When discretizing the CTCF and the Pol2 profile (left and middle), Zerone produces discretizations that are very close to the Pareto front. In the case of H3K36me3, the discretization is off the Pareto front, but it is more sensible than the others. }}{5}}
 \newlabel{fig:pareto}{{5}{5}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Performance on the CTCF motifs data set. The table lists the total number of peaks found by the different programs, how many of those peaks contain at least one CTCF motif, and the associated precision, recall and $F_{1}$ score relative to the CTCF motif data set. }}{5}}
+\newlabel{tab:ctcf}{{1}{5}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.2}}Pol2 binding around transcription start sites.}{5}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.3}}H3K36me3-enriched domains.}{5}}
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Performance on the Pol2 data set. The table lists the total number of peaks found by the programs, how many of those peaks contain at least one Transription Start Site (TSS), and the associated precision, recall and $F_{1}$ score. }}{5}}
 \newlabel{tab:tss}{{2}{5}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.3}}H3K36me3-enriched domains.}{5}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces  Left panel: quality of the H3K36me3 discretization. Each bar represents the relative fraction of variance in RNA reads explained by the discretization of H3K36me3. The value for MACS was set to 1.0 and all other values were scaled accordingly. Right panel: Overlap between H3K36me3 targets. Each circle represents the H3K36me3 targets identified by a program. The size of the circles is proportional to the coverage of the targets, and their overlap approximates the amount of targets shared by the programs. Note the almost complete overlap between the BayesPeak discretizations on the two replicates. }}{5}}
-\newlabel{fig:venn}{{6}{5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces  Left panel: quality of the H3K36me3 discretization. Each bar represents the relative fraction of variance in RNA reads explained by the discretization of H3K36me3. The value for MACS was set to 1.0 and all other values were scaled accordingly. Right panel: Overlap between H3K36me3 targets. Each circle represents the H3K36me3 targets identified by a program. The size of the circles is proportional to the coverage of the targets, and their overlap approximates the amount of targets shared by the programs. Note the almost complete overlap between the BayesPeak discretizations on the two replicates. }}{6}}
+\newlabel{fig:venn}{{6}{6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{3.3}}Speed and memory footprint}{6}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces  Running times and peak memory footprint of the discretizers on the three ChIP-seq data sets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. Note the logarithmic scale in the running times. }}{6}}
+\newlabel{fig:perf}{{7}{6}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion and conclusions}{6}}
 \bibstyle{natbib}
 \bibdata{document,extra}
 \bibcite{pmid19458158}{{1}{2009}{{Bailey {\em  et~al.}}}{{Bailey, Boden, Buske, Frith, Grant, Clementi, Ren, Li, and Noble}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces  Running times and peak memory footprint of the discretizers on the three ChIP-seq data sets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. Note the logarithmic scale in the running times. }}{6}}
-\newlabel{fig:perf}{{7}{6}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {{3.3}}Speed and memory footprint}{6}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion and conclusions}{6}}
-\@writefile{toc}{\contentsline {paragraph}{Funding\text  {\rm  :}}{6}}
 \bibcite{baum1966}{{2}{1966}{{Baum and Petrie}}{{Baum and Petrie}}}
 \bibcite{Chang2011}{{3}{2011}{{Chang and Lin}}{{Chang and Lin}}}
 \bibcite{Dempster77maximumlikelihood}{{4}{1977}{{Dempster {\em  et~al.}}}{{Dempster, Laird, and Rubin}}}
@@ -90,3 +90,4 @@
 \bibcite{psclb}{{23}{2008}{{Zeileis {\em  et~al.}}}{{Zeileis, Kleiber, and Jackman}}}
 \bibcite{pmid18798982}{{24}{2008}{{Zhang {\em  et~al.}}}{{Zhang, Liu, Meyer, Eeckhoute, Johnson, Bernstein, Nusbaum, Myers, Brown, Li, and Liu}}}
 \global\@namedef{@lastpage@}{7}
+\@writefile{toc}{\contentsline {paragraph}{Funding\text  {\rm  :}}{7}}

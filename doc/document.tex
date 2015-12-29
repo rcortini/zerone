@@ -124,7 +124,7 @@ MACS \citep{pmid18798982}, BayesPeak \citep{pmid19772557} and
 JAMM \citep{pmid25223640} on the core task of discretizing ChIP-seq
 profiles of CTCF, Pol2 and H3K36me3. Our results show that Zerone is
 competitive in terms of speed and accuracy.
-
+% TODO: Add everything regarding H3k4me3.
 \begin{methods}
 \section{Methods}
 
@@ -134,8 +134,7 @@ It is natural to model read counts per genomic window by an unbounded
 discrete distribution. The Poisson distribution is an obvious candidate,
 but it is a poor choice because in ChIP-seq data the variance of read
 counts is usually higher than the mean. The reason is that windows
-are nonhomogeneous, which increases the dispersion. More specifically,
-windows
+are nonhomogeneous, which increases the dispersion. More specifically, windows
 are not equally PCR-prone and not equally mappable. The negative binomial
 (NB) distribution is thus a better choice because it allows some variation
 between windows. However, genomes are fraught with repeats, which creates
@@ -288,33 +287,44 @@ downloaded from repository
 \href{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC}{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC} in November 2013.
 We did not use mapped files because they were mapped in different
 genome assemblies.
-Instead, we mapped all the raw reads onto the
-hg19 assembly of the human genome with GEM \citep{pmid23103880},
-using the options \texttt{--unique-mapping} and \texttt{-q ignore} of
-gem-mapper version 1.376 beta (and gem-indexer version 1.423 beta).
+Instead, we mapped all the raw reads on the human genome with GEM
+\citep{pmid23103880}, using the options \texttt{--unique-mapping} and
+\texttt{-q ignore} of gem-mapper version 1.376 beta (and gem-indexer version
+1.423 beta).
 For convenience, we converted the mapped files to SAM format with
 gem-2-sam version 1.423 beta.
 The negative control file use to prepare Fig.~\ref{fig:ZINB_fit}
 was wgEncodeSydhTfbsK562InputRawData.fastq.
 
 \subsection{Benchmark conditions}
+\label{sub:bench_cond}
 To compare Zerone to other discretizers, we analysed three different
 ChIP-seq data sets: CCCTC-binding factor (CTCF), RNA polymerase II
-(Pol2) and tri-methylated histone H3 at lysine 36 (H3K36me3) --- that
+(Pol2) and tri-methylated histone H3 at lysine 36 (H3K36me3) ---that
 represent peaky, mixed and broad signals, respectively. Each
 data set consisted of a mock profile without immunoprecipitation
 and two replicate ChIP-seq profiles.
 The ENCODE accession numbers for these three data sets are
-ENCSR000DWE, ENCSR000DWB and ENCSR000FAJ, respectively. For the last dataset,
+ENCSR000DWE, ENCSR000DWB and ENCSR000FAJ, respectively. For the last data set,
 we used the control experiment ENCSR000EWK.
 
 We tested MACS \texttt{callpeak} version 2.1.0.20140616, BayesPeak
 version 1.20.0 and JAMM version 1.0.7rev1. All tests were performed on
 an 8-core Intel Xeon E5606 machine with 48~GB of DDR3-RAM at 1333~MHz.
-All programs were run on a single core with the default options.
+All programs were run on a single core with the recommended options.
+Specifically, on the H3K36me3 data set, JAMM was run with the option
+\texttt{-r region} and MACS with the \texttt{--broad} option. For the rest of
+the data sets and programs, the default options where used.
 
-CTCF motifs were obtained from the JASPAR database version
-5.0{\textunderscore}ALPHA \citep{pmid24194598}.
+The CTCF motif was obtained from the JASPAR database version
+5.0{\textunderscore}ALPHA \citep{pmid24194598}. Namely, we used the motif
+with ID MA0139.1.
+Subsequently we used FIMO \citep{pmid21330290} from the MEME suite version
+4.10.1 \citep{pmid19458158} to identify and map CTCF motif occurences in the
+human genome.
+
+All analyses that involved the mapping of genomic features were done using the
+UCSC hg19 assembly of the human genome.
 
 \end{methods}
 
@@ -414,7 +424,6 @@ left of the Pareto front, and those on the front represent an
 optimum. Others are suboptimal, since fewer windows can capture more
 targets.
 
-
 This representation reveals that discretizing the CTCF profile yields
 similar outputs regardless of the software (Fig.~\ref{fig:pareto},
 left panel). On the other hand, discretizing the Pol2 or the H3K36me3
@@ -430,15 +439,28 @@ This representation shows that Zerone produces discretizations that
 are sensitive and adapted to the profile being discretized.
 
 \subsubsection{Identification of CTCF binding sites.}
-CTCF binds a 20~bp consensus sequence that is highly conserved in
-vertebrates. In humans, nearly 80\% of the CTCF binding
-sites contain the consensus motif \citep{pmid17382889}. In order to
-determine the capacity of the different programs to call peaks of CTCF
-binding, we compared the discretized profiles against a data set of CTCF
-binding motifs. We used FIMO \citep{pmid21330290} from the MEME suite
-version 4.10.1 \citep{pmid19458158} to identify and map CTCF motifs in
-the human genome. We obtained a reference data set containing 85,690
-CTCF motifs.
+CTCF binds a 20~bp consensus sequence that is highly conserved in vertebrates.
+In humans, nearly 80\% of the CTCF binding sites contain the consensus motif
+\citep{pmid17382889}. In order to determinethe capacity of the different
+programs to call peaks of CTCF binding, we compared the discretized profiles
+against a data set of CTCF binding motifs. We obtained a reference data set
+containing the positions of 85,690 occurences of the CTCF motif
+(\textit{c.f.} Section \ref{sub:bench_cond}).
+
+For this comparison, a window identified as enriched will be considered a true
+positive if it contains at least one CTCF motif.
+
+The precision of a discretizer is its positive predictive value (\textit{i.e.}
+the ratio between true positives and total predicted positives); in our case,
+this is the number of windows identified as enriched that contain at least one
+CTCF motif, divided by the total number of windows identified as enriched.
+Similarly, the recall of a discretizer is its sensitivity (\textit{i.e.} the
+ratio between true positives and actual positives); this is the number of true
+positives as described above, divided by the total number of windows that
+contain at least one CTCF motif, regardless of whether they were identified as
+enriched or not.
+
+Both precision and recall are scores comonly used in machine learning contexts.
 
 Table \ref{tab:ctcf} shows that Zerone outperforms the other tools
 in terms of the $F_1$ score (the harmonic mean between precision and
