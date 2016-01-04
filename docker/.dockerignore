@@ -6,6 +6,7 @@
 */*.log
 */*.map
 *.R
-*.rdata
 */*.sam
+discretize/fetchChromSizes
 discretize/twoBitToFa
+simulate_ChIP/*

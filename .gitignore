@@ -20,6 +20,7 @@ src/test/.inspect.gdb
 *.gem
 *.map
 *.sam
-docker/fetchChromSizes
 docker/discretize/*.2bit
+docker/discretize/fetchChromSizes
 docker/discretize/twoBitToFa
+docker/simulate_ChIP/*

@@ -640,12 +640,12 @@ parse_wig
    // XXX CAUTION: this function is non-reentrant. XXX //
    // XXX Use multithreading at your own risk.     XXX //
 
-   static int   fixedstep = 0;
-   static char *chrom     = NULL;
-   static int   fstart    = 1;
-   static int   step      = 1;
-   static int   span      = 1;
-   static int   iter      = 0;
+   static char chrom[32] = {0};
+   static int  fixedstep = 0;
+   static int  fstart    = 1;
+   static int  step      = 1;
+   static int  span      = 1;
+   static int  iter      = 0;
 
    // Ignore track definition lines.
    if (strncmp(line, "track", 5) == 0) return SUCCESS;
@@ -672,7 +672,7 @@ parse_wig
       strsep(&line, "\t");
       if (line != NULL) return FAILURE;
 
-      if (chrom == NULL || start <= 0 || reads < 0) return FAILURE;
+      if (chrom[0] == '\0' || start <= 0 || reads < 0) return FAILURE;
 
       end = start + span - 1;
       loc->pos = (start + end) / 2;
@@ -680,20 +680,24 @@ parse_wig
       return SUCCESS;
    }
 
-   // Parse data definition lines.
-   free(chrom);
+   // variableStep\tchrom=chrN\t[span=windowSize]
+   // fixedStep\tchrom=chrN\tstart=position\tstep=stepInterval\t[span=windowSize]
+
+   // Skip token (either "fixedStep" or "variableStep").
                   strsep(&line, "\t");
-   // FIXME: The string duplication causes a small memory leak. //
-   chrom = strdup(strsep(&line, "\t") + 6);
+   // Copy chromosome name (and remove the 6 characters of "chrom=").
+   strncpy(chrom, strsep(&line, "\t") + 6, 31);
    loc->name = chrom;
 
    if (fixedstep) {
+      // Remove the characters of "start=" and "step=".
       fstart = atoi(strsep(&line, "\t") + 6);
       step   = atoi(strsep(&line, "\t") + 5);
       iter   = 0;
    }
 
    if (line == NULL) span = 1;
+   // Remove the 5 characters of "span=".
    else              span = atoi(line + 5);
 
    if (fstart <= 0 || step <= 0 || span <= 0) return FAILURE;

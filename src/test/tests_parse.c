@@ -407,7 +407,7 @@ test_parse_wig
 (void)
 {
 
-      loc_t loc;
+      loc_t loc = {0};
 
       char line1[] = "1";
       test_assert(!parse_wig(&loc, line1));
