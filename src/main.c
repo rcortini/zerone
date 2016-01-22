@@ -35,10 +35,15 @@ const char *USAGE =
 "USAGE:"
 "  zerone [options] <input file 1> ... <input file n>\n"
 "\n"
+"  Input options\n"
 "    -0 --mock: given file is a mock control\n"
 "    -1 --chip: given file is a ChIP-seq experiment\n"
-"    -l --list-output: output list of targets (default table)\n"
 "\n"
+"  Output options\n"
+"    -l --list-output: output list of targets (default table)\n"
+"    -c --confidence: also output confidence score (not available with -l)\n"
+"\n"
+"  Other options\n"
 "    -h --help: display this message and exit\n"
 "       --version: display version and exit\n"
 "\n"
@@ -104,12 +109,14 @@ int main(int argc, char **argv) {
    int n_ChIP_files = 0;
 
    static int list_flag = 0;
+   static int conf_flag = 0;
 
    // Parse options.
    while(1) {
       int option_index = 0;
       static struct option long_options[] = {
          {"list-output", no_argument,       &list_flag, 1 },
+         {"confidence",  no_argument,       &conf_flag, 1 },
          {"mock",        required_argument,         0, '0'},
          {"chip",        required_argument,         0, '1'},
          {"help",        no_argument,               0, 'h'},
@@ -117,7 +124,7 @@ int main(int argc, char **argv) {
          {0, 0, 0, 0}
       };
 
-      int c = getopt_long(argc, argv, "0:1:hl",
+      int c = getopt_long(argc, argv, "0:1:chl",
             long_options, &option_index);
 
       // Done parsing named options. //
@@ -143,6 +150,10 @@ int main(int argc, char **argv) {
          list_flag = 1;
          break;
 
+      case 'c':
+         conf_flag = 1;
+         break;
+
       case 'v':
          say_version();
          return EXIT_SUCCESS;
@@ -163,6 +174,12 @@ int main(int argc, char **argv) {
 
    debug_print("%s", "done parsing arguments\n");
 
+   // Check options.
+   if (conf_flag && list_flag) {
+      fprintf(stderr, "ignoring --confidence flag for list output\n");
+      conf_flag = 0;
+   }
+
    // Process input files.
    ChIP_t *ChIP = parse_input_files(mock_fnames, ChIP_fnames);
 
@@ -180,7 +197,6 @@ int main(int argc, char **argv) {
    }
 
    // Do zerone.
-   //const unsigned int m = 3; // number of states.
    zerone_t *Z = do_zerone(ChIP);
 
    if (Z == NULL) {
@@ -231,17 +247,17 @@ int main(int argc, char **argv) {
       for (int i = 0 ; i < ChIP->nb ; i++) {
          char *name = ChIP->nm + 32*i;
          for (int j = 0 ; j < ChIP->sz[i] ; j++) {
-//            fprintf(stdout, "%s\t%d\t%d\t%d\n", name, 300*j + 1,
-//                  300*(j+1), Z->path[wid++]);
-// XXX //
             fprintf(stdout, "%s\t%d\t%d\t%d", name, 300*j + 1,
                   300*(j+1), Z->path[wid]);
             for (int k = 0 ; k < Z->ChIP->r ; k++) {
                fprintf(stdout, "\t%d", Z->ChIP->y[k+wid*Z->ChIP->r]);
             }
+            // Print confidence if required.
+            if (conf_flag) {
+               fprintf(stdout, "\t%.3f", Z->phi[2+wid*3]);
+            }
             fprintf(stdout, "\n");
             wid++;
-// XXX //
          }
       }
    }
