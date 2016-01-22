@@ -85,9 +85,10 @@ case, run the command \texttt{sudo apt-get install r-base} on Ubuntu.
 
 To run Zerone, you have to specify the files that contain the mapped reads
 of the ChIP-seq experiment you want to discretize. These can be in BED, SAM/BAM
-and GEM (.map) formats and can be gzipped. You can include as many negative
-control files and as many experimental replicates as you need. Just enter
-controls after the \texttt{-0} or \texttt{--mock} option, and
+and GEM (.map) formats and can be gzipped. You can include as many mock
+control files and as many experimental replicates as you need, provided there
+is at least one mock control and one experimental replicate. Just enter
+mock controls after the \texttt{-0} or \texttt{--mock} option, and
 targets after the \texttt{-1} or \texttt{--chip} option.
 
 For example, you can type in the following commands from the \texttt{zerone}
@@ -113,7 +114,7 @@ Enter the option \texttt{-h} or \texttt{--help} for usage instructions and
 
 \subsection{Output}
 
-Running Zerone as shown before should produce an output like the following.
+Running Zerone as shown above should produce an output like the following.
 
 \begin{verbatim}
 # QC score: 1.289
@@ -149,6 +150,34 @@ types of background signal. State \textbf{2 represents an enriched window}.
 The fifth column contains the read count of all the control profiles summed
 together, and the rest of the columns contain the read count of each of the
 target profiles.
+
+The \texttt{-c} or \texttt{--confidence} option adds an extra column
+with the probability that the given window is a target. This expresses the
+confidence that a target is real and can be used for post-processing. To
+test this feature, you can run
+
+\begin{verbatim}
+./zerone -c -0 data/mock.sam -1 data/ctcf1.sam -1 data/ctcf2.sam
+\end{verbatim}
+
+You should obtain the following outut.
+
+\begin{verbatim}
+# QC score: 1.289
+# advice: accept discretization.
+chr1    1       300     1   0   0   0   0.300
+chr1    301     600     1   0   0   0   0.162
+chr1    601     900     1   0   0   0   0.096
+chr1    901     1200    1   0   0   0   0.064
+...
+chr1    998701  999000  2   1   11  4   0.979
+chr1    999001  999300  2   2   72  34  1.000
+chr1    999301  999600  2   2   128 69  1.000
+chr1    999601  999900  2   0   10  5   0.999
+\end{verbatim}
+
+Looking at this output, we conclude that Zerone is 99.9\% confident
+that CTCF is present on the last genomic window.
 
 \subsection{List output}
 
