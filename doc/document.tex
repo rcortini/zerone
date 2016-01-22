@@ -177,9 +177,33 @@ distribution (ZINM, see supplementary material for detail). In this
 model, windows have an intrinsic ChIP-seq bias due to their sequence
 composition, mappability and other inherent properties, which gives
 a baseline variation present in all ChIP-seq experiments performed
-in the same conditions. The dependency between replicates is
-explicitly modeled by the ZINM distribution, which gives more
-accurate probabilities than assuming independence.
+in the same conditions. Note that the biases are not modelled explicitly 
+from known features of the genome, but implicitly by adjusting
+the variance of the distribution. Also, the dependency between replicates
+is accounted for by the ZINM distribution, which gives more accurate
+probabilities than assuming independence.
+
+The genome contains $n$ windows, each observation
+$y_i = (y_{i,1}, \ldots, y_{i,r})$ is a vector of $r$ read counts
+(one per replicate), where $1 \leq i \leq n$. The associated probability
+under the ZINM distribution with parameter
+$\theta = (\pi, \alpha, p_0, ..., p_r)$ is
+
+$$
+g(y_i|\theta) = \left\{
+\begin{array}{ll}
+\pi + (1-\pi)p_0^{\alpha}
+         & \mbox{if } y_i = 0 \\
+(1-\pi )\frac{\Gamma(\alpha + y_{i,1} + \ldots + y_{i,r})}
+  {\Gamma(\alpha)y_{i,1}! \ldots y_{i,r}!}
+p_0^{\alpha} p_1^{y_{i,1}} \ldots p_r^{y_{i,r}}
+         & \mbox{otherwise.}
+\end{array}
+\right.
+$$
+
+In the definition above, $\Gamma$ denotes Euler's gamma function and
+$y_i = 0$ stands for $y_{i,1} = 0, \ldots, y_{i,r} = 0$.
 
 \subsection{Discretization}
 Discretization is performed by fitting an HMM
@@ -194,9 +218,36 @@ that the ``high'' state corresponds to the targets of the chromatin
 feature. In what follows, targets are always considered windows
 with ``high'' abundance of ChIP-seq reads.
 
-Fitting is performed with the Baum-Welch algorithm \citep{baum1966},
-which is a special case of the EM algorithm
-\citep{Dempster77maximumlikelihood}.
+Assuming that $x_i$ takes one of these three values, the log-likelihood of
+a sequence of states $(x_1, \ldots, x_n)$ given the observations
+$(y_1, \ldots, y_n)$ is
+
+$$
+\log \nu(x_0) + \log g(y_0|x_0) +
+   \sum_{i=1}^n \log Q(x_{i-1},x_i) + \log g(y_i|x_i).
+$$
+
+In the above, $\nu$ denotes the initial probability of the states,
+$Q$ is the $3 \times 3$ transition matrix of the model, and
+$g(y_i|x_i)$ is the probability of the emission $y_i$ if the state is
+$x_i$. Disretization amounts to finding the sequence of states and the
+emission parameters that maximize the value above. Zerone achieves this
+with the Baum-Welch algorithm \citep{baum1966}, which is a special case
+of the EM algorithm \citep{Dempster77maximumlikelihood}. The emission
+parameters $\pi$ and $\alpha$ are state-independent since they represent
+the baseline distribution of reads in the genomic windows. For this
+reason they are fitted from the negative control profiles before the
+Baum-Welch cycles.
+
+considered constant throughout the Baum-Welch cycles. Overall, the
+total number of estimated parameters is $3r+9$, where $r$ is the
+number of replicate experiments (excluding mock profiles).
+
+The other
+parameters are state-dependent since they represent the amount of reads
+per window in each replicate, depending on the abundance of the chromatin
+feature.
+
 Discrete variables take only a small number of distinct values, which
 allows to save computation time by hashing the observations. With this
 technique, we need to compute each value of the emission probabilities
@@ -212,11 +263,6 @@ by default). The state calls are computed by finding the most likely
 segmentation given the value of the parameters through the Viterbi
 algorithm \citep{1054010}.
 
-The shape parameter and the mixture ratio of the ZINM distribution
-are fitted directly from the negative control profiles and they are
-considered constant throughout the Baum-Welch cycles. Overall, the
-total number of estimated parameters is $3r+9$, where $r$ is the
-number of replicate experiments (excluding mock profiles).
 
 \subsection{Classification and training}
 \label{sub:training}
@@ -249,11 +295,17 @@ fitted HMM. Based on the transition matrix, the emission paramaters,
 the Viterbi Path and the posterior probabilities,
 we computed 8 features expected to vary with the quality
 of the discretization, and we used them to train a classifier.
+The features consist of entries from the transition matrix ($Q_{3,1}$,
+$Q_{3,2}$ and $Q_{1,3}$, indicating the size of the targets), the
+maximum value of the ratios between $(p_2, \ldots, p_r)$ for each
+pair of states (indicating the signal to noise ratio), the average
+posterior probability of targets (indicating the confidence of the
+discretizer) and the amount of targets.
 
 Our first attempts with logistic regression suggested that linear
 classifiers are unable to properly separate these two classes because
-they overlap in the feature space (Fig.~\ref{fig:pca_bw}). To obtain more
-complex, nonlinear separation, we used a Support Vector Machine
+they overlap in the feature space (Fig.~\ref{fig:pca_bw}). To obtain a
+more complex separation, we used a Support Vector Machine
 (SVM, \citealp{Chang2011,e1071}), as this approach
 allows nonlinear classification by mapping
 the training data to a kernel space. Also, SVMs are fast to train and
@@ -481,7 +533,7 @@ harmonic mean between Precision and Recall.
         Zerone            &  50,792 & 30,972 & 0.61 & 0.36 & 0.45 \\
         \botrule
 \end{tabular}}{The numbers in parentheses indicate the results on the two
-replicates by separate.}
+replicates separately.}
 \end{table}
 
 In summary, Zerone achieves a good balance between sensitivity and
@@ -499,7 +551,6 @@ knownGene table of the UCSC Genes annotation for the hg19 genome
 
 \begin{table}[!t]
 \processtable{Performance on the Pol2 data set.
-
 True and false positives are defined as peaks with and without a
 transcription start site (TSS), respectivel. Total: the number of peaks
 found by the program. TSS: the subset of those containing at least one
@@ -520,7 +571,7 @@ harmonic mean between Precision and Recall.
         Zerone            &  23,976 & 6,926 & 0.29 & 0.24 & 0.36 \\
         \botrule
 \end{tabular}}{The numbers in parentheses indicate the results on the two
-replicates by separate.}
+replicates separately.}
 \end{table}
 
 Table \ref{tab:tss} shows that, as in the previous case, Zerone
