@@ -124,7 +124,7 @@ MACS \citep{pmid18798982}, BayesPeak \citep{pmid19772557} and
 JAMM \citep{pmid25223640} on the core task of discretizing ChIP-seq
 profiles of CTCF, Pol2 and H3K36me3. Our results show that Zerone is
 competitive in terms of speed and accuracy.
-
+% TODO: Add everything regarding H3k4me3.
 \begin{methods}
 \section{Methods}
 
@@ -134,8 +134,7 @@ It is natural to model read counts per genomic window by an unbounded
 discrete distribution. The Poisson distribution is an obvious candidate,
 but it is a poor choice because in ChIP-seq data the variance of read
 counts is usually higher than the mean. The reason is that windows
-are nonhomogeneous, which increases the dispersion. More specifically,
-windows
+are nonhomogeneous, which increases the dispersion. More specifically, windows
 are not equally PCR-prone and not equally mappable. The negative binomial
 (NB) distribution is thus a better choice because it allows some variation
 between windows. However, genomes are fraught with repeats, which creates
@@ -222,8 +221,16 @@ number of replicate experiments (excluding mock profiles).
 \subsection{Classification and training}
 \label{sub:training}
 We used a machine learning strategy to identify discretization
-failures. We first prepared a high confidence data set where the
-output of Zerone was labelled positive (success) or negative (failure).
+failures. The true status (success or failure) of experimental ChIP-seq
+data is not known because success is partly subjective and because
+there is no gold standard for protein binding in live cells. A way to
+know the true status of a profile is to simulate the data, but this
+approach introduces subjectivity in the model used for the simulation.
+Instead, we prepared an experimental data set where we labelled the
+output of Zerone as positive (success) or negative (failure) based
+on empirical criteria. The definition of success is thus subjective,
+but the training is performed on representative data.
+
 We discretized 144 replicated ChIP-seq experiments, together with their
 respective input control.
 We labelled the output of the discretization as positive (91 cases)
@@ -236,8 +243,7 @@ swapped). To cover these cases, we included in the trusted set
 38 other cases obtained by discretizing nonreplicate profiles
 (\textit{e.g.} CTCF and Pol2) and controls without immuno-precipitation.
 Thus, a total of 182 cases (91 positive and 91 negative) were used to
-build a balanced data set.
-
+build a balanced data set. 
 To identify failed discretizations, we used the paremeters of the
 fitted HMM. Based on the transition matrix, the emission paramaters,
 the Viterbi Path and the posterior probabilities,
@@ -288,33 +294,44 @@ downloaded from repository
 \href{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC}{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC} in November 2013.
 We did not use mapped files because they were mapped in different
 genome assemblies.
-Instead, we mapped all the raw reads onto the
-hg19 assembly of the human genome with GEM \citep{pmid23103880},
-using the options \texttt{--unique-mapping} and \texttt{-q ignore} of
-gem-mapper version 1.376 beta (and gem-indexer version 1.423 beta).
+Instead, we mapped all the raw reads on the human genome with GEM
+\citep{pmid23103880}, using the options \texttt{--unique-mapping} and
+\texttt{-q ignore} of gem-mapper version 1.376 beta (and gem-indexer version
+1.423 beta).
 For convenience, we converted the mapped files to SAM format with
 gem-2-sam version 1.423 beta.
 The negative control file use to prepare Fig.~\ref{fig:ZINB_fit}
 was wgEncodeSydhTfbsK562InputRawData.fastq.
 
 \subsection{Benchmark conditions}
+\label{sub:bench_cond}
 To compare Zerone to other discretizers, we analysed three different
 ChIP-seq data sets: CCCTC-binding factor (CTCF), RNA polymerase II
-(Pol2) and tri-methylated histone H3 at lysine 36 (H3K36me3) --- that
+(Pol2) and tri-methylated histone H3 at lysine 36 (H3K36me3) ---that
 represent peaky, mixed and broad signals, respectively. Each
 data set consisted of a mock profile without immunoprecipitation
 and two replicate ChIP-seq profiles.
 The ENCODE accession numbers for these three data sets are
-ENCSR000DWE, ENCSR000DWB and ENCSR000FAJ, respectively. For the last dataset,
+ENCSR000DWE, ENCSR000DWB and ENCSR000FAJ, respectively. For the last data set,
 we used the control experiment ENCSR000EWK.
 
 We tested MACS \texttt{callpeak} version 2.1.0.20140616, BayesPeak
 version 1.20.0 and JAMM version 1.0.7rev1. All tests were performed on
 an 8-core Intel Xeon E5606 machine with 48~GB of DDR3-RAM at 1333~MHz.
-All programs were run on a single core with the default options.
+All programs were run on a single core with the recommended options.
+Specifically, on the H3K36me3 data set, JAMM was run with the option
+\texttt{-r region} and MACS with the \texttt{--broad} option. For the rest of
+the data sets and programs, the default options where used.
 
-CTCF motifs were obtained from the JASPAR database version
-5.0{\textunderscore}ALPHA \citep{pmid24194598}.
+The CTCF motif was obtained from the JASPAR database version
+5.0{\textunderscore}ALPHA \citep{pmid24194598}. Namely, we used the motif
+with ID MA0139.1.
+Subsequently we used FIMO \citep{pmid21330290} from the MEME suite version
+4.10.1 \citep{pmid19458158} to identify and map CTCF motif occurences in the
+human genome.
+
+All analyses that involved the mapping of genomic features were done using the
+UCSC hg19 assembly of the human genome.
 
 \end{methods}
 
@@ -414,7 +431,6 @@ left of the Pareto front, and those on the front represent an
 optimum. Others are suboptimal, since fewer windows can capture more
 targets.
 
-
 This representation reveals that discretizing the CTCF profile yields
 similar outputs regardless of the software (Fig.~\ref{fig:pareto},
 left panel). On the other hand, discretizing the Pol2 or the H3K36me3
@@ -431,26 +447,27 @@ are sensitive and adapted to the profile being discretized.
 
 \subsubsection{Identification of CTCF binding sites.}
 CTCF binds a 20~bp consensus sequence that is highly conserved in
-vertebrates. In humans, nearly 80\% of the CTCF binding
-sites contain the consensus motif \citep{pmid17382889}. In order to
-determine the capacity of the different programs to call peaks of CTCF
-binding, we compared the discretized profiles against a data set of CTCF
-binding motifs. We used FIMO \citep{pmid21330290} from the MEME suite
-version 4.10.1 \citep{pmid19458158} to identify and map CTCF motifs in
-the human genome. We obtained a reference data set containing 85,690
-CTCF motifs.
+vertebrates. In humans, nearly 80\% of the CTCF binding sites contain
+the consensus motif \citep{pmid17382889}. In order to determinethe the
+capacity of the different programs to call peaks of CTCF binding, we
+compared the discretized profiles against a data set of CTCF binding
+motifs. We obtained a reference data set containing the positions of
+85,690 occurences of the CTCF motif (\textit{c.f.} Section
+\ref{sub:bench_cond}).
 
 Table \ref{tab:ctcf} shows that Zerone outperforms the other tools
-in terms of the $F_1$ score (the harmonic mean between precision and
+in terms of the $F_1$ score (the harmonic mean of precision and
 recall). It has the second highest recall score, close to that of JAMM,
 and it achieves the highest precision.
 
 \begin{table}[!t]
 \processtable{Performance on the CTCF motifs data set.
-The table lists the total number of peaks found by the different
-programs, how many of those peaks contain at least one CTCF motif,
-and the associated precision, recall and $F_{1}$ score relative to
-the CTCF motif data set.
+True and false positives are defined as peaks with and without a CTCF
+motif, respectively. Total: the number of peaks found by the program.
+Motif: the subset of those containing at least one CTCF motif.
+Precision: Motif divided by Total. Recall: Motif divided by the number
+of CTCF motif-containing windows in the genome. $F_{1}$ score: the
+harmonic mean between Precision and Recall.
 \label{tab:ctcf}}
 {\begin{tabular}{lrrccc}
         \toprule
@@ -483,9 +500,13 @@ knownGene table of the UCSC Genes annotation for the hg19 genome
 
 \begin{table}[!t]
 \processtable{Performance on the Pol2 data set.
-The table lists the total number of peaks found by the programs, how
-many of those peaks contain at least one Transription Start Site (TSS),
-and the associated precision, recall and $F_{1}$ score.
+
+True and false positives are defined as peaks with and without a
+transcription start site (TSS), respectivel. Total: the number of peaks
+found by the program. TSS: the subset of those containing at least one
+TSS. Precision: TSS divided by Total. Recall: TSS divided by the number
+of TSS motif-containing windows in the genome. $F_{1}$ score: the
+harmonic mean between Precision and Recall.
 \label{tab:tss}}
 {\begin{tabular}{lrrccc}
         \toprule
