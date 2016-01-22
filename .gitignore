@@ -14,3 +14,13 @@ src/test/runtests
 src/test/H3K9ac.txt
 src/test/RXRA.txt
 src/test/.inspect.gdb
+*.bed
+*.fasta
+*.fastq.gz
+*.gem
+*.map
+*.sam
+docker/discretize/*.2bit
+docker/discretize/fetchChromSizes
+docker/discretize/twoBitToFa
+docker/simulate_ChIP/*

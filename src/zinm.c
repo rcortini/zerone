@@ -1,4 +1,4 @@
-#include "zinb.h"
+#include "zinm.h"
 
 #define M_PI 3.14159265358979323846
 #define sq(x) ((x)*(x))

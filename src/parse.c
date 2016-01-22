@@ -434,13 +434,14 @@ generic_iterator
 
    // Many parsers modify the line in place. For purposes
    // of reporting errors we make a copy of it beforehand.
+   size_t sz = strlen(state->buff);
    char buffer[64] = {0};
    strncpy(buffer, state->buff, 63);
 
-   // TODO: Make error report cleaner.
    if (!parse(loc, state->buff)) {
       // XXX non debug error XXX //
-      fprintf(stderr, "format conflict in line:\n%s", buffer);
+      fprintf(stderr, "format conflict in line:\n%s%s", buffer,
+            sz > 63 ? "...\n" : "");
       ERR = __LINE__;
       goto clean_and_return;
    }
@@ -629,6 +630,32 @@ parse_bed
 
 
 int
+is_wig_defline
+(
+   char *line,
+   int  *fixedstep
+)
+// Check whether line is a .wig definition line. If so,
+// updates 'fixedstep' accordingly.
+{
+
+   if (strncmp(line, "variableStep", 12) == 0) {
+      *fixedstep = 0;
+      return 1;
+   }
+
+   else if (strncmp(line, "fixedStep", 9) == 0) {
+      *fixedstep = 1;
+      return 1;
+   }
+
+   // Not a definition line.
+   else return 0;
+
+}
+
+
+int
 parse_wig
 (
    loc_t *loc,
@@ -639,22 +666,51 @@ parse_wig
    // XXX CAUTION: this function is non-reentrant. XXX //
    // XXX Use multithreading at your own risk.     XXX //
 
-   static int   fixedstep = 0;
-   static char *chrom     = NULL;
-   static int   fstart    = 1;
-   static int   step      = 1;
-   static int   span      = 1;
-   static int   iter      = 0;
+   static char chrom[32] = {0};
+   static int  fixedstep =  0;
+   static int  fstart    =  1;
+   static int  step      =  1;
+   static int  span      =  1;
+   static int  iter      =  0;
 
    // Ignore track definition lines.
    if (strncmp(line, "track", 5) == 0) return SUCCESS;
 
-   // Detect type of format.
-   if  (strncmp(line, "variableStep", 12) == 0) fixedstep = 0;
-   else if (strncmp(line, "fixedStep", 9) == 0) fixedstep = 1;
+   // Check if line is definition.
+   if (is_wig_defline(line, &fixedstep)) {
 
-   // Parse data line.
+      // Definition lines follow either of the following formats.
+      // [A] variableStep\tchrom=chr\t[span=x]
+      // [B] fixedStep\tchrom=chr\tstart=x\tstep=y\t[span=z]
+      
+      // Skip first token (either "fixedStep" or "variableStep").
+      strsep(&line, "\t");
+
+      // Copy chromosome name (and remove the 6 characters of "chrom=").
+      strncpy(chrom, strsep(&line, "\t") + 6, 31);
+      loc->name = chrom;
+
+      if (fixedstep) {
+         // Format [B] has more fields.
+         // Remove the characters of "start=" and "step=".
+         fstart = atoi(strsep(&line, "\t") + 6);
+         step   = atoi(strsep(&line, "\t") + 5);
+         iter   = 0;
+      }
+
+      // Check is there is optional "span" field at end of line.
+      if (line == NULL) span = 1;
+      // Remove the 5 characters of "span=".
+      else              span = atoi(line + 5);
+
+      // Final sanity check (return SUCCESS if all pass).
+      return (fstart > 0 && step > 0 && span > 0);
+
+   }
+
+   // Line is data.
    else {
+
       int start, end, reads;
 
       if (fixedstep) start = fstart + iter++ * step;
@@ -669,34 +725,18 @@ parse_wig
       if (line == endptr) return FAILURE;
 
       strsep(&line, "\t");
-      if (line != NULL) return FAILURE;
 
-      if (chrom == NULL || start <= 0 || reads < 0) return FAILURE;
+      // Final sanity check.
+      if (line != NULL || chrom[0] == '\0' || start <= 0 || reads < 0)
+         return FAILURE;
 
       end = start + span - 1;
       loc->pos = (start + end) / 2;
 
       return SUCCESS;
+
    }
 
-   // Parse data definition lines.
-   free(chrom);
-                  strsep(&line, "\t");
-   chrom = strdup(strsep(&line, "\t") + 6);
-   loc->name = chrom;
-
-   if (fixedstep) {
-      fstart = atoi(strsep(&line, "\t") + 6);
-      step   = atoi(strsep(&line, "\t") + 5);
-      iter   = 0;
-   }
-
-   if (line == NULL) span = 1;
-   else              span = atoi(line + 5);
-
-   if (fstart <= 0 || step <= 0 || span <= 0) return FAILURE;
-
-   return SUCCESS;
 }
 
 

@@ -1,3 +1,4 @@
+#include "unittest.h"
 #include "hmm.c"
 
 void

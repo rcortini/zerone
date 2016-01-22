@@ -1,11 +1,69 @@
 #include "unittest.h"
-// Paste the source of the tests.
-#include "test_hmm.c"
-#include "test_utils.c"
-#include "test_zinb.c"
-#include "test_parse.c"
-#include "test_zerone.c"
-#include "test_predict.c"
+
+// Test cases form tests_hmm.c
+void test_fwdb (void);
+void test_fwdb_NA (void);
+void test_underflow (void);
+void test_block_fwdb (void);
+void test_block_fwdb_NA (void);
+void test_viterbi (void);
+void test_block_viterbi (void);
+void test_block_viterbi_NA (void);
+void test_update_trans (void);
+void test_bw_zinm (void);
+
+
+// Test cases from tests_utils.c
+void test_new_histo (void);
+void test_histo_push (void);
+void test_compress_histo (void);
+void test_tabulate (void);
+void test_indexts (void);
+
+
+// Test cases from tests_zinb.c
+void test_zinm_prob (void);
+void test_eval_nb_f (void);
+void test_eval_nb_dfda (void);
+void test_eval_zinb_f (void);
+void test_eval_zinb_g (void);
+void test_eval_zinb_dfda (void);
+void test_eval_zinb_dfdp (void);
+void test_eval_zinb_dgda (void);
+void test_ll_zinb (void);
+void test_nb_est_alpha (void);
+void test_mle_nb (void);
+void test_mle_zinb (void);
+void test_fail_mle_nb (void);
+void test_fail_mle_zinb (void);
+void test_err_handler (void);
+
+
+// Test cases from tests_parse.c
+void test_bloom (void);
+void test_add_to_rod (void);
+void test_djb2 (void);
+void test_lookup_or_insert (void);
+void test_stress_hash (void);
+void test_merge_hashes (void);
+void test_choose_iterator (void);
+void test_parse_gem (void);
+void test_parse_sam (void);
+void test_parse_bed (void);
+void test_parse_wig (void);
+void test_autoparse (void);
+void test_getgzline (void);
+void test_getgzline_err (void);
+void test_parse_input_files (void);
+
+
+// Test cases from test_predict.c
+void test_predict (void);
+
+
+// test cases from test_zerone.c
+void test_eval_bw_f (void);
+
 
 int
 main(
