@@ -49,7 +49,7 @@ $^{2}$Universitat Pompeu Fabra (UPF), Barcelona, Spain.}
 \section{Availability:}
   Zerone is available as a command line tool and as an R package. The C
   source code and R scripts can be downloaded from
-\href{https://github.com/gui11aume/zerone}{https://github.com/gui11aume/zerone}.
+\href{https://github.com/nanakisck/zerone}{https://github.com/nanakiksc/zerone}.
 
 \section{Contact:}
 \href{guillaume.filion@gmail.com}{guillaume.filion@gmail.com}
@@ -128,28 +128,31 @@ competitive in terms of speed and accuracy.
 \begin{methods}
 \section{Methods}
 
+
 \subsection{Emission model}
 \label{sub:emissions}
 It is natural to model read counts per genomic window by an unbounded
 discrete distribution. The Poisson distribution is an obvious candidate,
 but it is a poor choice because in ChIP-seq data the variance of read
 counts is usually higher than the mean. The reason is that windows
-are nonhomogeneous, which increases the dispersion. More specifically, windows
-are not equally PCR-prone and not equally mappable. The negative binomial
-(NB) distribution is thus a better choice because it allows some variation
-between windows. However, genomes are fraught with repeats, which creates
-an excess of windows where reads cannot be mapped. Since such windows
-will always have 0 read count, a natural choice for this distribution is
-the zero-inflated negative binomial (ZINB), \textit{i.e.} the mixture of
-a negative binomial distribution and a distribution concentrated at 0.
+are nonhomogeneous, which increases the dispersion. More specifically,
+windows are not equally PCR-prone and not equally mappable.
+The negative binomial (NB) distribution is thus a better choice
+because it allows some variation between windows. However, genomes
+are fraught with repeats, which creates an excess of windows where
+reads cannot be mapped. Since such windows will always have 0 read
+count, a natural choice for this distribution is the zero-inflated
+negative binomial (ZINB), \textit{i.e.} the mixture of a negative
+binomial distribution and a distribution concentrated at 0
+\citep{pmid21787385}.
 
 The ZINB distribution has 3 parameters that can be fitted by maximum
 likelihood. Zerone uses a custom solver based on the Newton-Raphson
 method, which converges much faster than the popular routine
-\texttt{zeroinfl} \citep{psclb} from the R \citep{R} package \texttt{pscl}
-\citep{pscla}.
-Fig.~\ref{fig:ZINB_fit} shows that the ZINB distribution gives a better
-fit to ChIP-seq data than Poisson and NB distributions.
+\texttt{zeroinfl} \citep{psclb} from the R \citep{R} package
+\texttt{pscl} \citep{pscla}. Fig.~\ref{fig:ZINB_fit} shows that the
+ZINB distribution gives a better fit to ChIP-seq data than Poisson
+and NB distributions.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.55]{ZINB_fit.pdf}}
