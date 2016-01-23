@@ -397,6 +397,12 @@ test_parse_bed
       char line10[] = "a\t123y\t45";
       test_assert(!parse_bed(&loc, line10));
 
+      char line11[] = "a\t123\t45\n";
+      test_assert(parse_bed(&loc, line11));
+
+      char line12[] = "a\t123 \t45";
+      test_assert(parse_bed(&loc, line12));
+
       return;
 
 }
