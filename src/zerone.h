@@ -6,7 +6,7 @@
 #ifndef _JAHMM_HEADER
 #define _JAHMM_HEADER
 
-#define BW_MAXITER 100     // BW iterations //
+#define BW_MAXITER 10     // BW iterations //
 #define BT_MAXITER 20      // Backtrack iterations //
 #define TOLERANCE 1e-6
 

@@ -209,9 +209,17 @@ int main(int argc, char **argv) {
    debug_print("%.3f %.3f %.3f\n", Z->Q[0], Z->Q[3], Z->Q[6]);
    debug_print("%.3f %.3f %.3f\n", Z->Q[1], Z->Q[4], Z->Q[7]);
    debug_print("%.3f %.3f %.3f\n", Z->Q[2], Z->Q[5], Z->Q[8]);
-   debug_print("p0(0): %.3f\n", Z->p[0*(Z->r+1)]);
-   debug_print("p0(1): %.3f\n", Z->p[1*(Z->r+1)]);
-   debug_print("p0(2): %.3f\n", Z->p[2*(Z->r+1)]);
+
+   debug_print("%s", "p:\n");
+   for (int j = 0 ; j < 3 ; j++) {
+      int off = 0;
+      char debuf[512];
+      for (int i = 0 ; i < Z->r+1 ; i++) {
+         off += sprintf(debuf + off, "%.3f ", Z->p[i+j*(Z->r+1)]);
+         if (off > 499) break;
+      }
+      debug_print("%s\n", debuf);
+   }
 
    // Quality control.
    double QCscore = zerone_predict(Z);
