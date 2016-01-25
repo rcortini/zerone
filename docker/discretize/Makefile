@@ -102,20 +102,20 @@ $BPol2%.bed: $(Pol2_target)%.bed $(Pol2_input).bed $(BayesPeak)
 
 $JCtcf.bed: $(addsuffix .bed,$(Ctcf_all)) $JJAMM.sh $(CHRSIZE)
 	mkdir -p $JCtcf/input $JCtcf/target
-	ln -s $(Uw_input).bed $JCtcf/input/$(Uw_input).bed
-	ln -s $(Ctcf_target)1.bed $JCtcf/target/$(Ctcf_target)1.bed
-	ln -s $(Ctcf_target)2.bed $JCtcf/target/$(Ctcf_target)2.bed
+	cp $(Uw_input).bed $JCtcf/input/$(Uw_input).bed
+	cp $(Ctcf_target)1.bed $JCtcf/target/$(Ctcf_target)1.bed
+	cp $(Ctcf_target)2.bed $JCtcf/target/$(Ctcf_target)2.bed
 	bash $JJAMM.sh \
 	    -g $(CHRSIZE) \
 	    -o $JCtcf \
 	    -s $JCtcf/target \
 	    -c $JCtcf/input
 
-$JH3k36me3.bed: $(addsufifix .bed,$(H3k4me3_all)) $JJAMM.sh $(CHRSIZE)
+$JH3k4me3.bed: $(addsufifix .bed,$(H3k4me3_all)) $JJAMM.sh $(CHRSIZE)
 	mkdir -p $JH3k4me3/input $JH3k4me3/target
-	ln -s $(Uw_input).bed $JH3k4me3/input/$(Uw_input).bed
-	ln -s $(H3k36me3_target)1.bed $JH3k4me3/target/$(H3k36me3_target)1.bed
-	ln -s $(H3k36me3_target)2.bed $JH3k4me3/target/$(H3k36me3_target)2.bed
+	cp $(Uw_input).bed $JH3k4me3/input/$(Uw_input).bed
+	cp $(H3k36me3_target)1.bed $JH3k4me3/target/$(H3k36me3_target)1.bed
+	cp $(H3k36me3_target)2.bed $JH3k4me3/target/$(H3k36me3_target)2.bed
 	bash $JJAMM.sh \
 	    -g $(CHRSIZE) \
 	    -o $JH3k4me3 \
@@ -125,9 +125,9 @@ $JH3k36me3.bed: $(addsufifix .bed,$(H3k4me3_all)) $JJAMM.sh $(CHRSIZE)
 
 $JH3k36me3.bed: $(addsuffix .bed,$(H3k36me3_all)) $JJAMM.sh $(CHRSIZE)
 	mkdir -p $JH3k36me3/input $JH3k36me3/target
-	ln -s $(Uw_input).bed $JH3k36me3/input/$(Uw_input).bed
-	ln -s $(H3k36me3_target)1.bed $JH3k36me3/target/$(H3k36me3_target)1.bed
-	ln -s $(H3k36me3_target)2.bed $JH3k36me3/target/$(H3k36me3_target)2.bed
+	cp $(Uw_input).bed $JH3k36me3/input/$(Uw_input).bed
+	cp $(H3k36me3_target)1.bed $JH3k36me3/target/$(H3k36me3_target)1.bed
+	cp $(H3k36me3_target)2.bed $JH3k36me3/target/$(H3k36me3_target)2.bed
 	bash $JJAMM.sh \
 	    -g $(CHRSIZE) \
 	    -o $JH3k36me3 \
@@ -137,9 +137,9 @@ $JH3k36me3.bed: $(addsuffix .bed,$(H3k36me3_all)) $JJAMM.sh $(CHRSIZE)
 
 $JPol2.bed: $(addsuffix .bed,$(Pol2_all)) $JJAMM.sh $(CHRSIZE)
 	mkdir -p $JPol2/input $JPol2/target
-	ln -s $(Pol2_input).bed $JPol2_input/$(Pol2_input).bed
-	ln -s $(Pol2_target)1.bed $JPol2_target/$(Pol2_target)1.bed
-	ln -s $(Pol2_target)2.bed $JPol2_target/$(Pol2_target)2.bed
+	cp $(Pol2_input).bed $JPol2_input/$(Pol2_input).bed
+	cp $(Pol2_target)1.bed $JPol2_target/$(Pol2_target)1.bed
+	cp $(Pol2_target)2.bed $JPol2_target/$(Pol2_target)2.bed
 	bash $JJAMM.sh \
 	    -g $(CHRSIZE) \
 	    -o $JPol2 \
