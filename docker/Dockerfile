@@ -26,6 +26,9 @@ COPY $DIR/datasets.md5 $DIR/
 COPY $DIR/ignore_random_chrom.py $DIR/
 COPY /BayesPeak/BayesPeak2bed.py /BayesPeak/
 COPY /BayesPeak/BayesPeak.R /BayesPeak/
+
 RUN mkdir /benchmark
 COPY /benchmark/Makefile /benchmark/
+COPY /benchmark/GSM1480325_K562_GROseq_*.bigWig /benchmark/
+
 COPY $DIR/Makefile $DIR/

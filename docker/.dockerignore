@@ -7,6 +7,8 @@
 */*.map
 *.R
 */*.sam
+benchmark/bigWigToBedGraph
 discretize/fetchChromSizes
 discretize/twoBitToFa
+JAMM/*
 simulate_ChIP/*
