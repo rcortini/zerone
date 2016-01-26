@@ -115,6 +115,7 @@ predict
 
    // Add the intercept term of the hyperplane before returning.
    //return (label - RHO) + 0.65 > 0 ? 1 : -1;
+   debug_print("SVM score: %.3f\n", label - RHO);
    return (label - RHO);// + 0.65;
 
    // The +0.65 before returning moves the decision boundary
