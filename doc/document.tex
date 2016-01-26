@@ -49,7 +49,7 @@ $^{2}$Universitat Pompeu Fabra (UPF), Barcelona, Spain.}
 \section{Availability:}
   Zerone is available as a command line tool and as an R package. The C
   source code and R scripts can be downloaded from
-\href{https://github.com/gui11aume/zerone}{https://github.com/gui11aume/zerone}.
+\href{https://github.com/nanakisck/zerone}{https://github.com/nanakiksc/zerone}.
 
 \section{Contact:}
 \href{guillaume.filion@gmail.com}{guillaume.filion@gmail.com}
@@ -128,28 +128,31 @@ competitive in terms of speed and accuracy.
 \begin{methods}
 \section{Methods}
 
+
 \subsection{Emission model}
 \label{sub:emissions}
 It is natural to model read counts per genomic window by an unbounded
 discrete distribution. The Poisson distribution is an obvious candidate,
 but it is a poor choice because in ChIP-seq data the variance of read
 counts is usually higher than the mean. The reason is that windows
-are nonhomogeneous, which increases the dispersion. More specifically, windows
-are not equally PCR-prone and not equally mappable. The negative binomial
-(NB) distribution is thus a better choice because it allows some variation
-between windows. However, genomes are fraught with repeats, which creates
-an excess of windows where reads cannot be mapped. Since such windows
-will always have 0 read count, a natural choice for this distribution is
-the zero-inflated negative binomial (ZINB), \textit{i.e.} the mixture of
-a negative binomial distribution and a distribution concentrated at 0.
+are nonhomogeneous, which increases the dispersion. More specifically,
+windows are not equally PCR-prone and not equally mappable.
+The negative binomial (NB) distribution is thus a better choice
+because it allows some variation between windows. However, genomes
+are fraught with repeats, which creates an excess of windows where
+reads cannot be mapped. Since such windows will always have 0 read
+count, a natural choice for this distribution is the zero-inflated
+negative binomial (ZINB), \textit{i.e.} the mixture of a negative
+binomial distribution and a distribution concentrated at 0
+\citep{pmid21787385}.
 
 The ZINB distribution has 3 parameters that can be fitted by maximum
 likelihood. Zerone uses a custom solver based on the Newton-Raphson
 method, which converges much faster than the popular routine
-\texttt{zeroinfl} \citep{psclb} from the R \citep{R} package \texttt{pscl}
-\citep{pscla}.
-Fig.~\ref{fig:ZINB_fit} shows that the ZINB distribution gives a better
-fit to ChIP-seq data than Poisson and NB distributions.
+\texttt{zeroinfl} \citep{psclb} from the R \citep{R} package
+\texttt{pscl} \citep{pscla}. Fig.~\ref{fig:ZINB_fit} shows that the
+ZINB distribution gives a better fit to ChIP-seq data than Poisson
+and NB distributions.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.55]{ZINB_fit.pdf}}
@@ -177,9 +180,33 @@ distribution (ZINM, see supplementary material for detail). In this
 model, windows have an intrinsic ChIP-seq bias due to their sequence
 composition, mappability and other inherent properties, which gives
 a baseline variation present in all ChIP-seq experiments performed
-in the same conditions. The dependency between replicates is
-explicitly modeled by the ZINM distribution, which gives more
-accurate probabilities than assuming independence.
+in the same conditions. Note that the biases are not modelled explicitly 
+from known features of the genome, but implicitly by adjusting
+the variance of the distribution. Also, the dependency between replicates
+is accounted for by the ZINM distribution, which gives more accurate
+probabilities than assuming independence.
+
+The genome contains $n$ windows, each observation
+$y_i = (y_{i,1}, \ldots, y_{i,r})$ is a vector of $r$ read counts
+(one per replicate), where $1 \leq i \leq n$. The associated probability
+under the ZINM distribution with parameter
+$\theta = (\pi, \alpha, p_0, ..., p_r)$ is
+
+$$
+g(y_i|\theta) = \left\{
+\begin{array}{ll}
+\pi + (1-\pi)p_0^{\alpha}
+         & \mbox{if } y_i = 0 \\
+(1-\pi )\frac{\Gamma(\alpha + y_{i,1} + \ldots + y_{i,r})}
+  {\Gamma(\alpha)y_{i,1}! \ldots y_{i,r}!}
+p_0^{\alpha} p_1^{y_{i,1}} \ldots p_r^{y_{i,r}}
+         & \mbox{otherwise.}
+\end{array}
+\right.
+$$
+
+In the definition above, $\Gamma$ denotes Euler's gamma function and
+$y_i = 0$ stands for $y_{i,1} = 0, \ldots, y_{i,r} = 0$.
 
 \subsection{Discretization}
 Discretization is performed by fitting an HMM
@@ -194,9 +221,36 @@ that the ``high'' state corresponds to the targets of the chromatin
 feature. In what follows, targets are always considered windows
 with ``high'' abundance of ChIP-seq reads.
 
-Fitting is performed with the Baum-Welch algorithm \citep{baum1966},
-which is a special case of the EM algorithm
-\citep{Dempster77maximumlikelihood}.
+Assuming that $x_i$ takes one of these three values, the log-likelihood of
+a sequence of states $(x_1, \ldots, x_n)$ given the observations
+$(y_1, \ldots, y_n)$ is
+
+$$
+\log \nu(x_0) + \log g(y_0|x_0) +
+   \sum_{i=1}^n \log Q(x_{i-1},x_i) + \log g(y_i|x_i).
+$$
+
+In the above, $\nu$ denotes the initial probability of the states,
+$Q$ is the $3 \times 3$ transition matrix of the model, and
+$g(y_i|x_i)$ is the probability of the emission $y_i$ if the state is
+$x_i$. Disretization amounts to finding the sequence of states and the
+emission parameters that maximize the value above. Zerone achieves this
+with the Baum-Welch algorithm \citep{baum1966}, which is a special case
+of the EM algorithm \citep{Dempster77maximumlikelihood}. The emission
+parameters $\pi$ and $\alpha$ are state-independent since they represent
+the baseline distribution of reads in the genomic windows. For this
+reason they are fitted from the negative control profiles before the
+Baum-Welch cycles.
+
+considered constant throughout the Baum-Welch cycles. Overall, the
+total number of estimated parameters is $3r+9$, where $r$ is the
+number of replicate experiments (excluding mock profiles).
+
+The other
+parameters are state-dependent since they represent the amount of reads
+per window in each replicate, depending on the abundance of the chromatin
+feature.
+
 Discrete variables take only a small number of distinct values, which
 allows to save computation time by hashing the observations. With this
 technique, we need to compute each value of the emission probabilities
@@ -212,17 +266,20 @@ by default). The state calls are computed by finding the most likely
 segmentation given the value of the parameters through the Viterbi
 algorithm \citep{1054010}.
 
-The shape parameter and the mixture ratio of the ZINM distribution
-are fitted directly from the negative control profiles and they are
-considered constant throughout the Baum-Welch cycles. Overall, the
-total number of estimated parameters is $3r+9$, where $r$ is the
-number of replicate experiments (excluding mock profiles).
 
 \subsection{Classification and training}
 \label{sub:training}
 We used a machine learning strategy to identify discretization
-failures. We first prepared a high confidence data set where the
-output of Zerone was labelled positive (success) or negative (failure).
+failures. The true status (success or failure) of experimental ChIP-seq
+data is not known because success is partly subjective and because
+there is no gold standard for protein binding in live cells. A way to
+know the true status of a profile is to simulate the data, but this
+approach introduces subjectivity in the model used for the simulation.
+Instead, we prepared an experimental data set where we labelled the
+output of Zerone as positive (success) or negative (failure) based
+on empirical criteria. The definition of success is thus subjective,
+but the training is performed on representative data.
+
 We discretized 144 replicated ChIP-seq experiments, together with their
 respective input control.
 We labelled the output of the discretization as positive (91 cases)
@@ -235,18 +292,23 @@ swapped). To cover these cases, we included in the trusted set
 38 other cases obtained by discretizing nonreplicate profiles
 (\textit{e.g.} CTCF and Pol2) and controls without immuno-precipitation.
 Thus, a total of 182 cases (91 positive and 91 negative) were used to
-build a balanced data set.
-
+build a balanced data set. 
 To identify failed discretizations, we used the paremeters of the
 fitted HMM. Based on the transition matrix, the emission paramaters,
 the Viterbi Path and the posterior probabilities,
 we computed 8 features expected to vary with the quality
 of the discretization, and we used them to train a classifier.
+The features consist of entries from the transition matrix ($Q_{3,1}$,
+$Q_{3,2}$ and $Q_{1,3}$, indicating the size of the targets), the
+maximum value of the ratios between $(p_2, \ldots, p_r)$ for each
+pair of states (indicating the signal to noise ratio), the average
+posterior probability of targets (indicating the confidence of the
+discretizer) and the amount of targets.
 
 Our first attempts with logistic regression suggested that linear
 classifiers are unable to properly separate these two classes because
-they overlap in the feature space (Fig.~\ref{fig:pca_bw}). To obtain more
-complex, nonlinear separation, we used a Support Vector Machine
+they overlap in the feature space (Fig.~\ref{fig:pca_bw}). To obtain a
+more complex separation, we used a Support Vector Machine
 (SVM, \citealp{Chang2011,e1071}), as this approach
 allows nonlinear classification by mapping
 the training data to a kernel space. Also, SVMs are fast to train and
@@ -315,7 +377,6 @@ All programs were run on a single core with the recommended options.
 Specifically, on the H3K36me3 data set, JAMM was run with the option
 \texttt{-r region} and MACS with the \texttt{--broad} option. For the rest of
 the data sets and programs, the default options where used.
-
 The CTCF motif was obtained from the JASPAR database version
 5.0{\textunderscore}ALPHA \citep{pmid24194598}. Namely, we used the motif
 with ID MA0139.1.
@@ -439,40 +500,28 @@ This representation shows that Zerone produces discretizations that
 are sensitive and adapted to the profile being discretized.
 
 \subsubsection{Identification of CTCF binding sites.}
-CTCF binds a 20~bp consensus sequence that is highly conserved in vertebrates.
-In humans, nearly 80\% of the CTCF binding sites contain the consensus motif
-\citep{pmid17382889}. In order to determinethe capacity of the different
-programs to call peaks of CTCF binding, we compared the discretized profiles
-against a data set of CTCF binding motifs. We obtained a reference data set
-containing the positions of 85,690 occurences of the CTCF motif
-(\textit{c.f.} Section \ref{sub:bench_cond}).
-
-For this comparison, a window identified as enriched will be considered a true
-positive if it contains at least one CTCF motif.
-
-The precision of a discretizer is its positive predictive value (\textit{i.e.}
-the ratio between true positives and total predicted positives); in our case,
-this is the number of windows identified as enriched that contain at least one
-CTCF motif, divided by the total number of windows identified as enriched.
-Similarly, the recall of a discretizer is its sensitivity (\textit{i.e.} the
-ratio between true positives and actual positives); this is the number of true
-positives as described above, divided by the total number of windows that
-contain at least one CTCF motif, regardless of whether they were identified as
-enriched or not.
-
-Both precision and recall are scores comonly used in machine learning contexts.
+CTCF binds a 20~bp consensus sequence that is highly conserved in
+vertebrates. In humans, nearly 80\% of the CTCF binding sites contain
+the consensus motif \citep{pmid17382889}. In order to determinethe the
+capacity of the different programs to call peaks of CTCF binding, we
+compared the discretized profiles against a data set of CTCF binding
+motifs. We obtained a reference data set containing the positions of
+85,690 occurences of the CTCF motif (\textit{c.f.} Section
+\ref{sub:bench_cond}).
 
 Table \ref{tab:ctcf} shows that Zerone outperforms the other tools
-in terms of the $F_1$ score (the harmonic mean between precision and
+in terms of the $F_1$ score (the harmonic mean of precision and
 recall). It has the second highest recall score, close to that of JAMM,
 and it achieves the highest precision.
 
 \begin{table}[!t]
 \processtable{Performance on the CTCF motifs data set.
-The table lists the total number of peaks found by the different
-programs, how many of those peaks contain at least one CTCF motif,
-and the associated precision, recall and $F_{1}$ score relative to
-the CTCF motif data set.
+True and false positives are defined as peaks with and without a CTCF
+motif, respectively. Total: the number of peaks found by the program.
+Motif: the subset of those containing at least one CTCF motif.
+Precision: Motif divided by Total. Recall: Motif divided by the number
+of CTCF motif-containing windows in the genome. $F_{1}$ score: the
+harmonic mean between Precision and Recall.
 \label{tab:ctcf}}
 {\begin{tabular}{lrrccc}
         \toprule
@@ -487,7 +536,7 @@ the CTCF motif data set.
         Zerone            &  50,792 & 30,972 & 0.61 & 0.36 & 0.45 \\
         \botrule
 \end{tabular}}{The numbers in parentheses indicate the results on the two
-replicates by separate.}
+replicates separately.}
 \end{table}
 
 In summary, Zerone achieves a good balance between sensitivity and
@@ -505,9 +554,12 @@ knownGene table of the UCSC Genes annotation for the hg19 genome
 
 \begin{table}[!t]
 \processtable{Performance on the Pol2 data set.
-The table lists the total number of peaks found by the programs, how
-many of those peaks contain at least one Transription Start Site (TSS),
-and the associated precision, recall and $F_{1}$ score.
+True and false positives are defined as peaks with and without a
+transcription start site (TSS), respectivel. Total: the number of peaks
+found by the program. TSS: the subset of those containing at least one
+TSS. Precision: TSS divided by Total. Recall: TSS divided by the number
+of TSS motif-containing windows in the genome. $F_{1}$ score: the
+harmonic mean between Precision and Recall.
 \label{tab:tss}}
 {\begin{tabular}{lrrccc}
         \toprule
@@ -522,7 +574,7 @@ and the associated precision, recall and $F_{1}$ score.
         Zerone            &  23,976 & 6,926 & 0.29 & 0.24 & 0.36 \\
         \botrule
 \end{tabular}}{The numbers in parentheses indicate the results on the two
-replicates by separate.}
+replicates separately.}
 \end{table}
 
 Table \ref{tab:tss} shows that, as in the previous case, Zerone

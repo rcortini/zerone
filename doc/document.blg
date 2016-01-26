@@ -4,44 +4,44 @@ The top-level auxiliary file: document.aux
 The style file: natbib.bst
 Database file #1: document.bib
 Database file #2: extra.bib
-You've used 24 entries,
+You've used 25 entries,
             2378 wiz_defined-function locations,
-            683 strings with 9144 characters,
-and the built_in function-call counts, 12952 in all, are:
-= -- 1113
-> -- 970
+            687 strings with 9384 characters,
+and the built_in function-call counts, 13475 in all, are:
+= -- 1157
+> -- 1010
 < -- 7
-+ -- 294
-- -- 294
-* -- 1337
-:= -- 2342
-add.period$ -- 114
-call.type$ -- 24
-change.case$ -- 144
-chr.to.int$ -- 24
-cite$ -- 24
-duplicate$ -- 459
-empty$ -- 745
-format.name$ -- 324
-if$ -- 2490
++ -- 306
+- -- 306
+* -- 1393
+:= -- 2437
+add.period$ -- 119
+call.type$ -- 25
+change.case$ -- 150
+chr.to.int$ -- 25
+cite$ -- 25
+duplicate$ -- 479
+empty$ -- 775
+format.name$ -- 337
+if$ -- 2590
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 21
-newline$ -- 124
-num.names$ -- 96
-pop$ -- 138
+missing$ -- 22
+newline$ -- 129
+num.names$ -- 100
+pop$ -- 144
 preamble$ -- 1
-purify$ -- 147
+purify$ -- 153
 quote$ -- 0
-skip$ -- 292
+skip$ -- 304
 stack$ -- 0
-substring$ -- 710
-swap$ -- 89
+substring$ -- 733
+swap$ -- 93
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 216
+type$ -- 225
 warning$ -- 0
-while$ -- 97
+while$ -- 101
 width$ -- 0
-write$ -- 315
+write$ -- 328

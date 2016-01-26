@@ -123,6 +123,14 @@ Pokholok, D.~K., Harbison, C.~T., Levine, S., Cole, M., Hannett, N.~M., Lee,
 \newblock {\em R: A Language and Environment for Statistical Computing\/}.
 \newblock R Foundation for Statistical Computing, Vienna, Austria.
 
+\bibitem[Rashid {\em et~al.}(2011)Rashid, Giresi, Ibrahim, Sun, and
+  Lieb]{pmid21787385}
+Rashid, N.~U., Giresi, P.~G., Ibrahim, J.~G., Sun, W., and Lieb, J.~D. (2011).
+\newblock {ZINBA integrates local covariates with DNA-seq data to identify
+  broad and narrow regions of enrichment, even within amplified genomic
+  regions.}
+\newblock {\em {Genome Biol.}}, {\bf 12}(7), R67.
+
 \bibitem[Spyrou {\em et~al.}(2009)Spyrou, Stark, Lynch, and
   Tavaré]{pmid19772557}
 Spyrou, C., Stark, R., Lynch, A.~G., and Tavaré, S. (2009).

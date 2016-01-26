@@ -4,6 +4,7 @@
 #include <string.h>
 #include <zlib.h>
 #include "bgzf.h"
+#include "ctype.h"
 #include "debug.h"
 #include "parse.h"
 #include "sam.h"
@@ -589,6 +590,21 @@ parse_sam
 
 
 int
+strtoul_check
+(
+  char *endptr,
+  char *nptr
+)
+{
+   if (endptr == NULL)    return 0;
+   if (endptr == nptr)    return 0;
+   if (*endptr == '\0')   return 1;
+   if (isspace(*endptr)) return 1;
+   return 0;
+}
+
+
+int
 parse_bed
 (
    loc_t *loc,
@@ -610,11 +626,11 @@ parse_bed
 
    errno = 0;
    int start = 1 + strtoul(tmp1, &endptr, 10);
-   if (endptr == tmp1 || endptr == NULL || *endptr != '\0')
+   if (!strtoul_check(endptr, tmp1))
       return FAILURE;
 
    int end = 1 + strtoul(tmp2, &endptr, 10);
-   if (endptr == tmp2 || endptr == NULL || *endptr != '\0')
+   if (!strtoul_check(endptr, tmp2))
       return FAILURE;
 
    // 'strtoul' may set 'errno' in case of overflow.
@@ -698,7 +714,7 @@ parse_wig
          iter   = 0;
       }
 
-      // Check is there is optional "span" field at end of line.
+      // Check if there is optional "span" field at end of line.
       if (line == NULL) span = 1;
       // Remove the 5 characters of "span=".
       else              span = atoi(line + 5);
