@@ -240,16 +240,22 @@ of the EM algorithm \citep{Dempster77maximumlikelihood}. The emission
 parameters $\pi$ and $\alpha$ are state-independent since they represent
 the baseline distribution of reads in the genomic windows. For this
 reason they are fitted from the negative control profiles before the
-Baum-Welch cycles.
-
-considered constant throughout the Baum-Welch cycles. Overall, the
+Baum-Welch cycles. The other parameters are state-dependent since they
+represent the amount of reads per window in each replicate, depending
+on the abundance of the chromatin feature. Overall, the
 total number of estimated parameters is $3r+9$, where $r$ is the
 number of replicate experiments (excluding mock profiles).
 
-The other
-parameters are state-dependent since they represent the amount of reads
-per window in each replicate, depending on the abundance of the chromatin
-feature.
+The fitting process resolves conflicts between replicates. Say that
+a ChIP-seq peak is present in only one of them; the signal
+will be locally high only for this replicate and low for the others.
+Because of the conflict, the local log-likelihood will be low for
+all the possible states but there will still be an optimum that
+corresponds to the `least unlikely' state. The final call depends on
+whether the weight of evidence is higher for the presence of the
+peak or for its absence. If the conflict is strong, the confidence
+in the final call will be weak, which can lead to a rejection of
+the profile as a whole if such cases are too frequent (see below).
 
 Discrete variables take only a small number of distinct values, which
 allows to save computation time by hashing the observations. With this
