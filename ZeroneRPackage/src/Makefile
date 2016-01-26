@@ -2,7 +2,7 @@ SRC_DIR= ../../src
 INC_DIR= ../../src
 
 INCLUDES= $(addprefix -I, $(INC_DIR))
-OBJECTS= zerone.o zinb.o hmm.o utils.o xxhash.o
+OBJECTS= zerone.o zinm.o hmm.o utils.o xxhash.o
 
 CC= gcc
 CFLAGS= -std=gnu99 -fPIC -g -Wall -O3
