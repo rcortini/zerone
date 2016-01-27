@@ -3,10 +3,10 @@ TWOBIT= hg19.2bit
 FASTA= hg19_unmasked.fasta
 IDX= hg19_unmasked.gem
 
-Z= ../zerone/
 B= ../BayesPeak/
 J= ../JAMM/
 M= ../MACS/
+Z= ../zerone/
 
 BayesPeak= $BBayesPeak.R $BBayesPeak2bed.py
 CHRSIZE= $Jhg19_chrom_sizes
@@ -18,6 +18,7 @@ H3k4me3_target= wgEncodeUwHistoneK562H3k4me3StdRawDataRep
 H3k36me3_target= wgEncodeUwHistoneK562H3k36me3StdRawDataRep
 Pol2_target= wgEncodeSydhTfbsK562Pol2RawDataRep
 Ctcf_all= $(Uw_input) $(Ctcf_target)1 $(Ctcf_target)2
+H3k4me3_all= $(Uw_input) $(H3k4me3_target)1 $(H3k4me3_target)2
 H3k36me3_all= $(Uw_input) $(H3k36me3_target)1 $(H3k36me3_target)2
 Pol2_all= $(Pol2_input) $(Pol2_target)1 $(Pol2_target)2
 
@@ -74,6 +75,7 @@ $(CHRSIZE): fetchChromSizes
 	gem-mapper -I $(IDX) --unique-mapping -q ignore -m 2 -T 4 | \
 	./ignore_random_chrom.py > $@
 
+.SECONDARY: $(addsuffix .sam,$(PROF))
 %.sam: %.map
 	gem-2-sam -I $(IDX) -l -q 'offset-64' -i $< > $@
 
@@ -114,14 +116,13 @@ $JCtcf.bed: $(addsuffix .bed,$(Ctcf_all)) $JJAMM.sh $(CHRSIZE)
 $JH3k4me3.bed: $(addsufifix .bed,$(H3k4me3_all)) $JJAMM.sh $(CHRSIZE)
 	mkdir -p $JH3k4me3/input $JH3k4me3/target
 	cp $(Uw_input).bed $JH3k4me3/input/$(Uw_input).bed
-	cp $(H3k36me3_target)1.bed $JH3k4me3/target/$(H3k36me3_target)1.bed
-	cp $(H3k36me3_target)2.bed $JH3k4me3/target/$(H3k36me3_target)2.bed
+	cp $(H3k4me3_target)1.bed $JH3k4me3/target/$(H3k4me3_target)1.bed
+	cp $(H3k4me3_target)2.bed $JH3k4me3/target/$(H3k4me3_target)2.bed
 	bash $JJAMM.sh \
 	    -g $(CHRSIZE) \
 	    -o $JH3k4me3 \
 	    -s $JH3k4me3/target \
-	    -c $JH3k4me3/input \
-	    -r region
+	    -c $JH3k4me3/input
 
 $JH3k36me3.bed: $(addsuffix .bed,$(H3k36me3_all)) $JJAMM.sh $(CHRSIZE)
 	mkdir -p $JH3k36me3/input $JH3k36me3/target
@@ -137,16 +138,16 @@ $JH3k36me3.bed: $(addsuffix .bed,$(H3k36me3_all)) $JJAMM.sh $(CHRSIZE)
 
 $JPol2.bed: $(addsuffix .bed,$(Pol2_all)) $JJAMM.sh $(CHRSIZE)
 	mkdir -p $JPol2/input $JPol2/target
-	cp $(Pol2_input).bed $JPol2_input/$(Pol2_input).bed
-	cp $(Pol2_target)1.bed $JPol2_target/$(Pol2_target)1.bed
-	cp $(Pol2_target)2.bed $JPol2_target/$(Pol2_target)2.bed
+	cp $(Pol2_input).bed $JPol2/input/$(Pol2_input).bed
+	cp $(Pol2_target)1.bed $JPol2/target/$(Pol2_target)1.bed
+	cp $(Pol2_target)2.bed $JPol2/target/$(Pol2_target)2.bed
 	bash $JJAMM.sh \
 	    -g $(CHRSIZE) \
 	    -o $JPol2 \
 	    -s $JPol2/target \
 	    -c $JPol2/input
 
-$MCtcf%.bed: $(Ctcf_target)%.sam $(Uw_input)
+$MCtcf%.bed: $(Ctcf_target)%.sam $(Uw_input).sam
 	macs2 callpeak \
 	    -t $< \
 	    -c $(Uw_input).sam \
@@ -155,9 +156,20 @@ $MCtcf%.bed: $(Ctcf_target)%.sam $(Uw_input)
 	    -f SAM \
 	    -g hs
 	find $M -type f -not -name *_peaks.bed | xargs rm
-	mv $(subst .,_peaks.,$@) $@
+	mv $(subst .bed,_peaks.bed,$@) $@
 
-$MH3k4me3%.bed: $(H3k4me3_target)%.sam $(Uw_input)
+$MH3k4me3%.bed: $(H3k4me3_target)%.sam $(Uw_input).sam
+	macs2 callpeak \
+	    -t $< \
+	    -c $(Uw_input).sam \
+	    -n $(subst .bed,,$@) \
+	    --outdir $M \
+	    -f SAM \
+	    -g hs
+	#find $M -type f -not -name *_peaks.bed | xargs rm
+	#mv $(subst .bed,_peaks.bed,$@) $@
+
+$MH3k36me3%.bed: $(H3k36me3_target)%.sam $(Uw_input).sam
 	macs2 callpeak \
 	    -t $< \
 	    -c $(Uw_input).sam \
@@ -167,21 +179,9 @@ $MH3k4me3%.bed: $(H3k4me3_target)%.sam $(Uw_input)
 	    -g hs \
 	    --broad
 	find $M -type f -not -name *_peaks.bed | xargs rm
-	mv $(subst .,_peaks.,$@) $@
+	mv $(subst .bed,_peaks.bed,$@) $@
 
-$MH3k36me3%.bed: $(H3k36me3_target)%.sam $(Uw_input)
-	macs2 callpeak \
-	    -t $< \
-	    -c $(Uw_input).sam \
-	    -n $(subst .bed,,$@) \
-	    --outdir $M \
-	    -f SAM \
-	    -g hs \
-	    --broad
-	find $M -type f -not -name *_peaks.bed | xargs rm
-	mv $(subst .,_peaks.,$@) $@
-
-$MPol2%.bed: $(Pol2_target)%.sam $(Pol2_input)
+$MPol2%.bed: $(Pol2_target)%.sam $(Pol2_input).sam
 	macs2 callpeak \
 	    -t $< \
 	    -c $(Pol2_input).sam \
@@ -190,7 +190,7 @@ $MPol2%.bed: $(Pol2_target)%.sam $(Pol2_input)
 	    -f SAM \
 	    -g hs
 	find $M -type f -not -name *_peaks.bed | xargs rm
-	mv $(subst .,_peaks.,$@) $@
+	mv $(subst .bed,_peaks.bed,$@) $@
 
 $ZCtcf.bed: $(addsuffix .map,$(Ctcf_all))
 	$Zzerone -l \
