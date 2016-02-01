@@ -380,6 +380,28 @@ and two replicate ChIP-seq profiles.
 The ENCODE accession numbers for these four data sets are
 ENCSR000DWE, ENCSR000FAJ, ENCSR000DWB and ENCSR000DWD respectively.
 For the Pol2 data set, we used the control experiment ENCSR000EWK.
+Table \ref{tab:summary} lists some summary statistics of these data sets.
+
+\begin{table}[!t]
+\processtable{Summary statistics of the data sets used for benchmarking.
+\label{tab:summary}}
+{\begin{tabular}{lrrr}
+        \toprule
+        \textbf{Data set} & \textbf{Read size} &
+        \textbf{Sequencing depth} & \textbf{Mapped reads} \\
+        \midrule
+        CTCF$^{(1)}$     & 36 & 32,740,518 & 15,698,068 \\
+        CTCF$^{(2)}$     & 36 & 27,953,212 & 12,971,023 \\
+        Pol2$^{(1)}$     & 36 & 10,513,992 &  7,465,806 \\
+        Pol2$^{(2)}$     & 36 & 10,855,446 &  7,027,761 \\
+        H3K4me3$^{(1)}$  & 36 & 18,685,398 & 15,148,578 \\
+        H3K4me3$^{(2)}$  & 36 & 16,968,870 & 13,656,987 \\
+        H3K36me3$^{(1)}$ & 36 & 18,174,968 & 13,847,015 \\
+        H3K36me3$^{(2)}$ & 36 & 18,495,290 & 14,419,200 \\
+        \botrule
+\end{tabular}}{The numbers in parentheses indicate the two
+experimental replicates.}
+\end{table}
 
 We tested MACS \texttt{callpeak} version 2.1.0.20140616, BayesPeak
 version 1.20.0 and JAMM version 1.0.7rev1. All tests were performed on
