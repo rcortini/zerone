@@ -1,55 +1,58 @@
-\documentclass{bioinfo}
-\copyrightyear{2015}
-\pubyear{2015}
+  \documentclass{bioinfo}
+  \copyrightyear{2015}
+  \pubyear{2015}
 
-\begin{document}
-\firstpage{1}
+  \begin{document}
+  \firstpage{1}
 
-\title[Combined ChIP-seq discretization and quality control]{Zerone:
-a ChIP-seq discretizer for multiple replicates with built-in quality control}
-\author[Cusc\'o \textit{et~al}]{Pol Cusc\'o\,$^{1,2}$ and Guillaume
-Filion\,$^{1,2}$\footnote{to whom correspondence should be addressed}}
-\address{$^{1}$Genome Architecture, Gene Regulation, Stem Cells and Cancer
-Programme, Centre for Genomic Regulation (CRG), The Barcelona Institute of
-Science and Technology, Dr. Aiguader 88, Barcelona 08003, Spain.\\
-$^{2}$Universitat Pompeu Fabra (UPF), Barcelona, Spain.}
-% The CRG affiliation is compliant (October 17, 2015).
+  \title[Combined ChIP-seq discretization and quality control]{Zerone:
+  a ChIP-seq discretizer for multiple replicates with built-in quality control}
+  \author[Cusc\'o \textit{et~al}]{Pol Cusc\'o\,$^{1,2}$ and Guillaume
+  Filion\,$^{1,2}$\footnote{to whom correspondence should be addressed}}
+  \address{$^{1}$Genome Architecture, Gene Regulation, Stem Cells and Cancer
+  Programme, Centre for Genomic Regulation (CRG), The Barcelona Institute of
+  Science and Technology, Dr. Aiguader 88, Barcelona 08003, Spain.\\
+  $^{2}$Universitat Pompeu Fabra (UPF), Barcelona, Spain.}
+  % The CRG affiliation is compliant (October 17, 2015).
 
-\history{Received on XXXXX; revised on XXXXX; accepted on XXXXX}
+  \history{Received on XXXXX; revised on XXXXX; accepted on XXXXX}
 
-\editor{Associate Editor: XXXXXXX}
+  \editor{Associate Editor: XXXXXXX}
 
-\maketitle
+  \maketitle
 
-\begin{abstract}
+  \begin{abstract}
 
-\section{Motivation:}
-  Chromatin immunoprecipitation followed by high-throughput sequencing
-  (ChIP-seq) is the standard method to investigate chromatin protein
-  composition. As the number of community-available ChIP-seq profiles
-  increases, it becomes more common to use data from different sources,
-  which makes joint analysis challenging. Issues such as lack of
-  reproducibility, heterogeneous quality and conflicts between
-  replicates become evident when comparing data sets, especially when
-  they are produced by different laboratories.
+  \section{Motivation:}
+    Chromatin immunoprecipitation followed by high-throughput sequencing
+    (ChIP-seq) is the standard method to investigate chromatin protein
+    composition. As the number of community-available ChIP-seq profiles
+    increases, it becomes more common to use data from different sources,
+    which makes joint analysis challenging. Issues such as lack of
+    reproducibility, heterogeneous quality and conflicts between
+    replicates become evident when comparing data sets, especially when
+    they are produced by different laboratories.
 
-\section{Results:}
-  Here we present Zerone, a ChIP-seq discretizer with built-in quality
-  control. Zerone is powered by a Hidden Markov Model with zero-inflated
-  negative multinomial emissions, which allows it to merge several
-  replicates into a single discretized profile. To identify low quality
-  or irreproducible data, we trained a Support Vector Machine and
-  integrated it as part of the discretization process. Zerone detects
-  low quality profiles with 2\% errors. We also introduce a graphical
-  representation to compare discretization quality and we show that
-  Zerone achieves outstanding precision. Finally, on current hardware,
-  Zerone discretizes a ChIP-seq experiment on mammalian genomes in
-  about 5 minutes using less than 700 MB of memory.
+  \section{Results:}
+    Here we present Zerone, a ChIP-seq discretizer with built-in quality
+    control. Zerone is powered by a Hidden Markov Model with zero-inflated
+    negative multinomial emissions, which allows it to merge several
+    replicates into a single discretized profile. To identify low quality
+    or irreproducible data, we trained a Support Vector Machine and
+    integrated it as part of the discretization process. Zerone detects
+    low quality profiles with 2\% errors. We also introduce a graphical
+    representation to compare discretization quality and we show that
+    Zerone achieves outstanding precision. Finally, on current hardware,
+    Zerone discretizes a ChIP-seq experiment on mammalian genomes in
+    about 5 minutes using less than 700 MB of memory.
 
-\section{Availability:}
-  Zerone is available as a command line tool and as an R package. The C
-  source code and R scripts can be downloaded from
-\href{https://github.com/nanakisck/zerone}{https://github.com/nanakiksc/zerone}.
+  \section{Availability:}
+    Zerone is available as a command line tool and as an R package. The C
+    source code and R scripts can be downloaded from
+  \href{https://github.com/nanakisck/zerone}{https://github.com/nanakiksc/zerone}.
+  The information to reproduce the benchmark and the figures is
+  stored in a public Docker container that can be downloaded from
+\href{https://hub.docker.com/r/nanakiksc/zerone/}{https://hub.docker.com/r/nanakiksc/zerone/}.
 
 \section{Contact:}
 \href{guillaume.filion@gmail.com}{guillaume.filion@gmail.com}
