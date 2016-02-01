@@ -32,16 +32,6 @@ Bernstein, B.~E., Kamal, M., Lindblad-Toh, K., Bekiranov, S., Bailey, D.~K.,
   human and mouse.}
 \newblock {\em {Cell}\/}, {\bf 120}(2), 169--81.
 
-\bibitem[Bernstein {\em et~al.}(2006)Bernstein, Mikkelsen, Xie, Kamal, Huebert,
-  Cuff, Fry, Meissner, Wernig, Plath, Jaenisch, Wagschal, Feil, Schreiber, and
-  Lander]{pmid16630819}
-Bernstein, B.~E., Mikkelsen, T.~S., Xie, X., Kamal, M., Huebert, D.~J., Cuff,
-  J., Fry, B., Meissner, A., Wernig, M., Plath, K., Jaenisch, R., Wagschal, A.,
-  Feil, R., Schreiber, S.~L., and Lander, E.~S. (2006).
-\newblock {A bivalent chromatin structure marks key developmental genes in
-  embryonic stem cells.}
-\newblock {\em {Cell}\/}, {\bf 125}(2), 315--26.
-
 \bibitem[Chang and Lin(2011)Chang and Lin]{Chang2011}
 Chang, C.-c. and Lin, C.-j. (2011).
 \newblock {LIBSVM : A Library for Support Vector Machines}.
