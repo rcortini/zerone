@@ -394,6 +394,9 @@ with ID MA0139.1.
 Subsequently we used FIMO \citep{pmid21330290} from the MEME suite version
 4.10.1 \citep{pmid19458158} to identify and map CTCF motif occurences in the
 human genome.
+Data about TSS positioning was extracted from the knownGene table of the
+UCSC Genes annotation for the hg19 genome \citep{Karolchik2004}.
+% GRO-seq data set
 
 All analyses that involved the mapping of genomic features were done using the
 UCSC hg19 assembly of the human genome.
@@ -513,7 +516,7 @@ are sensitive and adapted to the profile being discretized.
 \subsubsection{Identification of CTCF binding sites.}
 CTCF binds a 20~bp consensus sequence that is highly conserved in
 vertebrates. In humans, nearly 80\% of the CTCF binding sites contain
-the consensus motif \citep{pmid17382889}. In order to determinethe the
+the consensus motif \citep{pmid17382889}. In order to determine the
 capacity of the different programs to call peaks of CTCF binding, we
 compared the discretized profiles against a data set of CTCF binding
 motifs. We obtained a reference data set containing the positions of
@@ -523,7 +526,7 @@ motifs. We obtained a reference data set containing the positions of
 Table \ref{tab:ctcf} shows that Zerone outperforms the other tools
 in terms of the $F_1$ score (the harmonic mean of precision and
 recall). It has the second highest recall score, close to that of JAMM,
-and it achieves the highest precision.
+and it achieves a notable precision.
 
 \begin{table}[!t]
 \processtable{Performance on the CTCF motifs data set.
@@ -539,12 +542,12 @@ the harmonic mean between Precision and Recall.
         \textbf{Software}  & \textbf{Total}  & \textbf{Motif} &
         \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
         \midrule
-        BayesPeak$^{(1)}$ &  45,316 & 25,228 & 0.56 & 0.29 & 0.39 \\
-        BayesPeak$^{(2)}$ &  45,154 & 23,428 & 0.52 & 0.27 & 0.36 \\
-        JAMM              & 264,410 & 31,709 & 0.12 & 0.37 & 0.18 \\
-        MACS$^{(1)}$      &  48,358 & 26,449 & 0.55 & 0.31 & 0.39 \\
-        MACS$^{(2)}$      &  41,030 & 23,542 & 0.57 & 0.27 & 0.37 \\
-        Zerone            &  50,792 & 30,972 & 0.61 & 0.36 & 0.45 \\
+        BayesPeak$^{(1)}$ &  45,229 & 24,933 & 0.55 & 0.31 & 0.40 \\
+        BayesPeak$^{(2)}$ &  45,192 & 23,136 & 0.51 & 0.29 & 0.37 \\
+        JAMM              & 321,263 & 31,859 & 0.10 & 0.39 & 0.16 \\
+        MACS$^{(1)}$      &  48,341 & 26,129 & 0.54 & 0.32 & 0.41 \\
+        MACS$^{(2)}$      &  41,048 & 23,237 & 0.57 & 0.29 & 0.38 \\
+        Zerone            &  54,315 & 28,738 & 0.53 & 0.38 & 0.44 \\
         \botrule
 \end{tabular}}{The numbers in parentheses indicate the results on the two
 replicates separately.}
@@ -555,15 +558,14 @@ specificity for transcription factor profiles, as was suggested by
 the left panel of Fig.~\ref{fig:pareto}.
 
 \subsubsection{Pol2 binding around transcription start sites.}
-% Pol2 is on TSSs
 To compare the behavior of the discretizers on the Pol2 profile,
 we determined the extent to which the enriched regions contained
 Transcription Start Sites (TSS), as Pol2 is expected to bind near
-annotated TSS. Data about TSS positioning was extracted from the
-knownGene table of the UCSC Genes annotation for the hg19 genome
-\citep{Karolchik2004}.
+annotated TSS.
+We overlapped this annotation with a data set of gene expression
+obtained by GRO-seq.
 
-\begin{table}[!t]
+\begin{table*}[!t]
 \processtable{Performance on the Pol2 data set.
 True and false positives are defined as peaks with and without a
 transcription start site (TSS), respectively. Total: the number of peaks
@@ -572,21 +574,24 @@ TSS. Precision: TSS divided by Total. Recall: the number of TSS contained
 in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the
 harmonic mean between Precision and Recall.
 \label{tab:tss}}
-{\begin{tabular}{lrrccc}
+{\begin{tabular}{lr|rccc|rccc}
         \toprule
-        \textbf{Software}  & \textbf{Total}  & \textbf{TSS} &
-        \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
+        & & \multicolumn{4}{c}{\textbf{All TSS}} & \multicolumn{4}{c}{\textbf{Active TSS}} \\
         \midrule
-        BayesPeak$^{(1)}$ &  32,758 & 5,877 & 0.18 & 0.19 & 0.19 \\
-        BayesPeak$^{(2)}$ &  35,310 & 5,783 & 0.16 & 0.19 & 0.18 \\
-        JAMM              & 239,637 & 5,514 & 0.02 & 0.17 & 0.04 \\
-        MACS$^{(1)}$      &  51,271 & 6,860 & 0.13 & 0.22 & 0.17 \\
-        MACS$^{(2)}$      &  49,062 & 6,552 & 0.13 & 0.21 & 0.16 \\
-        Zerone            &  25,703 & 7,673 & 0.30 & 0.26 & 0.28 \\
+        \textbf{Software} & \textbf{Total} &
+        \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} &
+        \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
+        \midrule
+        BayesPeak$^{(1)}$ &  32,758 & 5,877 & 0.18 & 0.19 & 0.19 & 1,220 & 0.04 & 0.04 & 0.04 \\
+        BayesPeak$^{(2)}$ &  35,310 & 5,783 & 0.16 & 0.19 & 0.18 & 1,207 & 0.03 & 0.04 & 0.04 \\
+        JAMM              & 239,637 & 5,514 & 0.02 & 0.17 & 0.04 & 1,107 & 0.00 & 0.03 & 0.01 \\
+        MACS$^{(1)}$      &  51,271 & 6,860 & 0.13 & 0.22 & 0.17 & 1,346 & 0.03 & 0.04 & 0.03 \\
+        MACS$^{(2)}$      &  49,062 & 6,552 & 0.13 & 0.21 & 0.16 & 1,321 & 0.03 & 0.04 & 0.03 \\
+        Zerone            &  25,703 & 7,673 & 0.30 & 0.26 & 0.28 & 1,482 & 0.06 & 0.05 & 0.05 \\
         \botrule
 \end{tabular}}{The numbers in parentheses indicate the results on the two
 replicates separately.}
-\end{table}
+\end{table*}
 
 Table \ref{tab:tss} shows that, as in the previous case, Zerone
 achieves the highest $F_1$ score. Here it achieves both better
@@ -660,7 +665,7 @@ harmonic mean between Precision and Recall.
         \toprule
         & & \multicolumn{4}{c}{\textbf{All TSS}} & \multicolumn{4}{c}{\textbf{Active TSS}} \\
         \midrule
-        \textbf{Software}  & \textbf{Total}  &
+        \textbf{Software} & \textbf{Total} &
         \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} &
         \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
         \midrule
