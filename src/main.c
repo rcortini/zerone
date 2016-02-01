@@ -107,6 +107,8 @@ int main(int argc, char **argv) {
 
    int n_mock_files = 0;
    int n_ChIP_files = 0;
+   int no_mock_specified = 1;
+   int no_ChIP_specified = 1;
 
    static int list_flag = 0;
    static int conf_flag = 0;
@@ -136,10 +138,12 @@ int main(int argc, char **argv) {
 
       case '0':
          parse_fname(mock_fnames, optarg, &n_mock_files);
+         no_mock_specified = 0;
          break;
 
       case '1':
          parse_fname(ChIP_fnames, optarg, &n_ChIP_files);
+         no_ChIP_specified = 0;
          break;
 
       case 'h':
@@ -175,6 +179,19 @@ int main(int argc, char **argv) {
    debug_print("%s", "done parsing arguments\n");
 
    // Check options.
+   if (no_mock_specified) {
+      fprintf(stderr,
+         "zerone error: specify a file for mock control experiment\n");
+      say_usage();
+      return EXIT_FAILURE;
+   }
+   if (no_ChIP_specified) {
+      fprintf(stderr,
+         "zerone error: specify a file for ChIP-seq experiment\n");
+      say_usage();
+      return EXIT_FAILURE;
+   }
+
    if (conf_flag && list_flag) {
       fprintf(stderr, "ignoring --confidence flag for list output\n");
       conf_flag = 0;
