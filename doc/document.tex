@@ -733,6 +733,19 @@ Multinomial distribution is appropriate to model ChIP-seq data
 (Fig.~\ref{fig:ZINB_fit}). This gives Zerone good specificity
 and sensitivity for very different profiles (Fig.~\ref{fig:pareto}).
 
+Zerone also proposes an original solution to the problem of
+data heterogeneity. Firstly, the statistical model is fitted
+in order to harmonize the replicates and solve conflicts by maximum
+likelihood. Secondly, automatic quality control is performed
+after the discretization. The principle of this step is somewhat
+similar to anomaly detection. As examples of trusted ChIP-seq
+discretizations will increase, the classifier can be refined to
+reach greater accuracy. Note that control profiles play a key
+role in the process. In order to evaluate the quality of the
+discretization, Zerone implicitly assumes that the user
+has provided controls that properly capture systematic biases
+such as batch effects, mappability and copy number variations.
+
 Here we introduced a way to compare discretizers with an intuitive
 graphical representation (Fig.~\ref{fig:expl}). On this plane,
 the coordinates of a discretization indicate the number of targets
@@ -766,15 +779,6 @@ discretizations on the Pareto front, adjusting the threshold to the
 conditions would be challenging for lack of an underlying model.
 This is one of the major strengths of Zerone: the statistical model
 automatically adjusts conservativity and sensitivity in a sensible way.
-
-Finally, Zerone proposes an original solution to the problem of
-data heterogeneity. Firstly, the statistical model will be fitted
-in order to harmonize the replicates and solve conflicts by maximum
-likelihood. Secondly, automatic quality control is performed
-after the discretization. The principle of this step is somewhat
-similar to anomaly detection. As examples of trusted ChIP-seq
-discretizations will increase, the classifier can be refined to
-reach greater accuracy.
 
 \section*{Acknowledgement}
 \paragraph{Funding\textcolon}
