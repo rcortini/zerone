@@ -561,9 +561,9 @@ the left panel of Fig.~\ref{fig:pareto}.
 To compare the behavior of the discretizers on the Pol2 profile,
 we determined the extent to which the enriched regions contained
 Transcription Start Sites (TSS), as Pol2 is expected to bind near
-annotated TSS.
-We overlapped this annotation with a data set of gene expression
-obtained by GRO-seq.
+annotated TSS. We also overlapped this annotation with a data set of
+gene expression obtained by GRO-seq in order to separate the
+promoters of transcribed from non transcribed genes.
 
 \begin{table*}[!t]
 \processtable{Performance on the Pol2 data set.
@@ -593,12 +593,55 @@ harmonic mean between Precision and Recall.
 replicates separately.}
 \end{table*}
 
-Table \ref{tab:tss} shows that, as in the previous case, Zerone
-achieves the highest $F_1$ score. Here it achieves both better
+Table \ref{tab:tss} shows that, Zerone achieves the highest $F_1$
+score. Here it achieves both better
 precision and better recall than the other discretizers, with a
 very neat advantage in precision. These results confirm that
 the performance of Zerone is outstanding on this data set, as suggested
 by the middle panel of Fig.~\ref{fig:pareto}.
+
+\subsubsection{H3K4me3 signal on active promoters.}
+The histone mark H3K4me3 is enriched on active promoters and
+near the TSS of actively transcribed genes
+\citep{pmid15680324,pmid17512414,pmid17277777}. It is thus an example
+of histone mark forming narrow peaks. We used the same TSS data set
+as above to benchmark the accurary of Zerone when discretizing
+this profile.
+
+
+\begin{table*}[!t]
+\processtable{Performance on the H3K4me3 data set.
+True and false positives are defined as peaks with and without a
+transcription start site (TSS), respectively. Total: the number of peaks
+found by the program. TSS: the subset of those containing at least one
+TSS. Precision: TSS divided by Total. Recall: the number of TSS contained
+in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the
+harmonic mean between Precision and Recall.
+\label{tab:H3K4}}
+{\begin{tabular}{lr|rccc|rccc}
+        \toprule
+        & & \multicolumn{4}{c}{\textbf{All TSS}} & \multicolumn{4}{c}{\textbf{Active TSS}} \\
+        \midrule
+        \textbf{Software} & \textbf{Total} &
+        \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} &
+        \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
+        \midrule
+        BayesPeak$^{(1)}$ &  26,938 & 4,330 & 0.16 & 0.13 & 0.15 &   859 & 0.03 & 0.03 & 0.03 \\
+        BayesPeak$^{(2)}$ &  27,132 & 4,288 & 0.16 & 0.13 & 0.14 &   850 & 0.03 & 0.03 & 0.03 \\
+        JAMM              & 624,819 & 2,112 & 0.00 & 0.04 & 0.01 &   130 & 0.00 & 0.00 & 0.00 \\
+        MACS$^{(1)}$      &  29,125 & 6,614 & 0.23 & 0.22 & 0.22 & 1,261 & 0.04 & 0.04 & 0.04 \\
+        MACS$^{(2)}$      &  29,420 & 6,542 & 0.22 & 0.22 & 0.22 & 1,261 & 0.04 & 0.04 & 0.04 \\
+        Zerone            &  15,602 & 6,989 & 0.45 & 0.25 & 0.32 & 1,320 & 0.08 & 0.04 & 0.06 \\
+        \botrule
+\end{tabular}}{The numbers in parentheses indicate the results on the two
+replicates separately.}
+\end{table*}
+
+Table \ref{tab:H3K4} shows that Zerone achieves better $F_1$ score,
+better precision and better recall than the other tools, again with
+a very neat advantage in precision. This shows that Zerone accurately
+describes profiles of this category.
+
 
 \subsubsection{H3K36me3-enriched domains on active genes.}
 There is no consensus sequence to determine the location of histone
@@ -634,51 +677,10 @@ while discovering enriched windows not found by the others.
   H3K36me3 targets identified by a program. The size of the circles
   is proportional to the coverage of the targets, and their overlap
   approximates the amount of targets shared by the programs. Note
-  the almost complete overlap between the BayesPeak discretizations
-  on the two replicates.
+  that the discretizations made by BayesPeak overlap completely and
+  are indistinguishable in this representation.
 }\label{fig:venn}
 \end{figure}
-
-\subsubsection{H3K4me3 signal on active promoters.}
-The histone mark H3K4me3 appears to be enriched on active promoters and,
-therefore, near the TSS of actively transcribed genes
-\citep{pmid15680324,pmid17512414,pmid17277777}.
-We can use the same TSS anotation we used to
-
-although you can also find it on poised promoters
-“bivalent domains” where H3K4me3 occupies the same promoter as
-repressive marks, such as H3K27me3 often at important developmental
-genes \citep{pmid16630819}
-GRO-seq
-zerone is still the best
-
-\begin{table*}[!t]
-\processtable{Performance on the H3K4me3 data set.
-True and false positives are defined as peaks with and without a
-transcription start site (TSS), respectively. Total: the number of peaks
-found by the program. TSS: the subset of those containing at least one
-TSS. Precision: TSS divided by Total. Recall: the number of TSS contained
-in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the
-harmonic mean between Precision and Recall.
-\label{tab:tss}}
-{\begin{tabular}{lr|rccc|rccc}
-        \toprule
-        & & \multicolumn{4}{c}{\textbf{All TSS}} & \multicolumn{4}{c}{\textbf{Active TSS}} \\
-        \midrule
-        \textbf{Software} & \textbf{Total} &
-        \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} &
-        \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
-        \midrule
-        BayesPeak$^{(1)}$ &  26,938 & 4,330 & 0.16 & 0.13 & 0.15 &   859 & 0.03 & 0.03 & 0.03 \\
-        BayesPeak$^{(2)}$ &  27,132 & 4,288 & 0.16 & 0.13 & 0.14 &   850 & 0.03 & 0.03 & 0.03 \\
-        JAMM              & 624,819 & 2,112 & 0.00 & 0.04 & 0.01 &   130 & 0.00 & 0.00 & 0.00 \\
-        MACS$^{(1)}$      &  29,125 & 6,614 & 0.23 & 0.22 & 0.22 & 1,261 & 0.04 & 0.04 & 0.04 \\
-        MACS$^{(2)}$      &  29,420 & 6,542 & 0.22 & 0.22 & 0.22 & 1,261 & 0.04 & 0.04 & 0.04 \\
-        Zerone            &  15,602 & 6,989 & 0.45 & 0.25 & 0.32 & 1,320 & 0.08 & 0.04 & 0.06 \\
-        \botrule
-\end{tabular}}{The numbers in parentheses indicate the results on the two
-replicates separately.}
-\end{table*}
 
 \subsection{Speed and memory footprint}
 We benchmarked Zerone against three ChIP-seq discretizers.
