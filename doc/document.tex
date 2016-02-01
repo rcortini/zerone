@@ -343,10 +343,12 @@ performance on test sets using a 10-fold cross-validation scheme.
 The prediction accuracy on the trusted set was 98.3\%.
 We then implemented a prediction function in Zerone that used the
 model trained by the SVM to classify the discretizations and
-suggest whether they should be accepted or discarded.
-This is in contrast to other quality control methods such as the IDR, which
-evaluated the reliability of every enriched region independently of the rest
-of the profile.
+suggest whether they should be accepted or discarded. Unlike
+quality control methods based on individual peaks (such as the
+IDR for instance) the quality control implemented in Zerone is
+`all-or-none', \textit{i.e.} the profile is rejected or accepted
+as a whole.
+
 
 \subsection{Data sets and preprocessing}
 We used all the ChIP-seq fastq files produced by the ENCODE Consortium
