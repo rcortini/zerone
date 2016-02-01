@@ -30,6 +30,8 @@ MOUT= $(addprefix $M,$(addsuffix 1.bed,$(PROF))) \
       $(addprefix $M,$(addsuffix 2.bed,$(PROF)))
 ZOUT= $(addprefix $Z,$(addsuffix .bed,$(PROF)))
 
+.SECONDARY:
+
 all: $(BOUT) $(JOUT) $(MOUT) $(ZOUT)
 	md5sum -c datasets.md5
 
@@ -75,7 +77,6 @@ $(CHRSIZE): fetchChromSizes
 	gem-mapper -I $(IDX) --unique-mapping -q ignore -m 2 -T 4 | \
 	./ignore_random_chrom.py > $@
 
-.SECONDARY: $(addsuffix .sam,$(PROF))
 %.sam: %.map
 	gem-2-sam -I $(IDX) -l -q 'offset-64' -i $< > $@
 
@@ -155,8 +156,12 @@ $MCtcf%.bed: $(Ctcf_target)%.sam $(Uw_input).sam
 	    --outdir $M \
 	    -f SAM \
 	    -g hs
-	find $M -type f -not -name *_peaks.bed | xargs rm
-	mv $(subst .bed,_peaks.bed,$@) $@
+	find $M -type f \
+	    -not -name '*narrowPeak' \
+	    -not -name '*broadPeak' | \
+	xargs rm
+	mv $(subst _peaks.narrowPeak,.bed,$@) $@
+
 
 $MH3k4me3%.bed: $(H3k4me3_target)%.sam $(Uw_input).sam
 	macs2 callpeak \
@@ -166,8 +171,12 @@ $MH3k4me3%.bed: $(H3k4me3_target)%.sam $(Uw_input).sam
 	    --outdir $M \
 	    -f SAM \
 	    -g hs
-	#find $M -type f -not -name *_peaks.bed | xargs rm
-	#mv $(subst .bed,_peaks.bed,$@) $@
+	find $M -type f \
+	    -not -name '*narrowPeak' \
+	    -not -name '*broadPeak' | \
+	xargs rm
+	mv $(subst _peaks.narrowPeak,.bed,$@) $@
+
 
 $MH3k36me3%.bed: $(H3k36me3_target)%.sam $(Uw_input).sam
 	macs2 callpeak \
@@ -178,8 +187,12 @@ $MH3k36me3%.bed: $(H3k36me3_target)%.sam $(Uw_input).sam
 	    -f SAM \
 	    -g hs \
 	    --broad
-	find $M -type f -not -name *_peaks.bed | xargs rm
-	mv $(subst .bed,_peaks.bed,$@) $@
+	find $M -type f \
+	    -not -name '*narrowPeak' \
+	    -not -name '*broadPeak' | \
+	xargs rm
+	mv $(subst _peaks.broadPeak,.bed,$@) $@
+
 
 $MPol2%.bed: $(Pol2_target)%.sam $(Pol2_input).sam
 	macs2 callpeak \
@@ -189,8 +202,12 @@ $MPol2%.bed: $(Pol2_target)%.sam $(Pol2_input).sam
 	    --outdir $M \
 	    -f SAM \
 	    -g hs
-	find $M -type f -not -name *_peaks.bed | xargs rm
-	mv $(subst .bed,_peaks.bed,$@) $@
+	find $M -type f \
+	    -not -name '*narrowPeak' \
+	    -not -name '*broadPeak' | \
+	xargs rm
+	mv $(subst _peaks.narrowPeak,.bed,$@) $@
+
 
 $ZCtcf.bed: $(addsuffix .map,$(Ctcf_all))
 	$Zzerone -l \

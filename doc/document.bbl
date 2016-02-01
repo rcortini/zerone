@@ -7,12 +7,40 @@ Bailey, T.~L., Boden, M., Buske, F.~A., Frith, M., Grant, C.~E., Clementi, L.,
 \newblock {MEME SUITE: tools for motif discovery and searching.}
 \newblock {\em {Nucleic Acids Res.}}, {\bf 37}(Web Server issue), W202--8.
 
+\bibitem[Barski {\em et~al.}(2007)Barski, Cuddapah, Cui, Roh, Schones, Wang,
+  Wei, Chepelev, and Zhao]{pmid17512414}
+Barski, A., Cuddapah, S., Cui, K., Roh, T.-Y., Schones, D.~E., Wang, Z., Wei,
+  G., Chepelev, I., and Zhao, K. (2007).
+\newblock {High-resolution profiling of histone methylations in the human
+  genome.}
+\newblock {\em {Cell}\/}, {\bf 129}(4), 823--37.
+
 \bibitem[Baum and Petrie(1966)Baum and Petrie]{baum1966}
 Baum, L.~E. and Petrie, T. (1966).
 \newblock Statistical inference for probabilistic functions of finite state
   markov chains.
 \newblock {\em The Annals of Mathematical Statistics\/}, {\bf 37}(6),
   1554--1563.
+
+\bibitem[Bernstein {\em et~al.}(2005)Bernstein, Kamal, Lindblad-Toh, Bekiranov,
+  Bailey, Huebert, McMahon, Karlsson, Kulbokas, Gingeras, Schreiber, and
+  Lander]{pmid15680324}
+Bernstein, B.~E., Kamal, M., Lindblad-Toh, K., Bekiranov, S., Bailey, D.~K.,
+  Huebert, D.~J., McMahon, S., Karlsson, E.~K., Kulbokas, E.~J., Gingeras,
+  T.~R., Schreiber, S.~L., and Lander, E.~S. (2005).
+\newblock {Genomic maps and comparative analysis of histone modifications in
+  human and mouse.}
+\newblock {\em {Cell}\/}, {\bf 120}(2), 169--81.
+
+\bibitem[Bernstein {\em et~al.}(2006)Bernstein, Mikkelsen, Xie, Kamal, Huebert,
+  Cuff, Fry, Meissner, Wernig, Plath, Jaenisch, Wagschal, Feil, Schreiber, and
+  Lander]{pmid16630819}
+Bernstein, B.~E., Mikkelsen, T.~S., Xie, X., Kamal, M., Huebert, D.~J., Cuff,
+  J., Fry, B., Meissner, A., Wernig, M., Plath, K., Jaenisch, R., Wagschal, A.,
+  Feil, R., Schreiber, S.~L., and Lander, E.~S. (2006).
+\newblock {A bivalent chromatin structure marks key developmental genes in
+  embryonic stem cells.}
+\newblock {\em {Cell}\/}, {\bf 125}(2), 315--26.
 
 \bibitem[Chang and Lin(2011)Chang and Lin]{Chang2011}
 Chang, C.-c. and Lin, C.-j. (2011).
@@ -40,6 +68,16 @@ Guelen, L., Pagie, L., Brasset, E., Meuleman, W., Faza, M.~B., Talhout, W.,
 \newblock {Domain organization of human chromosomes revealed by mapping of
   nuclear lamina interactions.}
 \newblock {\em {Nature}\/}, {\bf 453}(7197), 948--51.
+
+\bibitem[Heintzman {\em et~al.}(2007)Heintzman, Stuart, Hon, Fu, Ching,
+  Hawkins, Barrera, Calcar, Qu, Ching, Wang, Weng, Green, Crawford, and
+  Ren]{pmid17277777}
+Heintzman, N.~D., Stuart, R.~K., Hon, G., Fu, Y., Ching, C.~W., Hawkins, R.~D.,
+  Barrera, L.~O., Calcar, S.~V., Qu, C., Ching, K.~A., Wang, W., Weng, Z.,
+  Green, R.~D., Crawford, G.~E., and Ren, B. (2007).
+\newblock {Distinct and predictive chromatin signatures of transcriptional
+  promoters and enhancers in the human genome.}
+\newblock {\em {Nat. Genet.}}, {\bf 39}(3), 311--8.
 
 \bibitem[Ibrahim {\em et~al.}(2015)Ibrahim, Lacadie, and Ohler]{pmid25223640}
 Ibrahim, M.~M., Lacadie, S.~A., and Ohler, U. (2015).

@@ -4472,4 +4472,1094 @@
     </PubmedData>
 </PubmedArticle>
 
+
+<PubmedArticle>
+    <MedlineCitation Owner="NLM" Status="MEDLINE">
+        <PMID Version="1">17512414</PMID>
+        <DateCreated>
+            <Year>2007</Year>
+            <Month>05</Month>
+            <Day>21</Day>
+        </DateCreated>
+        <DateCompleted>
+            <Year>2007</Year>
+            <Month>07</Month>
+            <Day>20</Day>
+        </DateCompleted>
+        <DateRevised>
+            <Year>2015</Year>
+            <Month>08</Month>
+            <Day>13</Day>
+        </DateRevised>
+        <Article PubModel="Print">
+            <Journal>
+                <ISSN IssnType="Print">0092-8674</ISSN>
+                <JournalIssue CitedMedium="Print">
+                    <Volume>129</Volume>
+                    <Issue>4</Issue>
+                    <PubDate>
+                        <Year>2007</Year>
+                        <Month>May</Month>
+                        <Day>18</Day>
+                    </PubDate>
+                </JournalIssue>
+                <Title>Cell</Title>
+                <ISOAbbreviation>Cell</ISOAbbreviation>
+            </Journal>
+            <ArticleTitle>High-resolution profiling of histone methylations in the human genome.</ArticleTitle>
+            <Pagination>
+                <MedlinePgn>823-37</MedlinePgn>
+            </Pagination>
+            <Abstract>
+                <AbstractText>Histone modifications are implicated in influencing gene expression. We have generated high-resolution maps for the genome-wide distribution of 20 histone lysine and arginine methylations as well as histone variant H2A.Z, RNA polymerase II, and the insulator binding protein CTCF across the human genome using the Solexa 1G sequencing technology. Typical patterns of histone methylations exhibited at promoters, insulators, enhancers, and transcribed regions are identified. The monomethylations of H3K27, H3K9, H4K20, H3K79, and H2BK5 are all linked to gene activation, whereas trimethylations of H3K27, H3K9, and H3K79 are linked to repression. H2A.Z associates with functional regulatory elements, and CTCF marks boundaries of histone methylation domains. Chromosome banding patterns are correlated with unique patterns of histone modifications. Chromosome breakpoints detected in T cell cancers frequently reside in chromatin regions associated with H3K4 methylations. Our data provide new insights into the function of histone methylation and chromatin organization in genome function.</AbstractText>
+            </Abstract>
+            <AuthorList CompleteYN="Y">
+                <Author ValidYN="Y">
+                    <LastName>Barski</LastName>
+                    <ForeName>Artem</ForeName>
+                    <Initials>A</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Laboratory of Molecular Immunology, National Heart, Lung, and Blood Institute, NIH, Bethesda, MD 20892, USA.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Cuddapah</LastName>
+                    <ForeName>Suresh</ForeName>
+                    <Initials>S</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Cui</LastName>
+                    <ForeName>Kairong</ForeName>
+                    <Initials>K</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Roh</LastName>
+                    <ForeName>Tae-Young</ForeName>
+                    <Initials>TY</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Schones</LastName>
+                    <ForeName>Dustin E</ForeName>
+                    <Initials>DE</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Wang</LastName>
+                    <ForeName>Zhibin</ForeName>
+                    <Initials>Z</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Wei</LastName>
+                    <ForeName>Gang</ForeName>
+                    <Initials>G</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Chepelev</LastName>
+                    <ForeName>Iouri</ForeName>
+                    <Initials>I</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Zhao</LastName>
+                    <ForeName>Keji</ForeName>
+                    <Initials>K</Initials>
+                </Author>
+            </AuthorList>
+            <Language>eng</Language>
+            <GrantList CompleteYN="Y">
+                <Grant>
+                    <Agency>Intramural NIH HHS</Agency>
+                    <Country>United States</Country>
+                </Grant>
+            </GrantList>
+            <PublicationTypeList>
+                <PublicationType UI="D016428">Journal Article</PublicationType>
+                <PublicationType UI="D052060">Research Support, N.I.H., Intramural</PublicationType>
+            </PublicationTypeList>
+        </Article>
+        <MedlineJournalInfo>
+            <Country>United States</Country>
+            <MedlineTA>Cell</MedlineTA>
+            <NlmUniqueID>0413066</NlmUniqueID>
+            <ISSNLinking>0092-8674</ISSNLinking>
+        </MedlineJournalInfo>
+        <ChemicalList>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D002843">Chromatin</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D006657">Histones</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="C077020">histone H2A.F-Z</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>EC 2.1.1.-</RegistryNumber>
+                <NameOfSubstance UI="D011496">Protein Methyltransferases</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>EC 2.1.1.-</RegistryNumber>
+                <NameOfSubstance UI="C021362">histone methyltransferase</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>EC 2.1.1.43</RegistryNumber>
+                <NameOfSubstance UI="D011495">Histone-Lysine N-Methyltransferase</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>EC 2.7.7.-</RegistryNumber>
+                <NameOfSubstance UI="D012319">RNA Polymerase II</NameOfSubstance>
+            </Chemical>
+        </ChemicalList>
+        <CitationSubset>IM</CitationSubset>
+        <CommentsCorrectionsList>
+            <CommentsCorrections RefType="CommentIn">
+                <RefSource>Cell. 2007 Nov 30;131(5):831-2; author reply 832-3</RefSource>
+                <PMID Version="1">18045524</PMID>
+            </CommentsCorrections>
+        </CommentsCorrectionsList>
+        <MeshHeadingList>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D002843">Chromatin</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+                <QualifierName MajorTopicYN="N" UI="Q000648">ultrastructure</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D019457">Chromosome Breakage</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D004742">Enhancer Elements, Genetic</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D044127">Epigenesis, Genetic</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D020869">Gene Expression Profiling</DescriptorName>
+                <QualifierName MajorTopicYN="Y" UI="Q000379">methods</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D005786">Gene Expression Regulation</DescriptorName>
+                <QualifierName MajorTopicYN="Y" UI="Q000235">genetics</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D015894">Genome, Human</DescriptorName>
+                <QualifierName MajorTopicYN="Y" UI="Q000235">genetics</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D011495">Histone-Lysine N-Methyltransferase</DescriptorName>
+                <QualifierName MajorTopicYN="Y" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D006657">Histones</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+                <QualifierName MajorTopicYN="Y" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D006801">Humans</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D008223">Lymphoma</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D008745">Methylation</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D011401">Promoter Regions, Genetic</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D011496">Protein Methyltransferases</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D012319">RNA Polymerase II</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D050436">Regulatory Elements, Transcriptional</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D015533">Transcriptional Activation</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+            </MeshHeading>
+        </MeshHeadingList>
+    </MedlineCitation>
+    <PubmedData>
+        <History>
+            <PubMedPubDate PubStatus="received">
+                <Year>2007</Year>
+                <Month>4</Month>
+                <Day>20</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="revised">
+                <Year>2007</Year>
+                <Month>5</Month>
+                <Day>3</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="accepted">
+                <Year>2007</Year>
+                <Month>5</Month>
+                <Day>3</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="pubmed">
+                <Year>2007</Year>
+                <Month>5</Month>
+                <Day>22</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="medline">
+                <Year>2007</Year>
+                <Month>7</Month>
+                <Day>21</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="entrez">
+                <Year>2007</Year>
+                <Month>5</Month>
+                <Day>22</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+        </History>
+        <PublicationStatus>ppublish</PublicationStatus>
+        <ArticleIdList>
+            <ArticleId IdType="pii">S0092-8674(07)00600-9</ArticleId>
+            <ArticleId IdType="doi">10.1016/j.cell.2007.05.009</ArticleId>
+            <ArticleId IdType="pubmed">17512414</ArticleId>
+        </ArticleIdList>
+    </PubmedData>
+</PubmedArticle>
+
+
+<PubmedArticle>
+    <MedlineCitation Owner="NLM" Status="MEDLINE">
+        <PMID Version="1">15680324</PMID>
+        <DateCreated>
+            <Year>2005</Year>
+            <Month>01</Month>
+            <Day>31</Day>
+        </DateCreated>
+        <DateCompleted>
+            <Year>2005</Year>
+            <Month>03</Month>
+            <Day>09</Day>
+        </DateCompleted>
+        <DateRevised>
+            <Year>2013</Year>
+            <Month>11</Month>
+            <Day>21</Day>
+        </DateRevised>
+        <Article PubModel="Print">
+            <Journal>
+                <ISSN IssnType="Print">0092-8674</ISSN>
+                <JournalIssue CitedMedium="Print">
+                    <Volume>120</Volume>
+                    <Issue>2</Issue>
+                    <PubDate>
+                        <Year>2005</Year>
+                        <Month>Jan</Month>
+                        <Day>28</Day>
+                    </PubDate>
+                </JournalIssue>
+                <Title>Cell</Title>
+                <ISOAbbreviation>Cell</ISOAbbreviation>
+            </Journal>
+            <ArticleTitle>Genomic maps and comparative analysis of histone modifications in human and mouse.</ArticleTitle>
+            <Pagination>
+                <MedlinePgn>169-81</MedlinePgn>
+            </Pagination>
+            <Abstract>
+                <AbstractText>We mapped histone H3 lysine 4 di- and trimethylation and lysine 9/14 acetylation across the nonrepetitive portions of human chromosomes 21 and 22 and compared patterns of lysine 4 dimethylation for several orthologous human and mouse loci. Both chromosomes show punctate sites enriched for modified histones. Sites showing trimethylation correlate with transcription starts, while those showing mainly dimethylation occur elsewhere in the vicinity of active genes. Punctate methylation patterns are also evident at the cytokine and IL-4 receptor loci. The Hox clusters present a strikingly different picture, with broad lysine 4-methylated regions that overlay multiple active genes. We suggest these regions represent active chromatin domains required for the maintenance of Hox gene expression. Methylation patterns at orthologous loci are strongly conserved between human and mouse even though many methylated sites do not show sequence conservation notably higher than background. This suggests that the DNA elements that direct the methylation represent only a small fraction of the region or lie at some distance from the site.</AbstractText>
+            </Abstract>
+            <AuthorList CompleteYN="Y">
+                <Author ValidYN="Y">
+                    <LastName>Bernstein</LastName>
+                    <ForeName>Bradley E</ForeName>
+                    <Initials>BE</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Howard Hughes Medical Institute, Department of Chemistry and Chemical Biology, Harvard University, 12 Oxford Street, Cambridge, MA 02138, USA. bbernst@fas.harvard.edu</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Kamal</LastName>
+                    <ForeName>Michael</ForeName>
+                    <Initials>M</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Lindblad-Toh</LastName>
+                    <ForeName>Kerstin</ForeName>
+                    <Initials>K</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Bekiranov</LastName>
+                    <ForeName>Stefan</ForeName>
+                    <Initials>S</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Bailey</LastName>
+                    <ForeName>Dione K</ForeName>
+                    <Initials>DK</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Huebert</LastName>
+                    <ForeName>Dana J</ForeName>
+                    <Initials>DJ</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>McMahon</LastName>
+                    <ForeName>Scott</ForeName>
+                    <Initials>S</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Karlsson</LastName>
+                    <ForeName>Elinor K</ForeName>
+                    <Initials>EK</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Kulbokas</LastName>
+                    <ForeName>Edward J</ForeName>
+                    <Initials>EJ</Initials>
+                    <Suffix>3rd</Suffix>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Gingeras</LastName>
+                    <ForeName>Thomas R</ForeName>
+                    <Initials>TR</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Schreiber</LastName>
+                    <ForeName>Stuart L</ForeName>
+                    <Initials>SL</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Lander</LastName>
+                    <ForeName>Eric S</ForeName>
+                    <Initials>ES</Initials>
+                </Author>
+            </AuthorList>
+            <Language>eng</Language>
+            <GrantList CompleteYN="Y">
+                <Grant>
+                    <GrantID>N01-C0-12400</GrantID>
+                    <Agency>PHS HHS</Agency>
+                    <Country>United States</Country>
+                </Grant>
+                <Grant>
+                    <GrantID>R01 GM038627</GrantID>
+                    <Acronym>GM</Acronym>
+                    <Agency>NIGMS NIH HHS</Agency>
+                    <Country>United States</Country>
+                </Grant>
+            </GrantList>
+            <PublicationTypeList>
+                <PublicationType UI="D003160">Comparative Study</PublicationType>
+                <PublicationType UI="D016428">Journal Article</PublicationType>
+                <PublicationType UI="D013485">Research Support, Non-U.S. Gov't</PublicationType>
+                <PublicationType UI="D013487">Research Support, U.S. Gov't, P.H.S.</PublicationType>
+            </PublicationTypeList>
+        </Article>
+        <MedlineJournalInfo>
+            <Country>United States</Country>
+            <MedlineTA>Cell</MedlineTA>
+            <NlmUniqueID>0413066</NlmUniqueID>
+            <ISSNLinking>0092-8674</ISSNLinking>
+        </MedlineJournalInfo>
+        <ChemicalList>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D002843">Chromatin</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D006657">Histones</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D018398">Homeodomain Proteins</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D019948">Receptors, Interleukin-4</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>K3Z4F929H6</RegistryNumber>
+                <NameOfSubstance UI="D008239">Lysine</NameOfSubstance>
+            </Chemical>
+        </ChemicalList>
+        <CitationSubset>IM</CitationSubset>
+        <MeshHeadingList>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D000107">Acetylation</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D000818">Animals</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D002843">Chromatin</DescriptorName>
+                <QualifierName MajorTopicYN="Y" UI="Q000235">genetics</QualifierName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D002874">Chromosome Mapping</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000379">methods</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D002891">Chromosomes, Human, Pair 21</DescriptorName>
+                <QualifierName MajorTopicYN="Y" UI="Q000235">genetics</QualifierName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D002892">Chromosomes, Human, Pair 22</DescriptorName>
+                <QualifierName MajorTopicYN="Y" UI="Q000235">genetics</QualifierName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D016678">Genome</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D006657">Histones</DescriptorName>
+                <QualifierName MajorTopicYN="Y" UI="Q000235">genetics</QualifierName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D018398">Homeodomain Proteins</DescriptorName>
+                <QualifierName MajorTopicYN="Y" UI="Q000235">genetics</QualifierName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D006801">Humans</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D008239">Lysine</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D008745">Methylation</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D051379">Mice</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D019948">Receptors, Interleukin-4</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+            </MeshHeading>
+        </MeshHeadingList>
+    </MedlineCitation>
+    <PubmedData>
+        <History>
+            <PubMedPubDate PubStatus="received">
+                <Year>2004</Year>
+                <Month>Oct</Month>
+                <Day>7</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="revised">
+                <Year>2004</Year>
+                <Month>Dec</Month>
+                <Day>10</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="accepted">
+                <Year>2005</Year>
+                <Month>Jan</Month>
+                <Day>4</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="pubmed">
+                <Year>2005</Year>
+                <Month>2</Month>
+                <Day>1</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="medline">
+                <Year>2005</Year>
+                <Month>3</Month>
+                <Day>10</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="entrez">
+                <Year>2005</Year>
+                <Month>2</Month>
+                <Day>1</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+        </History>
+        <PublicationStatus>ppublish</PublicationStatus>
+        <ArticleIdList>
+            <ArticleId IdType="pii">S0092867405000395</ArticleId>
+            <ArticleId IdType="doi">10.1016/j.cell.2005.01.001</ArticleId>
+            <ArticleId IdType="pubmed">15680324</ArticleId>
+        </ArticleIdList>
+    </PubmedData>
+</PubmedArticle>
+
+
+<PubmedArticle>
+    <MedlineCitation Owner="NLM" Status="MEDLINE">
+        <PMID Version="1">17277777</PMID>
+        <DateCreated>
+            <Year>2007</Year>
+            <Month>02</Month>
+            <Day>27</Day>
+        </DateCreated>
+        <DateCompleted>
+            <Year>2007</Year>
+            <Month>06</Month>
+            <Day>20</Day>
+        </DateCompleted>
+        <DateRevised>
+            <Year>2008</Year>
+            <Month>11</Month>
+            <Day>21</Day>
+        </DateRevised>
+        <Article PubModel="Print-Electronic">
+            <Journal>
+                <ISSN IssnType="Print">1061-4036</ISSN>
+                <JournalIssue CitedMedium="Print">
+                    <Volume>39</Volume>
+                    <Issue>3</Issue>
+                    <PubDate>
+                        <Year>2007</Year>
+                        <Month>Mar</Month>
+                    </PubDate>
+                </JournalIssue>
+                <Title>Nature genetics</Title>
+                <ISOAbbreviation>Nat. Genet.</ISOAbbreviation>
+            </Journal>
+            <ArticleTitle>Distinct and predictive chromatin signatures of transcriptional promoters and enhancers in the human genome.</ArticleTitle>
+            <Pagination>
+                <MedlinePgn>311-8</MedlinePgn>
+            </Pagination>
+            <Abstract>
+                <AbstractText>Eukaryotic gene transcription is accompanied by acetylation and methylation of nucleosomes near promoters, but the locations and roles of histone modifications elsewhere in the genome remain unclear. We determined the chromatin modification states in high resolution along 30 Mb of the human genome and found that active promoters are marked by trimethylation of Lys4 of histone H3 (H3K4), whereas enhancers are marked by monomethylation, but not trimethylation, of H3K4. We developed computational algorithms using these distinct chromatin signatures to identify new regulatory elements, predicting over 200 promoters and 400 enhancers within the 30-Mb region. This approach accurately predicted the location and function of independently identified regulatory elements with high sensitivity and specificity and uncovered a novel functional enhancer for the carnitine transporter SLC22A5 (OCTN2). Our results give insight into the connections between chromatin modifications and transcriptional regulatory activity and provide a new tool for the functional annotation of the human genome.</AbstractText>
+            </Abstract>
+            <AuthorList CompleteYN="Y">
+                <Author ValidYN="Y">
+                    <LastName>Heintzman</LastName>
+                    <ForeName>Nathaniel D</ForeName>
+                    <Initials>ND</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Ludwig Institute for Cancer Research, University of California San Diego (UCSD) School of Medicine, 9500 Gilman Drive, La Jolla, California 92093-0653 USA.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Stuart</LastName>
+                    <ForeName>Rhona K</ForeName>
+                    <Initials>RK</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Hon</LastName>
+                    <ForeName>Gary</ForeName>
+                    <Initials>G</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Fu</LastName>
+                    <ForeName>Yutao</ForeName>
+                    <Initials>Y</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Ching</LastName>
+                    <ForeName>Christina W</ForeName>
+                    <Initials>CW</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Hawkins</LastName>
+                    <ForeName>R David</ForeName>
+                    <Initials>RD</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Barrera</LastName>
+                    <ForeName>Leah O</ForeName>
+                    <Initials>LO</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Van Calcar</LastName>
+                    <ForeName>Sara</ForeName>
+                    <Initials>S</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Qu</LastName>
+                    <ForeName>Chunxu</ForeName>
+                    <Initials>C</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Ching</LastName>
+                    <ForeName>Keith A</ForeName>
+                    <Initials>KA</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Wang</LastName>
+                    <ForeName>Wei</ForeName>
+                    <Initials>W</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Weng</LastName>
+                    <ForeName>Zhiping</ForeName>
+                    <Initials>Z</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Green</LastName>
+                    <ForeName>Roland D</ForeName>
+                    <Initials>RD</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Crawford</LastName>
+                    <ForeName>Gregory E</ForeName>
+                    <Initials>GE</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Ren</LastName>
+                    <ForeName>Bing</ForeName>
+                    <Initials>B</Initials>
+                </Author>
+            </AuthorList>
+            <Language>eng</Language>
+            <DataBankList CompleteYN="Y">
+                <DataBank>
+                    <DataBankName>GEO</DataBankName>
+                    <AccessionNumberList>
+                        <AccessionNumber>GSE6273</AccessionNumber>
+                    </AccessionNumberList>
+                </DataBank>
+            </DataBankList>
+            <PublicationTypeList>
+                <PublicationType UI="D016428">Journal Article</PublicationType>
+                <PublicationType UI="D052061">Research Support, N.I.H., Extramural</PublicationType>
+                <PublicationType UI="D013485">Research Support, Non-U.S. Gov't</PublicationType>
+            </PublicationTypeList>
+            <ArticleDate DateType="Electronic">
+                <Year>2007</Year>
+                <Month>02</Month>
+                <Day>04</Day>
+            </ArticleDate>
+        </Article>
+        <MedlineJournalInfo>
+            <Country>United States</Country>
+            <MedlineTA>Nat Genet</MedlineTA>
+            <NlmUniqueID>9216904</NlmUniqueID>
+            <ISSNLinking>1061-4036</ISSNLinking>
+        </MedlineJournalInfo>
+        <ChemicalList>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D002843">Chromatin</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D006657">Histones</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D027701">Organic Cation Transport Proteins</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="C492020">SLC22A5 protein, human</NameOfSubstance>
+            </Chemical>
+        </ChemicalList>
+        <CitationSubset>IM</CitationSubset>
+        <CommentsCorrectionsList>
+            <CommentsCorrections RefType="CommentIn">
+                <RefSource>Nat Genet. 2007 Mar;39(3):284-5</RefSource>
+                <PMID Version="1">17325674</PMID>
+            </CommentsCorrections>
+        </CommentsCorrectionsList>
+        <MeshHeadingList>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="Y" UI="D000465">Algorithms</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D002843">Chromatin</DescriptorName>
+                <QualifierName MajorTopicYN="Y" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="Y" UI="D004742">Enhancer Elements, Genetic</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="Y" UI="D015894">Genome, Human</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D023281">Genomics</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D006657">Histones</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D006801">Humans</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D008957">Models, Genetic</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D027701">Organic Cation Transport Proteins</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="Y" UI="D011401">Promoter Regions, Genetic</DescriptorName>
+            </MeshHeading>
+        </MeshHeadingList>
+    </MedlineCitation>
+    <PubmedData>
+        <History>
+            <PubMedPubDate PubStatus="received">
+                <Year>2006</Year>
+                <Month>9</Month>
+                <Day>27</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="accepted">
+                <Year>2007</Year>
+                <Month>1</Month>
+                <Day>03</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="aheadofprint">
+                <Year>2007</Year>
+                <Month>2</Month>
+                <Day>04</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="pubmed">
+                <Year>2007</Year>
+                <Month>2</Month>
+                <Day>6</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="medline">
+                <Year>2007</Year>
+                <Month>6</Month>
+                <Day>21</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="entrez">
+                <Year>2007</Year>
+                <Month>2</Month>
+                <Day>6</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+        </History>
+        <PublicationStatus>ppublish</PublicationStatus>
+        <ArticleIdList>
+            <ArticleId IdType="pii">ng1966</ArticleId>
+            <ArticleId IdType="doi">10.1038/ng1966</ArticleId>
+            <ArticleId IdType="pubmed">17277777</ArticleId>
+        </ArticleIdList>
+    </PubmedData>
+</PubmedArticle>
+
+
+<PubmedArticle>
+    <MedlineCitation Owner="NLM" Status="MEDLINE">
+        <PMID Version="1">16630819</PMID>
+        <DateCreated>
+            <Year>2006</Year>
+            <Month>04</Month>
+            <Day>24</Day>
+        </DateCreated>
+        <DateCompleted>
+            <Year>2006</Year>
+            <Month>06</Month>
+            <Day>13</Day>
+        </DateCompleted>
+        <DateRevised>
+            <Year>2007</Year>
+            <Month>11</Month>
+            <Day>14</Day>
+        </DateRevised>
+        <Article PubModel="Print">
+            <Journal>
+                <ISSN IssnType="Print">0092-8674</ISSN>
+                <JournalIssue CitedMedium="Print">
+                    <Volume>125</Volume>
+                    <Issue>2</Issue>
+                    <PubDate>
+                        <Year>2006</Year>
+                        <Month>Apr</Month>
+                        <Day>21</Day>
+                    </PubDate>
+                </JournalIssue>
+                <Title>Cell</Title>
+                <ISOAbbreviation>Cell</ISOAbbreviation>
+            </Journal>
+            <ArticleTitle>A bivalent chromatin structure marks key developmental genes in embryonic stem cells.</ArticleTitle>
+            <Pagination>
+                <MedlinePgn>315-26</MedlinePgn>
+            </Pagination>
+            <Abstract>
+                <AbstractText>The most highly conserved noncoding elements (HCNEs) in mammalian genomes cluster within regions enriched for genes encoding developmentally important transcription factors (TFs). This suggests that HCNE-rich regions may contain key regulatory controls involved in development. We explored this by examining histone methylation in mouse embryonic stem (ES) cells across 56 large HCNE-rich loci. We identified a specific modification pattern, termed &quot;bivalent domains,&quot; consisting of large regions of H3 lysine 27 methylation harboring smaller regions of H3 lysine 4 methylation. Bivalent domains tend to coincide with TF genes expressed at low levels. We propose that bivalent domains silence developmental genes in ES cells while keeping them poised for activation. We also found striking correspondences between genome sequence and histone methylation in ES cells, which become notably weaker in differentiated cells. These results highlight the importance of DNA sequence in defining the initial epigenetic landscape and suggest a novel chromatin-based mechanism for maintaining pluripotency.</AbstractText>
+            </Abstract>
+            <AuthorList CompleteYN="Y">
+                <Author ValidYN="Y">
+                    <LastName>Bernstein</LastName>
+                    <ForeName>Bradley E</ForeName>
+                    <Initials>BE</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Molecular Pathology Unit and Center for Cancer Research, Massachusetts General Hospital, Charlestown, MA 02129, USA. bbernstein@partners.org</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Mikkelsen</LastName>
+                    <ForeName>Tarjei S</ForeName>
+                    <Initials>TS</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Xie</LastName>
+                    <ForeName>Xiaohui</ForeName>
+                    <Initials>X</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Kamal</LastName>
+                    <ForeName>Michael</ForeName>
+                    <Initials>M</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Huebert</LastName>
+                    <ForeName>Dana J</ForeName>
+                    <Initials>DJ</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Cuff</LastName>
+                    <ForeName>James</ForeName>
+                    <Initials>J</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Fry</LastName>
+                    <ForeName>Ben</ForeName>
+                    <Initials>B</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Meissner</LastName>
+                    <ForeName>Alex</ForeName>
+                    <Initials>A</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Wernig</LastName>
+                    <ForeName>Marius</ForeName>
+                    <Initials>M</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Plath</LastName>
+                    <ForeName>Kathrin</ForeName>
+                    <Initials>K</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Jaenisch</LastName>
+                    <ForeName>Rudolf</ForeName>
+                    <Initials>R</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Wagschal</LastName>
+                    <ForeName>Alexandre</ForeName>
+                    <Initials>A</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Feil</LastName>
+                    <ForeName>Robert</ForeName>
+                    <Initials>R</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Schreiber</LastName>
+                    <ForeName>Stuart L</ForeName>
+                    <Initials>SL</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Lander</LastName>
+                    <ForeName>Eric S</ForeName>
+                    <Initials>ES</Initials>
+                </Author>
+            </AuthorList>
+            <Language>eng</Language>
+            <GrantList CompleteYN="Y">
+                <Grant>
+                    <GrantID>CA84198</GrantID>
+                    <Acronym>CA</Acronym>
+                    <Agency>NCI NIH HHS</Agency>
+                    <Country>United States</Country>
+                </Grant>
+                <Grant>
+                    <GrantID>GM38627</GrantID>
+                    <Acronym>GM</Acronym>
+                    <Agency>NIGMS NIH HHS</Agency>
+                    <Country>United States</Country>
+                </Grant>
+                <Grant>
+                    <GrantID>HD045022</GrantID>
+                    <Acronym>HD</Acronym>
+                    <Agency>NICHD NIH HHS</Agency>
+                    <Country>United States</Country>
+                </Grant>
+            </GrantList>
+            <PublicationTypeList>
+                <PublicationType UI="D016428">Journal Article</PublicationType>
+                <PublicationType UI="D052061">Research Support, N.I.H., Extramural</PublicationType>
+                <PublicationType UI="D013485">Research Support, Non-U.S. Gov't</PublicationType>
+            </PublicationTypeList>
+        </Article>
+        <MedlineJournalInfo>
+            <Country>United States</Country>
+            <MedlineTA>Cell</MedlineTA>
+            <NlmUniqueID>0413066</NlmUniqueID>
+            <ISSNLinking>0092-8674</ISSNLinking>
+        </MedlineJournalInfo>
+        <ChemicalList>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D002843">Chromatin</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D004268">DNA-Binding Proteins</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D006657">Histones</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D018398">Homeodomain Proteins</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="C475540">Nanog protein, mouse</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D050814">Octamer Transcription Factor-3</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="C494174">Pou5f1 protein, mouse</NameOfSubstance>
+            </Chemical>
+        </ChemicalList>
+        <CitationSubset>IM</CitationSubset>
+        <CommentsCorrectionsList>
+            <CommentsCorrections RefType="CommentIn">
+                <RefSource>Cell. 2006 Apr 21;125(2):233-6</RefSource>
+                <PMID Version="1">16630812</PMID>
+            </CommentsCorrections>
+        </CommentsCorrectionsList>
+        <MeshHeadingList>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D000818">Animals</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D002454">Cell Differentiation</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D002478">Cells, Cultured</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D002843">Chromatin</DescriptorName>
+                <QualifierName MajorTopicYN="Y" UI="Q000737">chemistry</QualifierName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D004268">DNA-Binding Proteins</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D044127">Epigenesis, Genetic</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D020869">Gene Expression Profiling</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="Y" UI="D018507">Gene Expression Regulation, Developmental</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D006657">Histones</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000737">chemistry</QualifierName>
+                <QualifierName MajorTopicYN="Y" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D018398">Homeodomain Proteins</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D008297">Male</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D008745">Methylation</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D051379">Mice</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D008810">Mice, Inbred C57BL</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="Y" UI="D009690">Nucleic Acid Conformation</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D050814">Octamer Transcription Factor-3</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D020411">Oligonucleotide Array Sequence Analysis</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D013234">Stem Cells</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000166">cytology</QualifierName>
+                <QualifierName MajorTopicYN="Y" UI="Q000502">physiology</QualifierName>
+            </MeshHeading>
+        </MeshHeadingList>
+    </MedlineCitation>
+    <PubmedData>
+        <History>
+            <PubMedPubDate PubStatus="received">
+                <Year>2005</Year>
+                <Month>11</Month>
+                <Day>4</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="revised">
+                <Year>2006</Year>
+                <Month>1</Month>
+                <Day>18</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="accepted">
+                <Year>2006</Year>
+                <Month>2</Month>
+                <Day>23</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="pubmed">
+                <Year>2006</Year>
+                <Month>4</Month>
+                <Day>25</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="medline">
+                <Year>2006</Year>
+                <Month>6</Month>
+                <Day>14</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="entrez">
+                <Year>2006</Year>
+                <Month>4</Month>
+                <Day>25</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+        </History>
+        <PublicationStatus>ppublish</PublicationStatus>
+        <ArticleIdList>
+            <ArticleId IdType="pii">S0092-8674(06)00380-1</ArticleId>
+            <ArticleId IdType="doi">10.1016/j.cell.2006.02.041</ArticleId>
+            <ArticleId IdType="pubmed">16630819</ArticleId>
+        </ArticleIdList>
+    </PubmedData>
+</PubmedArticle>
+
 </PubmedArticleSet>

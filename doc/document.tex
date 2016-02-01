@@ -122,7 +122,7 @@ it produces congruent window-based outputs, and it can process hundreds
 of experiments per day on average hardware. We benchmarked Zerone against
 MACS \citep{pmid18798982}, BayesPeak \citep{pmid19772557} and
 JAMM \citep{pmid25223640} on the core task of discretizing ChIP-seq
-profiles of CTCF, Pol2 and H3K36me3. Our results show that Zerone is
+profiles of CTCF, Pol2, H3K36me3 and H3K4me3. Our results show that Zerone is
 competitive in terms of speed and accuracy.
 % TODO: Add everything regarding H3k4me3.
 \begin{methods}
@@ -180,7 +180,7 @@ distribution (ZINM, see supplementary material for detail). In this
 model, windows have an intrinsic ChIP-seq bias due to their sequence
 composition, mappability and other inherent properties, which gives
 a baseline variation present in all ChIP-seq experiments performed
-in the same conditions. Note that the biases are not modelled explicitly 
+in the same conditions. Note that the biases are not modelled explicitly
 from known features of the genome, but implicitly by adjusting
 the variance of the distribution. Also, the dependency between replicates
 is accounted for by the ZINM distribution, which gives more accurate
@@ -298,7 +298,7 @@ swapped). To cover these cases, we included in the trusted set
 38 other cases obtained by discretizing nonreplicate profiles
 (\textit{e.g.} CTCF and Pol2) and controls without immuno-precipitation.
 Thus, a total of 182 cases (91 positive and 91 negative) were used to
-build a balanced data set. 
+build a balanced data set.
 To identify failed discretizations, we used the paremeters of the
 fitted HMM. Based on the transition matrix, the emission paramaters,
 the Viterbi Path and the posterior probabilities,
@@ -366,15 +366,18 @@ was wgEncodeSydhTfbsK562InputRawData.fastq.
 
 \subsection{Benchmark conditions}
 \label{sub:bench_cond}
-To compare Zerone to other discretizers, we analysed three different
+To compare Zerone to other discretizers, we analysed four different
 ChIP-seq data sets: CCCTC-binding factor (CTCF), RNA polymerase II
 (Pol2) and tri-methylated histone H3 at lysine 36 (H3K36me3) ---that
-represent peaky, mixed and broad signals, respectively. Each
-data set consisted of a mock profile without immunoprecipitation
+represent peaky, mixed and broad signals, respectively. We also included a
+data set of tri-methylated histone H3 at lysine 4 (H3K4me3), which is a
+histone mark that represents a peaky signal that is nonetheless broader than
+that of CTCF.
+Each data set consisted of a mock profile without immunoprecipitation
 and two replicate ChIP-seq profiles.
-The ENCODE accession numbers for these three data sets are
-ENCSR000DWE, ENCSR000DWB and ENCSR000FAJ, respectively. For the last data set,
-we used the control experiment ENCSR000EWK.
+The ENCODE accession numbers for these four data sets are
+ENCSR000DWE, ENCSR000FAJ, ENCSR000DWB and ENCSR000DWD respectively.
+For the Pol2 data set, we used the control experiment ENCSR000EWK.
 
 We tested MACS \texttt{callpeak} version 2.1.0.20140616, BayesPeak
 version 1.20.0 and JAMM version 1.0.7rev1. All tests were performed on
@@ -525,9 +528,9 @@ and it achieves the highest precision.
 True and false positives are defined as peaks with and without a CTCF
 motif, respectively. Total: the number of peaks found by the program.
 Motif: the subset of those containing at least one CTCF motif.
-Precision: Motif divided by Total. Recall: Motif divided by the number
-of CTCF motif-containing windows in the genome. $F_{1}$ score: the
-harmonic mean between Precision and Recall.
+Precision: Motif divided by Total. Recall: the number of motifs contained
+in the peaks divided by the number of motifs in the genome. $F_{1}$ score:
+the harmonic mean between Precision and Recall.
 \label{tab:ctcf}}
 {\begin{tabular}{lrrccc}
         \toprule
@@ -561,10 +564,10 @@ knownGene table of the UCSC Genes annotation for the hg19 genome
 \begin{table}[!t]
 \processtable{Performance on the Pol2 data set.
 True and false positives are defined as peaks with and without a
-transcription start site (TSS), respectivel. Total: the number of peaks
+transcription start site (TSS), respectively. Total: the number of peaks
 found by the program. TSS: the subset of those containing at least one
-TSS. Precision: TSS divided by Total. Recall: TSS divided by the number
-of TSS motif-containing windows in the genome. $F_{1}$ score: the
+TSS. Precision: TSS divided by Total. Recall: the number of TSS contained
+in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the
 harmonic mean between Precision and Recall.
 \label{tab:tss}}
 {\begin{tabular}{lrrccc}
@@ -572,12 +575,12 @@ harmonic mean between Precision and Recall.
         \textbf{Software}  & \textbf{Total}  & \textbf{TSS} &
         \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
         \midrule
-        BayesPeak$^{(1)}$ & 208,809 & 2,722 & 0.01 & 0.06 & 0.03 \\
-        BayesPeak$^{(2)}$ & 203,438 & 2,603 & 0.01 & 0.05 & 0.03 \\
-        JAMM              & 209,882 & 6,761 & 0.03 & 0.21 & 0.11 \\
-        MACS$^{(1)}$      &  51,313 & 6,845 & 0.13 & 0.22 & 0.27 \\
-        MACS$^{(2)}$      &  49,034 & 6,546 & 0.13 & 0.21 & 0.26 \\
-        Zerone            &  23,976 & 6,926 & 0.29 & 0.24 & 0.36 \\
+        BayesPeak$^{(1)}$ &  32,758 & 5,877 & 0.18 & 0.19 & 0.19 \\
+        BayesPeak$^{(2)}$ &  35,310 & 5,783 & 0.16 & 0.19 & 0.18 \\
+        JAMM              & 239,637 & 5,514 & 0.02 & 0.17 & 0.04 \\
+        MACS$^{(1)}$      &  51,271 & 6,860 & 0.13 & 0.22 & 0.17 \\
+        MACS$^{(2)}$      &  49,062 & 6,552 & 0.13 & 0.21 & 0.16 \\
+        Zerone            &  25,703 & 7,673 & 0.30 & 0.26 & 0.28 \\
         \botrule
 \end{tabular}}{The numbers in parentheses indicate the results on the two
 replicates separately.}
@@ -590,7 +593,7 @@ very neat advantage in precision. These results confirm that
 the performance of Zerone is outstanding on this data set, as suggested
 by the middle panel of Fig.~\ref{fig:pareto}.
 
-\subsubsection{H3K36me3-enriched domains.}
+\subsubsection{H3K36me3-enriched domains on active genes.}
 There is no consensus sequence to determine the location of histone
 modifications. However, it is known that the bodies of active genes
 are enriched in H3K36me3 \citep{pmid16122420,pmid23739122}. Therefore,
@@ -629,6 +632,47 @@ while discovering enriched windows not found by the others.
 }\label{fig:venn}
 \end{figure}
 
+\subsubsection{H3K4me3 signal on active promoters.}
+The histone mark H3K4me3 appears to be enriched on active promoters and,
+therefore, near the TSS of actively transcribed genes
+\citep{pmid15680324,pmid17512414,pmid17277777}.
+We can use the same TSS anotation we used to
+
+although you can also find it on poised promoters
+“bivalent domains” where H3K4me3 occupies the same promoter as
+repressive marks, such as H3K27me3 often at important developmental
+genes \citep{pmid16630819}
+GRO-seq
+zerone is still the best
+
+\begin{table*}[!t]
+\processtable{Performance on the H3K4me3 data set.
+True and false positives are defined as peaks with and without a
+transcription start site (TSS), respectively. Total: the number of peaks
+found by the program. TSS: the subset of those containing at least one
+TSS. Precision: TSS divided by Total. Recall: the number of TSS contained
+in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the
+harmonic mean between Precision and Recall.
+\label{tab:tss}}
+{\begin{tabular}{lr|rccc|rccc}
+        \toprule
+        & & \multicolumn{4}{c}{\textbf{All TSS}} & \multicolumn{4}{c}{\textbf{Active TSS}} \\
+        \midrule
+        \textbf{Software}  & \textbf{Total}  &
+        \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} &
+        \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
+        \midrule
+        BayesPeak$^{(1)}$ &  26,938 & 4,330 & 0.16 & 0.13 & 0.15 &   859 & 0.03 & 0.03 & 0.03 \\
+        BayesPeak$^{(2)}$ &  27,132 & 4,288 & 0.16 & 0.13 & 0.14 &   850 & 0.03 & 0.03 & 0.03 \\
+        JAMM              & 624,819 & 2,112 & 0.00 & 0.04 & 0.01 &   130 & 0.00 & 0.00 & 0.00 \\
+        MACS$^{(1)}$      &  29,125 & 6,614 & 0.23 & 0.22 & 0.22 & 1,261 & 0.04 & 0.04 & 0.04 \\
+        MACS$^{(2)}$      &  29,420 & 6,542 & 0.22 & 0.22 & 0.22 & 1,261 & 0.04 & 0.04 & 0.04 \\
+        Zerone            &  15,602 & 6,989 & 0.45 & 0.25 & 0.32 & 1,320 & 0.08 & 0.04 & 0.06 \\
+        \botrule
+\end{tabular}}{The numbers in parentheses indicate the results on the two
+replicates separately.}
+\end{table*}
+
 \subsection{Speed and memory footprint}
 We benchmarked Zerone against three ChIP-seq discretizers.
 We included MACS as the standard method for ChIP-seq peak calling,
@@ -637,7 +681,7 @@ similar to the model implemented in Zerone, and JAMM because, as
 Zerone, it can perform joint discretization of experimental replicates.
 
 We compared the running times of the different programs on discretizing
-three data sets of similar size that represent the three major types of
+four data sets of similar size that represent three major types of
 ChIP-seq signal usually observed. The CTCF signal consists of sharp
 peaks at the transcription factor binding site, the H3K36me3 signal
 consists of broad domains, and the Pol2 signal consists of  peaks
@@ -665,7 +709,7 @@ four time faster than MACS while using 30\% less memory.
 \centerline{\includegraphics[scale=0.5]{performance.pdf}}
 \caption{
   Running times and peak memory footprint of the
-  discretizers on the three ChIP-seq data sets. For programs that only
+  discretizers on the four ChIP-seq data sets. For programs that only
   allow single-profile discretization (\textit{i.e.} BayesPeak and MACS),
   mean values (not the sum) are shown. Note the logarithmic scale in the
   running times.

@@ -10,3 +10,7 @@ bigWigToBedGraph:
 
 GSM1480325_K562_GROseq_%.bed: GSM1480325_K562_GROseq_%.bigWig bigWigToBedGraph
 	./bigWigToBedGraph $< $@
+
+
+# FigX.pdf:
+# Run R scripts that do the analyses and output the figures.

@@ -30,5 +30,7 @@ COPY /BayesPeak/BayesPeak.R /BayesPeak/
 RUN mkdir /benchmark
 COPY /benchmark/Makefile /benchmark/
 COPY /benchmark/GSM1480325_K562_GROseq_*.bigWig /benchmark/
+COPY /benchmark/idrCode.tar.gz /benchmark/
+RUN tar -zxf idrCode.tar.gz && rm idrCode.tar.gz
 
 COPY $DIR/Makefile $DIR/

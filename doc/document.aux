@@ -35,8 +35,6 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.5}}Benchmark conditions}{3}}
 \newlabel{sub:bench_cond}{{{2.5}}{3}}
 \citation{pmid21059603}
-\citation{pmid16122420}
-\citation{pmid23739122}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces  ChIP-seq profiles of JARID1A in H1 ES cells (300 bp windows). The first replicate is not similar to the second, and it does not contain any target. }}{4}}
 \newlabel{fig:jarid}{{3}{4}}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Results}{4}}
@@ -45,6 +43,8 @@
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces  Graphical representation of discretizations. Genomic windows of the ChIP-seq profile are ordered by decreasing amount of reads on the $x$ axis, and the cumulative amount of reads is plotted on the $y$ axis. This line forms a Pareto front representing the maximum number of reads for a given number of windows. Discretizations are represented as a single point on this plane (black disc) whose coordinates are the number of targets and the total number of reads in the targets. The dark triangle represents discretizations that are more conservative and discover more targets. }}{4}}
 \newlabel{fig:expl}{{4}{4}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{3.2}}Accuracy}{4}}
+\citation{pmid16122420}
+\citation{pmid23739122}
 \citation{pmid17382889}
 \citation{Karolchik2004}
 \citation{pmid16122420}
@@ -53,43 +53,54 @@
 \newlabel{fig:pareto}{{5}{5}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.1}}Identification of CTCF binding sites.}{5}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.2}}Pol2 binding around transcription start sites.}{5}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Performance on the CTCF motifs data set. True and false positives are defined as peaks with and without a CTCF motif, respectively. Total: the number of peaks found by the program. Motif: the subset of those containing at least one CTCF motif. Precision: Motif divided by Total. Recall: Motif divided by the number of CTCF motif-containing windows in the genome. $F_{1}$ score: the harmonic mean between Precision and Recall. }}{5}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Performance on the CTCF motifs data set. True and false positives are defined as peaks with and without a CTCF motif, respectively. Total: the number of peaks found by the program. Motif: the subset of those containing at least one CTCF motif. Precision: Motif divided by Total. Recall: the number of motifs contained in the peaks divided by the number of motifs in the genome. $F_{1}$ score: the harmonic mean between Precision and Recall. }}{5}}
 \newlabel{tab:ctcf}{{1}{5}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.3}}H3K36me3-enriched domains.}{5}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Performance on the Pol2 data set. True and false positives are defined as peaks with and without a transcription start site (TSS), respectivel. Total: the number of peaks found by the program. TSS: the subset of those containing at least one TSS. Precision: TSS divided by Total. Recall: TSS divided by the number of TSS motif-containing windows in the genome. $F_{1}$ score: the harmonic mean between Precision and Recall. }}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.3}}H3K36me3-enriched domains on active genes.}{5}}
+\citation{pmid15680324}
+\citation{pmid17512414}
+\citation{pmid17277777}
+\citation{pmid16630819}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Performance on the Pol2 data set. True and false positives are defined as peaks with and without a transcription start site (TSS), respectively. Total: the number of peaks found by the program. TSS: the subset of those containing at least one TSS. Precision: TSS divided by Total. Recall: the number of TSS contained in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the harmonic mean between Precision and Recall. }}{6}}
 \newlabel{tab:tss}{{2}{6}}
 \@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces  Left panel: quality of the H3K36me3 discretization. Each bar represents the relative fraction of variance in RNA reads explained by the discretization of H3K36me3. The value for MACS was set to 1.0 and all other values were scaled accordingly. Right panel: Overlap between H3K36me3 targets. Each circle represents the H3K36me3 targets identified by a program. The size of the circles is proportional to the coverage of the targets, and their overlap approximates the amount of targets shared by the programs. Note the almost complete overlap between the BayesPeak discretizations on the two replicates. }}{6}}
 \newlabel{fig:venn}{{6}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.4}}H3K4me3 signal on active promoters.}{6}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{3.3}}Speed and memory footprint}{6}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces  Running times and peak memory footprint of the discretizers on the three ChIP-seq data sets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. Note the logarithmic scale in the running times. }}{6}}
-\newlabel{fig:perf}{{7}{6}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Discussion and conclusions}{6}}
 \bibstyle{natbib}
 \bibdata{document,extra}
 \bibcite{pmid19458158}{{1}{2009}{{Bailey {\em  et~al.}}}{{Bailey, Boden, Buske, Frith, Grant, Clementi, Ren, Li, and Noble}}}
-\bibcite{baum1966}{{2}{1966}{{Baum and Petrie}}{{Baum and Petrie}}}
-\bibcite{Chang2011}{{3}{2011}{{Chang and Lin}}{{Chang and Lin}}}
-\bibcite{Dempster77maximumlikelihood}{{4}{1977}{{Dempster {\em  et~al.}}}{{Dempster, Laird, and Rubin}}}
-\bibcite{pmid21330290}{{5}{2011}{{Grant {\em  et~al.}}}{{Grant, Bailey, and Noble}}}
-\bibcite{pmid18463634}{{6}{2008}{{Guelen {\em  et~al.}}}{{Guelen, Pagie, Brasset, Meuleman, Faza, Talhout, Eussen, de~Klein, Wessels, de~Laat, and van Steensel}}}
-\bibcite{pmid25223640}{{7}{2015}{{Ibrahim {\em  et~al.}}}{{Ibrahim, Lacadie, and Ohler}}}
-\bibcite{pscla}{{8}{2015}{{Jackman}}{{Jackman}}}
-\bibcite{Karolchik2004}{{9}{2004}{{Karolchik {\em  et~al.}}}{{Karolchik, Hinrichs, Furey, Roskin, Sugnet, Haussler, and Kent}}}
-\bibcite{pmid17382889}{{10}{2007}{{Kim {\em  et~al.}}}{{Kim, Abdullaev, Smith, Ching, Loukinov, Green, Zhang, Lobanenkov, and Ren}}}
-\bibcite{pmid23739122}{{11}{2013}{{Kimura}}{{Kimura}}}
-\bibcite{li2011}{{12}{2011}{{Li {\em  et~al.}}}{{Li, Brown, Huang, and Bickel}}}
-\bibcite{pmid23103880}{{13}{2012}{{Marco-Sola {\em  et~al.}}}{{Marco-Sola, Sammeth, Guigó, and Ribeca}}}
-\bibcite{pmid24194598}{{14}{2014}{{Mathelier {\em  et~al.}}}{{Mathelier, Zhao, Zhang, Parcy, Worsley-Hunt, Arenillas, Buchman, yu~Chen, Chou, Ienasescu, Lim, Shyr, Tan, Zhou, Lenhard, Sandelin, and Wasserman}}}
-\bibcite{e1071}{{15}{2014}{{Meyer {\em  et~al.}}}{{Meyer, Dimitriadou, Hornik, Weingessel, and Leisch}}}
-\bibcite{pmid24349523}{{16}{2013}{{Park {\em  et~al.}}}{{Park, Lee, Bhupindersingh, and Iyer}}}
-\bibcite{pmid16122420}{{17}{2005}{{Pokholok {\em  et~al.}}}{{Pokholok, Harbison, Levine, Cole, Hannett, Lee, Bell, Walker, Rolfe, Herbolsheimer, Zeitlinger, Lewitter, Gifford, and Young}}}
-\bibcite{R}{{18}{2014}{{R Core Team}}{{R Core Team}}}
-\bibcite{pmid21787385}{{19}{2011}{{Rashid {\em  et~al.}}}{{Rashid, Giresi, Ibrahim, Sun, and Lieb}}}
-\bibcite{pmid19772557}{{20}{2009}{{Spyrou {\em  et~al.}}}{{Spyrou, Stark, Lynch, and Tavaré}}}
-\bibcite{pmid21059603}{{21}{2011}{{Szalkowski and Schmid}}{{Szalkowski and Schmid}}}
-\bibcite{pmid24173036}{{22}{2013}{{Teytelman {\em  et~al.}}}{{Teytelman, Thurtle, Rine, and van Oudenaarden}}}
-\bibcite{1054010}{{23}{1967}{{Viterbi}}{{Viterbi}}}
-\bibcite{psclb}{{24}{2008}{{Zeileis {\em  et~al.}}}{{Zeileis, Kleiber, and Jackman}}}
-\bibcite{pmid18798982}{{25}{2008}{{Zhang {\em  et~al.}}}{{Zhang, Liu, Meyer, Eeckhoute, Johnson, Bernstein, Nusbaum, Myers, Brown, Li, and Liu}}}
-\global\@namedef{@lastpage@}{7}
+\bibcite{pmid17512414}{{2}{2007}{{Barski {\em  et~al.}}}{{Barski, Cuddapah, Cui, Roh, Schones, Wang, Wei, Chepelev, and Zhao}}}
+\bibcite{baum1966}{{3}{1966}{{Baum and Petrie}}{{Baum and Petrie}}}
+\bibcite{pmid15680324}{{4}{2005}{{Bernstein {\em  et~al.}}}{{Bernstein, Kamal, Lindblad-Toh, Bekiranov, Bailey, Huebert, McMahon, Karlsson, Kulbokas, Gingeras, Schreiber, and Lander}}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Performance on the H3K4me3 data set. True and false positives are defined as peaks with and without a transcription start site (TSS), respectively. Total: the number of peaks found by the program. TSS: the subset of those containing at least one TSS. Precision: TSS divided by Total. Recall: the number of TSS contained in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the harmonic mean between Precision and Recall. }}{7}}
+\newlabel{tab:tss}{{3}{7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces  Running times and peak memory footprint of the discretizers on the four ChIP-seq data sets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. Note the logarithmic scale in the running times. }}{7}}
+\newlabel{fig:perf}{{7}{7}}
 \@writefile{toc}{\contentsline {paragraph}{Funding\text  {\rm  :}}{7}}
+\bibcite{pmid16630819}{{5}{2006}{{Bernstein {\em  et~al.}}}{{Bernstein, Mikkelsen, Xie, Kamal, Huebert, Cuff, Fry, Meissner, Wernig, Plath, Jaenisch, Wagschal, Feil, Schreiber, and Lander}}}
+\bibcite{Chang2011}{{6}{2011}{{Chang and Lin}}{{Chang and Lin}}}
+\bibcite{Dempster77maximumlikelihood}{{7}{1977}{{Dempster {\em  et~al.}}}{{Dempster, Laird, and Rubin}}}
+\bibcite{pmid21330290}{{8}{2011}{{Grant {\em  et~al.}}}{{Grant, Bailey, and Noble}}}
+\bibcite{pmid18463634}{{9}{2008}{{Guelen {\em  et~al.}}}{{Guelen, Pagie, Brasset, Meuleman, Faza, Talhout, Eussen, de~Klein, Wessels, de~Laat, and van Steensel}}}
+\bibcite{pmid17277777}{{10}{2007}{{Heintzman {\em  et~al.}}}{{Heintzman, Stuart, Hon, Fu, Ching, Hawkins, Barrera, Calcar, Qu, Ching, Wang, Weng, Green, Crawford, and Ren}}}
+\bibcite{pmid25223640}{{11}{2015}{{Ibrahim {\em  et~al.}}}{{Ibrahim, Lacadie, and Ohler}}}
+\bibcite{pscla}{{12}{2015}{{Jackman}}{{Jackman}}}
+\bibcite{Karolchik2004}{{13}{2004}{{Karolchik {\em  et~al.}}}{{Karolchik, Hinrichs, Furey, Roskin, Sugnet, Haussler, and Kent}}}
+\bibcite{pmid17382889}{{14}{2007}{{Kim {\em  et~al.}}}{{Kim, Abdullaev, Smith, Ching, Loukinov, Green, Zhang, Lobanenkov, and Ren}}}
+\bibcite{pmid23739122}{{15}{2013}{{Kimura}}{{Kimura}}}
+\bibcite{li2011}{{16}{2011}{{Li {\em  et~al.}}}{{Li, Brown, Huang, and Bickel}}}
+\bibcite{pmid23103880}{{17}{2012}{{Marco-Sola {\em  et~al.}}}{{Marco-Sola, Sammeth, Guigó, and Ribeca}}}
+\bibcite{pmid24194598}{{18}{2014}{{Mathelier {\em  et~al.}}}{{Mathelier, Zhao, Zhang, Parcy, Worsley-Hunt, Arenillas, Buchman, yu~Chen, Chou, Ienasescu, Lim, Shyr, Tan, Zhou, Lenhard, Sandelin, and Wasserman}}}
+\bibcite{e1071}{{19}{2014}{{Meyer {\em  et~al.}}}{{Meyer, Dimitriadou, Hornik, Weingessel, and Leisch}}}
+\bibcite{pmid24349523}{{20}{2013}{{Park {\em  et~al.}}}{{Park, Lee, Bhupindersingh, and Iyer}}}
+\bibcite{pmid16122420}{{21}{2005}{{Pokholok {\em  et~al.}}}{{Pokholok, Harbison, Levine, Cole, Hannett, Lee, Bell, Walker, Rolfe, Herbolsheimer, Zeitlinger, Lewitter, Gifford, and Young}}}
+\bibcite{R}{{22}{2014}{{R Core Team}}{{R Core Team}}}
+\bibcite{pmid21787385}{{23}{2011}{{Rashid {\em  et~al.}}}{{Rashid, Giresi, Ibrahim, Sun, and Lieb}}}
+\bibcite{pmid19772557}{{24}{2009}{{Spyrou {\em  et~al.}}}{{Spyrou, Stark, Lynch, and Tavaré}}}
+\bibcite{pmid21059603}{{25}{2011}{{Szalkowski and Schmid}}{{Szalkowski and Schmid}}}
+\bibcite{pmid24173036}{{26}{2013}{{Teytelman {\em  et~al.}}}{{Teytelman, Thurtle, Rine, and van Oudenaarden}}}
+\bibcite{1054010}{{27}{1967}{{Viterbi}}{{Viterbi}}}
+\bibcite{psclb}{{28}{2008}{{Zeileis {\em  et~al.}}}{{Zeileis, Kleiber, and Jackman}}}
+\bibcite{pmid18798982}{{29}{2008}{{Zhang {\em  et~al.}}}{{Zhang, Liu, Meyer, Eeckhoute, Johnson, Bernstein, Nusbaum, Myers, Brown, Li, and Liu}}}
+\global\@namedef{@lastpage@}{8}
