@@ -6,7 +6,8 @@
   \firstpage{1}
 
   \title[Combined ChIP-seq discretization and quality control]{Zerone:
-  a ChIP-seq discretizer for multiple replicates with built-in quality control}
+  a ChIP-seq discretizer for multiple replicates with built-in
+  quality control}
   \author[Cusc\'o \textit{et~al}]{Pol Cusc\'o\,$^{1,2}$ and Guillaume
   Filion\,$^{1,2}$\footnote{to whom correspondence should be addressed}}
   \address{$^{1}$Genome Architecture, Gene Regulation, Stem Cells and Cancer
@@ -131,8 +132,8 @@ competitive in terms of speed and accuracy.
 \begin{methods}
 \section{Methods}
 
-\subsection{Emission model}
-\label{sub:emissions}
+\subsection{Model and fitting}
+\label{sub:hmm}
 It is natural to model read counts per genomic window by an unbounded
 discrete distribution. The Poisson distribution is an obvious candidate,
 but it is a poor choice because in ChIP-seq data the variance of read
@@ -210,7 +211,6 @@ $$
 In the definition above, $\Gamma$ denotes Euler's gamma function and
 $y_i = 0$ stands for $y_{i,1} = 0, \ldots, y_{i,r} = 0$.
 
-\subsection{Discretization}
 Discretization is performed by fitting an HMM
 with ZINM emissions. The HMM has three
 states corresponding to ``low'', ``medium'' and ``high'' abundance of
@@ -274,7 +274,19 @@ by default). The state calls are computed by finding the most likely
 segmentation given the value of the parameters through the Viterbi
 algorithm \citep{1054010}.
 
-\subsection{Classification and training}
+\subsection{ChIP-seq preprocessing}
+Initially, mapped reads are binned in fixed-step windows (default 300
+bp) by their mid-point and PCR duplicates are removed (\textit{i.e.}
+reads with the exact same location and orientation). The window size
+should not be smaller than the sonication fragment length and
+it should be set so that there are on average more than 3-4 mapped reads
+per bin. Zerone accepts .sam, .bam, .bed, and .map
+\citep[GEM,][]{pmid23103880} formats and performs gzip decompression
+on the fly if required. There is no upper limit to the number of
+input files to discretize simultaneously, but the user must provide
+at least one negative control and one ChIP-seq experiment.
+
+\subsection{Quality control}
 \label{sub:training}
 We used a machine learning strategy to identify discretization
 failures. The true status (success or failure) of experimental ChIP-seq
@@ -314,7 +326,7 @@ discretizer) and the amount of targets.
 
 Our first attempts with logistic regression suggested that linear
 classifiers are unable to properly separate these two classes because
-they overlap in the feature space (Fig.~\ref{fig:pca_bw}). To obtain a
+they overlap in the feature space (Fig.~\ref{fig:pca}). To obtain a
 more complex separation, we used a Support Vector Machine
 (SVM, \citealp{Chang2011,e1071}), as this approach
 allows nonlinear classification by mapping
@@ -335,7 +347,7 @@ advantages over other approaches such as neural networks.
   failures and successes are indistinguishable. The right panel
   suggests that nonlinear classification is more appropriate to
   classify discretizations.
-}\label{fig:pca_bw}
+}\label{fig:pca}
 \end{figure}
 
 We trained the SVM with a radial basis function kernel and
@@ -350,7 +362,8 @@ IDR for instance) the quality control implemented in Zerone is
 `all-or-none', \textit{i.e.} the profile is rejected or accepted
 as a whole.
 
-\subsection{Data sets and preprocessing}
+\subsection{Benchmark data sets and conditions}
+\label{sub:bench_cond}
 We used all the ChIP-seq fastq files produced by the ENCODE Consortium
 on the human leukemia cell line K562. The data was
 downloaded from repository
@@ -366,8 +379,6 @@ gem-2-sam version 1.423 beta.
 The negative control file use to prepare Fig.~\ref{fig:ZINB_fit}
 was wgEncodeSydhTfbsK562InputRawData.fastq.
 
-\subsection{Benchmark conditions}
-\label{sub:bench_cond}
 To compare Zerone to other discretizers, we analysed four different
 ChIP-seq data sets: CCCTC-binding factor (CTCF), RNA polymerase II
 (Pol2) and tri-methylated histone H3 at lysine 36 (H3K36me3) ---that
@@ -435,6 +446,9 @@ considered all the genomic features that overlapped with at least one
 GRO-seq tag to be on an expressed region.
 All analyses that involved the mapping of genomic features were done using the
 UCSC hg19 assembly of the human genome.
+
+A full replay of the benchmark, including all the specific information
+is available on the Docker container.
 
 \end{methods}
 
@@ -774,6 +788,7 @@ four time faster than MACS while using 30\% less memory.
 
 \section{Discussion and conclusions}
 Zerone was developed ground up for scalibility and throughput.
+The result is a tool with competitive performance (Fig.~\ref{fig:perf}).
 Part of the speed is due to hashing methods that dramatically
 cut down the computation time during the Baum-Welch cycles. Zerone
 also rests on sound statistical bases. Theoretical arguments and
@@ -794,6 +809,16 @@ role in the process. In order to evaluate the quality of the
 discretization, Zerone implicitly assumes that the user
 has provided controls that properly capture systematic biases
 such as batch effects, mappability and copy number variations.
+
+The quality control (QC) implemented in Zerone goes beyond the
+Irreproducible Discovery Rate \citep[IDR,][]{li2011} in several
+ways. Zerone measures the quality of the discretization and not only
+the consistency between replicates. Also, the QC of Zerone is neither
+limited to a specific type of profile (\textit{e.g.} sharp peaks),
+nor to a preset number of replicates. Finally, issuing an
+`all-or-none' call about the discretization is better practice
+than silently ignoring the regions that differ between experiments
+(see \textit{e.g.} Fig.~\ref{fig:jarid}).
 
 Here we introduced a way to compare discretizers with an intuitive
 graphical representation (Fig.~\ref{fig:expl}). On this plane,
@@ -837,7 +862,9 @@ of Economy and Competitiveness (State Training Subprogram: predoctoral
 fellowships for the training of PhD students (FPI) 2013).
 We acknowledge support of the Spanish Ministry of Economy and
 Competitiveness, `Centro de Excelencia Severo Ochoa 2013-2017',
-SEV-2012-0208.
+SEV-2012-0208. We would like to thank the anonymous reviewers
+for their suggestions and their constructive criticism of the
+manuscript.
 
 \bibliographystyle{natbib}
 \bibliography{document,extra}
