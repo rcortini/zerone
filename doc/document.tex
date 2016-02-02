@@ -131,7 +131,6 @@ competitive in terms of speed and accuracy.
 \begin{methods}
 \section{Methods}
 
-
 \subsection{Emission model}
 \label{sub:emissions}
 It is natural to model read counts per genomic window by an unbounded
@@ -168,9 +167,9 @@ and NB distributions.
   `baseline'). The histograms in gray scales show the maximum
   likelihood fit of the Poisson, Negative Binomial (NB) and
   Zero-Inflated Negative Binomial (ZINB) distributions. The fit of
-  the Poisson distribution (light gray) is poor. The NB distribution
-  (medium gray) gives a good fit at the tail, but not for windows with
-  0 and 1 read. The ZINB distribution (dark gray) gives a good fit
+  the Poisson distribution is poor. The NB distribution
+  gives a good fit at the tail, but not for windows with
+  0 and 1 read. The ZINB distribution gives a good fit
   over the whole range.
 }\label{fig:ZINB_fit}
 \end{figure}
@@ -275,7 +274,6 @@ by default). The state calls are computed by finding the most likely
 segmentation given the value of the parameters through the Viterbi
 algorithm \citep{1054010}.
 
-
 \subsection{Classification and training}
 \label{sub:training}
 We used a machine learning strategy to identify discretization
@@ -330,9 +328,9 @@ advantages over other approaches such as neural networks.
   Scaled Principal Component Analysis of the training data set.
   Each symbol represents a discretization performed by Zerone. The
   8 features extracted from each discretization are projected onto
-  the first three principal components. Positive examples (black
-  circles) are similar to each other, while negative examples (white
-  triangles) are different from each other and from positive examples.
+  the first three principal components. Positive examples
+  are similar to each other, while negative examples
+  are different from each other and from positive examples.
   The two groups overlap, which creates an ambiguous zone where
   failures and successes are indistinguishable. The right panel
   suggests that nonlinear classification is more appropriate to
@@ -351,7 +349,6 @@ quality control methods based on individual peaks (such as the
 IDR for instance) the quality control implemented in Zerone is
 `all-or-none', \textit{i.e.} the profile is rejected or accepted
 as a whole.
-
 
 \subsection{Data sets and preprocessing}
 We used all the ChIP-seq fastq files produced by the ENCODE Consortium
@@ -415,7 +412,15 @@ an 8-core Intel Xeon E5606 machine with 48~GB of DDR3-RAM at 1333~MHz.
 All programs were run on a single core with the recommended options.
 Specifically, on the H3K36me3 data set, JAMM was run with the option
 \texttt{-r region} and MACS with the \texttt{--broad} option. For the rest of
-the data sets and programs, the default options where used.
+the data sets and programs, the default options were used.
+For the IDR analysis, we run MACS with a more relaxed qvalue cutoff to obtain
+a higher number of peaks. We did this by setting the option \texttt{-q} or
+\texttt{--qvalue} to 0.05 (default value 0.01).
+The IDR analysis proper was conducted using the R script
+\texttt{batch-consistency-analysis.r}, available at
+\href{https://sites.google.com/site/anshulkundaje/projects/idr}{https://sites.google.com/site/anshulkundaje/projects/idr}.
+Peaks that scored below 0.05 were selected as reproducible.
+
 The CTCF motif was obtained from the JASPAR database version
 5.0{\textunderscore}ALPHA \citep{pmid24194598}. Namely, we used the motif
 with ID MA0139.1.
@@ -425,7 +430,9 @@ human genome.
 Data about TSS positioning was extracted from the knownGene table of the
 UCSC Genes annotation for the hg19 genome \citep{Karolchik2004}.
 Gene expression was determined from a genomic run-on sequencing (GRO-seq)
-data set on the cell line K562. Its GEO accesion number is GSM1480325.
+data set on the cell line K562. Its GEO accesion number is GSM1480325. We
+considered all the genomic features that overlapped with at least one
+GRO-seq tag to be on an expressed region.
 All analyses that involved the mapping of genomic features were done using the
 UCSC hg19 assembly of the human genome.
 
