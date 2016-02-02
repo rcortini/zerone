@@ -41,7 +41,7 @@
     replicates into a single discretized profile. To identify low quality
     or irreproducible data, we trained a Support Vector Machine and
     integrated it as part of the discretization process. Zerone detects
-    low quality profiles with 2\% errors. We also introduce a graphical
+    low quality profiles with 2\% of errors. We also introduce a graphical
     representation to compare discretization quality and we show that
     Zerone achieves outstanding accuracy. Finally, on current hardware,
     Zerone discretizes a ChIP-seq experiment on mammalian genomes in
@@ -52,7 +52,7 @@
     source code and R scripts can be downloaded from
   \href{https://github.com/nanakisck/zerone}{https://github.com/nanakiksc/zerone}.
   The information to reproduce the benchmark and the figures is
-  stored in a public Docker container that can be downloaded from
+  stored in a public Docker image that can be downloaded from
 \href{https://hub.docker.com/r/nanakiksc/zerone/}{https://hub.docker.com/r/nanakiksc/zerone/}.
 
 \section{Contact:}
@@ -168,7 +168,7 @@ and NB distributions.
   pooled in 300~bp windows after removing duplicates. The histogram of
   the read counts is shown in black (no immunoprecipitation was
   performed in this experiment, so this variation corresponds to the
-  `baseline'). The histograms in gray scales show the maximum
+  `baseline'). The colored histograms show the maximum
   likelihood fit of the Poisson, Negative Binomial (NB) and
   Zero-Inflated Negative Binomial (ZINB) distributions. The fit of
   the Poisson distribution is poor. The NB distribution
@@ -239,7 +239,7 @@ $$
 In the above, $\nu$ denotes the initial probability of the states,
 $Q$ is the $3 \times 3$ transition matrix of the model, and
 $g(y_i|x_i)$ is the probability of the emission $y_i$ if the state is
-$x_i$. Disretization amounts to finding the sequence of states and the
+$x_i$. Discretization amounts to finding the sequence of states and the
 emission parameters that maximize the value above. Zerone achieves this
 with the Baum-Welch algorithm \citep{baum1966}, which is a special case
 of the EM algorithm \citep{Dempster77maximumlikelihood}. The emission
@@ -370,7 +370,7 @@ as a whole.
 \subsection{Benchmark data sets and conditions}
 \label{sub:bench_cond}
 We used all the ChIP-seq fastq files produced by the ENCODE Consortium
-on the human leukemia cell line K562. The data was
+on the human leukemia cell line K562. The data were
 downloaded from repository
 \href{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC}{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC} in November 2013.
 We did not use mapped files because they were mapped in different
@@ -386,8 +386,8 @@ was wgEncodeSydhTfbsK562InputRawData.fastq.
 
 To compare Zerone to other discretizers, we analysed four different
 ChIP-seq data sets: CCCTC-binding factor (CTCF), RNA polymerase II
-(Pol2) and tri-methylated histone H3 at lysine 36 (H3K36me3) ---that
-represent peaky, mixed and broad signals, respectively. We also included a
+(Pol2) and tri-methylated histone H3 at lysine 36 (H3K36me3)---that
+represent peaky, mixed and broad signals, respectively---and a
 data set of tri-methylated histone H3 at lysine 4 (H3K4me3), which is a
 histone mark that represents a peaky signal that is nonetheless broader than
 that of CTCF.
@@ -585,7 +585,7 @@ recall). It has the second highest recall score, close to that of JAMM,
 and it achieves a notable precision.
 When using the IDR method to refine the peaks found, MACS achieves an
 outstanding precision, but it does so at the cost of losing sensitivity,
-and the overall $F_1$ score decreases.
+and the overall $F_1$ score suffers.
 
 \begin{table}[!t]
 \processtable{Performance on the CTCF motifs data set.
@@ -658,7 +658,7 @@ replicates separately.}
 Table \ref{tab:tss} shows that, Zerone achieves the highest $F_1$
 score. Here it achieves both better
 precision and better recall than the other discretizers, with a
-very neat advantage in precision, only achieved by MACS when the complementary
+very neat advantage in precision, only matched by MACS when the complementary
 IDR analysis is performed. In this latter case, MACS + IDR achieves similar
 scores to those of Zerone, but at the cost of decreasing the total number of
 valid peaks found. These results confirm that the performance of Zerone is
@@ -760,11 +760,12 @@ We compared the running times of the different programs on discretizing
 four data sets of similar size that represent three major types of
 ChIP-seq signal usually observed. The CTCF signal consists of sharp
 peaks at the transcription factor binding site, the H3K36me3 signal
-consists of broad domains, and the Pol2 signal consists of  peaks
-at promoters and potentially broad domains on transcribed genes.
+consists of broad domains, and both the H3K4me3 and Pol2 signals consist
+of peaks at promoters---Pol2 potentially showing broad domains on the
+body of transcribed genes too.
 
 The results were similar between experiments, and Zerone was
-consistenty the fastest tool, with a running time around 5 minutes
+consistently the fastest tool, with a running time of around 5 minutes
 (Fig.~\ref{fig:perf}, top row). The advantage is only marginal over
 MACS, which ran for around 10 minutes, but it is substantial over
 BayesPeak and JAMM, which ran in over 9 hours. The results for peak
