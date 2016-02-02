@@ -43,7 +43,7 @@
     integrated it as part of the discretization process. Zerone detects
     low quality profiles with 2\% errors. We also introduce a graphical
     representation to compare discretization quality and we show that
-    Zerone achieves outstanding precision. Finally, on current hardware,
+    Zerone achieves outstanding accuracy. Finally, on current hardware,
     Zerone discretizes a ChIP-seq experiment on mammalian genomes in
     about 5 minutes using less than 700 MB of memory.
 
@@ -76,12 +76,12 @@ a continuous need to develop and improve computational tools to
 analyse ChIP-seq data.
 
 One of the most common analyses performed on ChIP-seq profiles is to
-discretize the signal, \textit{i.e.} tell for each locus of the genome
-whether the transcription factor (or other feature) is present or
-absent. This makes the signal simpler to interpret from the human
-perspective, it removes part of the experimental noise, it simplifies
+discretize the signal, \textit{i.e.} identify the loci where the
+transcription factor (or other feature) is present.
+This makes the signal simpler to interpret,
+it removes part of the experimental noise, it simplifies
 downstream analyses and it allows comparing or combining profiles of
-different nature. This raises a challenge at the computational level
+different natures. This raises a challenge at the computational level
 because discretization has to be carried out uniformly for signals
 that may be very different. For instance, lamins bind in
 megabase-scale domains covering 40\% of the genome
@@ -89,16 +89,16 @@ megabase-scale domains covering 40\% of the genome
 as 6~bp with a coverage below 1\%.
 
 Large consortia such as ENCODE have brought to light
-a more severe type of issue related to the quality of ChIP-seq data.
+severe issues related to the quality of ChIP-seq data.
 Conflicts between replicates are common, and
 sometimes laboratory effects are clearly detectable in the data,
 even when experimentalists use the same material and follow the same
 protocol (our unpublished observations). The most popular remedy is to
-use a metric called IDR (Irreproducible Discovery Rate, \citealp{li2011}),
-which allows to weed
+use a metric called IDR \citep[Irreproducible Discovery Rate,][]{li2011},
+which allows weeding
 out poorly reproducible signal. This approach is a significant step
 forward, but the IDR is undefined when more than two replicates are
-available. Besides, keeping only the reproducible ChIP peaks is not
+available. Besides, keeping only the reproducible ChIP-seq peaks is not
 always the best option. If one of the replicates is mislabelled,
 for instance, it is more appropriate to reject the data set than to keep
 the common ChIP peaks. In summary, how to integrate ChIP-seq data
@@ -116,8 +116,9 @@ output as a whole. Internally, the first step implements a Hidden Markov
 Model (HMM) with zero-inflated negative multinomial (ZINM) emissions, and
 the second implements a Support Vector Machine (SVM) trained using ENCODE
 ChIP-seq data. HMM-based discretization is agnostic about
-the shape of the signal (broad or peaky) and the ZINM distribution captures
-the essential features of the read count distribution in ChIP-seq data.
+the shape of the signal (broad domains or sharp peaks) and the ZINM
+distribution captures the essential features of the read count
+distribution in ChIP-seq data.
 
 Zerone is designed for large volume pipelines aiming to combine many
 ChIP-seq profiles with little human intervention. To this end, it is
@@ -126,20 +127,21 @@ it produces congruent window-based outputs, and it can process hundreds
 of experiments per day on average hardware. We benchmarked Zerone against
 MACS \citep{pmid18798982}, BayesPeak \citep{pmid19772557} and
 JAMM \citep{pmid25223640} on the core task of discretizing ChIP-seq
-profiles of CTCF, Pol2, H3K36me3 and H3K4me3. Our results show that Zerone is
+profiles of CTCF, Pol2, H3K4me3 and H3K36me3. Our results show that Zerone is
 competitive in terms of speed and accuracy.
-% TODO: Add everything regarding H3k4me3.
+
 \begin{methods}
 \section{Methods}
 
-\subsection{Model and fitting}
+\subsection{Model and parameter estimation}
 \label{sub:hmm}
 It is natural to model read counts per genomic window by an unbounded
 discrete distribution. The Poisson distribution is an obvious candidate,
-but it is a poor choice because in ChIP-seq data the variance of read
-counts is usually higher than the mean. The reason is that windows
+but it is a poor choice because the variance of read counts is usually
+higher than the mean for ChIP-seq data. The reason is that windows
 are nonhomogeneous, which increases the dispersion. More specifically,
-windows are not equally PCR-prone and not equally mappable.
+windows do not have the same copy numbers, they are not equally PCR-prone
+and they are not equally mappable.
 The negative binomial (NB) distribution is thus a better choice
 because it allows some variation between windows. However, genomes
 are fraught with repeats, which creates an excess of windows where
@@ -152,15 +154,16 @@ binomial distribution and a distribution concentrated at 0
 The ZINB distribution has 3 parameters that can be fitted by maximum
 likelihood. Zerone uses a custom solver based on the Newton-Raphson
 method, which converges much faster than the popular routine
-\texttt{zeroinfl} \citep{psclb} from the R \citep{R} package
-\texttt{pscl} \citep{pscla}. Fig.~\ref{fig:ZINB_fit} shows that the
+\texttt{zeroinfl} \citep{psclb} from the R package
+\texttt{pscl} \citep{R,pscla}. Fig.~\ref{fig:ZINB_fit} shows that the
 ZINB distribution gives a better fit to ChIP-seq data than Poisson
 and NB distributions.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.55]{ZINB_fit.pdf}}
 \caption{
-  Using the ZINB distribution to model ChIP-seq data. Reads from
+  Using the ZINB distribution to model ChIP-seq data (color
+  version of the figure available online). Reads from
   a mock control data set were mapped onto the human genome and
   pooled in 300~bp windows after removing duplicates. The histogram of
   the read counts is shown in black (no immunoprecipitation was
@@ -171,20 +174,21 @@ and NB distributions.
   the Poisson distribution is poor. The NB distribution
   gives a good fit at the tail, but not for windows with
   0 and 1 read. The ZINB distribution gives a good fit
-  over the whole range.
+  over the whole range (colors online).
 }\label{fig:ZINB_fit}
 \end{figure}
 
 The NB distribution can be interpreted as a Gamma-Poisson process,
 which gives a straightforward extension to a multivariate
 distribution called the Negative Multinomial (NM) and to the
-zero-inflated version called Zero-Inflated Negative Multinomial
+zero-inflated version of it called Zero-Inflated Negative Multinomial
 distribution (ZINM, see supplementary material for detail). In this
 model, windows have an intrinsic ChIP-seq bias due to their sequence
 composition, mappability and other inherent properties, which gives
 a baseline variation present in all ChIP-seq experiments performed
-in the same conditions. Note that the biases are not modelled explicitly
-from known features of the genome, but implicitly by adjusting
+in the same cells and the same conditions. Note that the biases are
+not modelled explicitly from known features of the genome (\textit{e.g.}
+G+C content), but implicitly by adjusting
 the variance of the distribution. Also, the dependency between replicates
 is accounted for by the ZINM distribution, which gives more accurate
 probabilities than assuming independence.
@@ -337,7 +341,8 @@ advantages over other approaches such as neural networks.
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.45]{PCA.pdf}}
 \caption{
-  Scaled Principal Component Analysis of the training data set.
+  Scaled Principal Component Analysis of the training data set
+  (color version of the figure available online).
   Each symbol represents a discretization performed by Zerone. The
   8 features extracted from each discretization are projected onto
   the first three principal components. Positive examples
@@ -524,18 +529,6 @@ them with a partial order, as explained below.
 \label{fig:expl}
 \end{figure}
 
-\begin{figure*}
-\centerline{\includegraphics[scale=0.4]{pareto_front.pdf}}
-\caption{
-  Characteristics of the discretizations for different programs.
-  The representation is obtained as shown on Fig.~\ref{fig:expl}.
-  When discretizing the CTCF and the Pol2 profile (left and middle),
-  Zerone produces discretizations that are very close to the Pareto
-  front. In the case of H3K36me3, the discretization is off the
-  Pareto front, but it is more sensible than the others.
-}
-\label{fig:pareto}
-\end{figure*}
 
 When arranging genomic windows from high to low amount of ChIP-seq
 reads, the cumulative number of reads forms a Pareto front.
@@ -561,6 +554,20 @@ be higher than for transcription factors.
 
 This representation shows that Zerone produces discretizations that
 are sensitive and adapted to the profile being discretized.
+
+\begin{figure*}
+\centerline{\includegraphics[scale=0.4]{pareto_front.pdf}}
+\caption{
+  Characteristics of the discretizations for different programs
+  (color version of the figure available online).
+  The representation is obtained as shown on Fig.~\ref{fig:expl}.
+  When discretizing the CTCF and the Pol2 profile (left and middle),
+  Zerone produces discretizations that are very close to the Pareto
+  front. In the case of H3K36me3, the discretization is off the
+  Pareto front, but it is more sensible than the others.
+}
+\label{fig:pareto}
+\end{figure*}
 
 \subsubsection{Identification of CTCF binding sites.}
 CTCF binds a 20~bp consensus sequence that is highly conserved in
@@ -629,8 +636,7 @@ in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the
 harmonic mean between Precision and Recall.
 \label{tab:tss}}
 {\begin{tabular}{lr|rccc|rccc}
-        \toprule
-        & & \multicolumn{4}{c}{\textbf{All TSS}} & \multicolumn{4}{c}{\textbf{Active TSS}} \\
+        \multicolumn{2}{c}{} & \multicolumn{4}{c}{\textbf{All TSS}} & \multicolumn{4}{c}{\textbf{Active TSS}} \\
         \midrule
         \textbf{Software} & \textbf{Total} &
         \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} &
@@ -677,8 +683,7 @@ in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the
 harmonic mean between Precision and Recall.
 \label{tab:H3K4}}
 {\begin{tabular}{lr|rccc|rccc}
-        \toprule
-        & & \multicolumn{4}{c}{\textbf{All TSS}} & \multicolumn{4}{c}{\textbf{Active TSS}} \\
+        \multicolumn{2}{c}{} & \multicolumn{4}{c}{\textbf{All TSS}} & \multicolumn{4}{c}{\textbf{Active TSS}} \\
         \midrule
         \textbf{Software} & \textbf{Total} &
         \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} &
@@ -734,7 +739,8 @@ while discovering enriched windows not found by the others.
   represents the relative fraction of variance in RNA reads
   explained by the discretization of H3K36me3. The value for MACS was
   set to 1.0 and all other values were scaled accordingly. Right
-  panel: Overlap between H3K36me3 targets. Each circle represents the
+  panel: Overlap between H3K36me3 targets (color version of the figure
+  available online). Each circle represents the
   H3K36me3 targets identified by a program. The size of the circles
   is proportional to the coverage of the targets, and their overlap
   approximates the amount of targets shared by the programs. Note
