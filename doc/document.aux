@@ -51,28 +51,26 @@
 \newlabel{fig:pareto}{{5}{5}}
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces  Graphical representation of discretizations. Genomic windows of the ChIP-seq profile are ordered by decreasing amount of reads on the $x$ axis, and the cumulative amount of reads is plotted on the $y$ axis. This line forms a Pareto front representing the maximum number of reads for a given number of windows. Discretizations are represented as a single point on this plane (black disc) whose coordinates are the number of targets and the total number of reads in the targets. The dark triangle represents discretizations that are more conservative and discover more targets. }}{5}}
 \newlabel{fig:expl}{{4}{5}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.1}}Identification of CTCF binding sites.}{5}}
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Performance on the CTCF motifs data set. True and false positives are defined as peaks with and without a CTCF motif, respectively. Total: the number of peaks found by the program. Motif: the subset of those containing at least one CTCF motif. Precision: Motif divided by Total. Recall: the number of motifs contained in the peaks divided by the number of motifs in the genome. $F_{1}$ score: the harmonic mean between Precision and Recall. }}{5}}
 \newlabel{tab:ctcf}{{2}{5}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.1}}Identification of CTCF binding sites.}{5}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.2}}Pol2 binding around transcription start sites.}{5}}
 \citation{pmid15680324}
 \citation{pmid17512414}
 \citation{pmid17277777}
 \citation{pmid16122420}
 \citation{pmid23739122}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Performance on the Pol2 data set. True and false positives are defined as peaks with and without a transcription start site (TSS), respectively. Total: the number of peaks found by the program. TSS: the subset of those containing at least one TSS. Precision: TSS divided by Total. Recall: the number of TSS contained in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the harmonic mean between Precision and Recall. }}{6}}
-\newlabel{tab:tss}{{3}{6}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.3}}H3K4me3 signal on active promoters.}{6}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.4}}H3K36me3-enriched domains on active genes.}{6}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{3.3}}Speed and memory footprint}{6}}
 \@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces  Left panel: quality of the H3K36me3 discretization. Each bar represents the relative fraction of variance in RNA reads explained by the discretization of H3K36me3. The value for MACS was set to 1.0 and all other values were scaled accordingly. Right panel: Overlap between H3K36me3 targets. Each circle represents the H3K36me3 targets identified by a program. The size of the circles is proportional to the coverage of the targets, and their overlap approximates the amount of targets shared by the programs. Note that the discretizations made by BayesPeak overlap completely and are indistinguishable in this representation. }}{6}}
 \newlabel{fig:venn}{{6}{6}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion and conclusions}{6}}
 \citation{li2011}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Performance on the Pol2 data set. True and false positives are defined as peaks with and without a transcription start site (TSS), respectively. Total: the number of peaks found by the program. TSS: the subset of those containing at least one TSS. Precision: TSS divided by Total. Recall: the number of TSS contained in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the harmonic mean between Precision and Recall. }}{7}}
+\newlabel{tab:tss}{{3}{7}}
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Performance on the H3K4me3 data set. True and false positives are defined as peaks with and without a transcription start site (TSS), respectively. Total: the number of peaks found by the program. TSS: the subset of those containing at least one TSS. Precision: TSS divided by Total. Recall: the number of TSS contained in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the harmonic mean between Precision and Recall. }}{7}}
 \newlabel{tab:H3K4}{{4}{7}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces  Running times and peak memory footprint of the discretizers on the four ChIP-seq data sets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. Note the logarithmic scale in the running times. }}{7}}
-\newlabel{fig:perf}{{7}{7}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion and conclusions}{7}}
 \bibstyle{natbib}
 \bibdata{document,extra}
 \bibcite{pmid19458158}{{1}{2009}{{Bailey {\em  et~al.}}}{{Bailey, Boden, Buske, Frith, Grant, Clementi, Ren, Li, and Noble}}}
@@ -100,8 +98,10 @@
 \bibcite{pmid19772557}{{23}{2009}{{Spyrou {\em  et~al.}}}{{Spyrou, Stark, Lynch, and Tavaré}}}
 \bibcite{pmid21059603}{{24}{2011}{{Szalkowski and Schmid}}{{Szalkowski and Schmid}}}
 \bibcite{pmid24173036}{{25}{2013}{{Teytelman {\em  et~al.}}}{{Teytelman, Thurtle, Rine, and van Oudenaarden}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces  Running times and peak memory footprint of the discretizers on the four ChIP-seq data sets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. Note the logarithmic scale in the running times. }}{8}}
+\newlabel{fig:perf}{{7}{8}}
+\@writefile{toc}{\contentsline {paragraph}{Funding\text  {\rm  :}}{8}}
 \bibcite{1054010}{{26}{1967}{{Viterbi}}{{Viterbi}}}
 \bibcite{psclb}{{27}{2008}{{Zeileis {\em  et~al.}}}{{Zeileis, Kleiber, and Jackman}}}
 \bibcite{pmid18798982}{{28}{2008}{{Zhang {\em  et~al.}}}{{Zhang, Liu, Meyer, Eeckhoute, Johnson, Bernstein, Nusbaum, Myers, Brown, Li, and Liu}}}
-\global\@namedef{@lastpage@}{8}
-\@writefile{toc}{\contentsline {paragraph}{Funding\text  {\rm  :}}{8}}
+\global\@namedef{@lastpage@}{9}

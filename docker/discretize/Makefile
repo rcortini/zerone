@@ -160,8 +160,7 @@ $MCtcf%.bed: $(Ctcf_target)%.sam $(Uw_input).sam
 	    -not -name '*narrowPeak' \
 	    -not -name '*broadPeak' | \
 	xargs rm
-	mv $(subst _peaks.narrowPeak,.bed,$@) $@
-
+	mv $(subst .bed,_peaks.narrowPeak,$@) $@
 
 $MH3k4me3%.bed: $(H3k4me3_target)%.sam $(Uw_input).sam
 	macs2 callpeak \
@@ -175,8 +174,7 @@ $MH3k4me3%.bed: $(H3k4me3_target)%.sam $(Uw_input).sam
 	    -not -name '*narrowPeak' \
 	    -not -name '*broadPeak' | \
 	xargs rm
-	mv $(subst _peaks.narrowPeak,.bed,$@) $@
-
+	mv $(subst .bed,_peaks.narrowPeak,$@) $@
 
 $MH3k36me3%.bed: $(H3k36me3_target)%.sam $(Uw_input).sam
 	macs2 callpeak \
@@ -191,8 +189,7 @@ $MH3k36me3%.bed: $(H3k36me3_target)%.sam $(Uw_input).sam
 	    -not -name '*narrowPeak' \
 	    -not -name '*broadPeak' | \
 	xargs rm
-	mv $(subst _peaks.broadPeak,.bed,$@) $@
-
+	mv $(subst .bed,_peaks.broadPeak,$@) $@
 
 $MPol2%.bed: $(Pol2_target)%.sam $(Pol2_input).sam
 	macs2 callpeak \
@@ -206,8 +203,7 @@ $MPol2%.bed: $(Pol2_target)%.sam $(Pol2_input).sam
 	    -not -name '*narrowPeak' \
 	    -not -name '*broadPeak' | \
 	xargs rm
-	mv $(subst _peaks.narrowPeak,.bed,$@) $@
-
+	mv $(subst .bed,_peaks.narrowPeak,$@) $@
 
 $ZCtcf.bed: $(addsuffix .map,$(Ctcf_all))
 	$Zzerone -l \
