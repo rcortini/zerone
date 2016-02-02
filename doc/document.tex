@@ -390,6 +390,8 @@ Table \ref{tab:summary} lists some summary statistics of these data sets.
         \textbf{Data set} & \textbf{Read size} &
         \textbf{Sequencing depth} & \textbf{Mapped reads} \\
         \midrule
+        Input            & 36 & 18,123,856 & 18,064,246 \\
+        Input (Pol2)     & 36 & 36,418,708 & 36,351,513 \\
         CTCF$^{(1)}$     & 36 & 32,740,518 & 15,698,068 \\
         CTCF$^{(2)}$     & 36 & 27,953,212 & 12,971,023 \\
         Pol2$^{(1)}$     & 36 & 10,513,992 &  7,465,806 \\
@@ -399,8 +401,9 @@ Table \ref{tab:summary} lists some summary statistics of these data sets.
         H3K36me3$^{(1)}$ & 36 & 18,174,968 & 13,847,015 \\
         H3K36me3$^{(2)}$ & 36 & 18,495,290 & 14,419,200 \\
         \botrule
-\end{tabular}}{The numbers in parentheses indicate the two
-experimental replicates.}
+\end{tabular}}{The input profile marked as Pol2 was used to discretize the
+Pol2 profiles. All the other profiles were discretized with the other input.
+The numbers in parentheses indicate the two experimental replicates.}
 \end{table}
 
 We tested MACS \texttt{callpeak} version 2.1.0.20140616, BayesPeak
@@ -549,6 +552,9 @@ Table \ref{tab:ctcf} shows that Zerone outperforms the other tools
 in terms of the $F_1$ score (the harmonic mean of precision and
 recall). It has the second highest recall score, close to that of JAMM,
 and it achieves a notable precision.
+When using the IDR method to refine the peaks found, MACS achieves an
+outstanding precision, but it does so at the cost of losing sensitivity,
+and the overall $F_1$ score decreases.
 
 \begin{table}[!t]
 \processtable{Performance on the CTCF motifs data set.
@@ -564,12 +570,14 @@ the harmonic mean between Precision and Recall.
         \textbf{Software}  & \textbf{Total}  & \textbf{Motif} &
         \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
         \midrule
-        BayesPeak$^{(1)}$ &  45,229 & 24,933 & 0.55 & 0.31 & 0.40 \\
-        BayesPeak$^{(2)}$ &  45,192 & 23,136 & 0.51 & 0.29 & 0.37 \\
-        JAMM              & 321,263 & 31,859 & 0.10 & 0.39 & 0.16 \\
-        MACS$^{(1)}$      &  48,341 & 26,129 & 0.54 & 0.32 & 0.41 \\
-        MACS$^{(2)}$      &  41,048 & 23,237 & 0.57 & 0.29 & 0.38 \\
-        Zerone            &  54,315 & 28,738 & 0.53 & 0.38 & 0.44 \\
+        BayesPeak$^{(1)}$  &  45,229 & 24,933 & 0.55 & 0.31 & 0.40 \\
+        BayesPeak$^{(2)}$  &  45,192 & 23,136 & 0.51 & 0.29 & 0.37 \\
+        JAMM               & 321,263 & 31,859 & 0.10 & 0.39 & 0.16 \\
+        MACS$^{(1)}$       &  48,341 & 26,129 & 0.54 & 0.32 & 0.41 \\
+        MACS$^{(2)}$       &  41,048 & 23,237 & 0.57 & 0.29 & 0.38 \\
+        MACS$^{(1)}$ + IDR &  25,059 & 17,487 & 0.70 & 0.22 & 0.33 \\
+        MACS$^{(2)}$ + IDR &  25,059 & 17,482 & 0.70 & 0.22 & 0.33 \\
+        Zerone             &  54,315 & 28,738 & 0.53 & 0.38 & 0.44 \\
         \botrule
 \end{tabular}}{The numbers in parentheses indicate the results on the two
 replicates separately.}
@@ -585,7 +593,7 @@ we determined the extent to which the enriched regions contained
 Transcription Start Sites (TSS), as Pol2 is expected to bind near
 annotated TSS. We also overlapped this annotation with a data set of
 gene expression obtained by GRO-seq in order to separate the
-promoters of transcribed from non transcribed genes.
+promoters of transcribed from nontranscribed genes.
 
 \begin{table*}[!t]
 \processtable{Performance on the Pol2 data set.
@@ -604,12 +612,14 @@ harmonic mean between Precision and Recall.
         \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} &
         \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
         \midrule
-        BayesPeak$^{(1)}$ &  32,758 & 5,877 & 0.18 & 0.19 & 0.19 & 1,220 & 0.04 & 0.04 & 0.04 \\
-        BayesPeak$^{(2)}$ &  35,310 & 5,783 & 0.16 & 0.19 & 0.18 & 1,207 & 0.03 & 0.04 & 0.04 \\
-        JAMM              & 239,637 & 5,514 & 0.02 & 0.17 & 0.04 & 1,107 & 0.00 & 0.03 & 0.01 \\
-        MACS$^{(1)}$      &  51,271 & 6,860 & 0.13 & 0.22 & 0.17 & 1,346 & 0.03 & 0.04 & 0.03 \\
-        MACS$^{(2)}$      &  49,062 & 6,552 & 0.13 & 0.21 & 0.16 & 1,321 & 0.03 & 0.04 & 0.03 \\
-        Zerone            &  25,703 & 7,673 & 0.30 & 0.26 & 0.28 & 1,482 & 0.06 & 0.05 & 0.05 \\
+        BayesPeak$^{(1)}$  &  32,758 & 5,877 & 0.18 & 0.19 & 0.19 & 1,220 & 0.04 & 0.04 & 0.04 \\
+        BayesPeak$^{(2)}$  &  35,310 & 5,783 & 0.16 & 0.19 & 0.18 & 1,207 & 0.03 & 0.04 & 0.04 \\
+        JAMM               & 239,637 & 5,514 & 0.02 & 0.17 & 0.04 & 1,107 & 0.00 & 0.03 & 0.01 \\
+        MACS$^{(1)}$       &  51,271 & 6,860 & 0.13 & 0.22 & 0.17 & 1,346 & 0.03 & 0.04 & 0.03 \\
+        MACS$^{(2)}$       &  49,062 & 6,552 & 0.13 & 0.21 & 0.16 & 1,321 & 0.03 & 0.04 & 0.03 \\
+        MACS$^{(1)}$ + IDR &  19,369 & 5,985 & 0.31 & 0.20 & 0.24 & 1,252 & 0.06 & 0.04 & 0.05 \\
+        MACS$^{(1)}$ + IDR &  19,369 & 5,875 & 0.30 & 0.20 & 0.24 & 1,254 & 0.06 & 0.04 & 0.05 \\
+        Zerone             &  25,703 & 7,673 & 0.30 & 0.26 & 0.28 & 1,482 & 0.06 & 0.05 & 0.05 \\
         \botrule
 \end{tabular}}{The numbers in parentheses indicate the results on the two
 replicates separately.}
@@ -618,8 +628,11 @@ replicates separately.}
 Table \ref{tab:tss} shows that, Zerone achieves the highest $F_1$
 score. Here it achieves both better
 precision and better recall than the other discretizers, with a
-very neat advantage in precision. These results confirm that
-the performance of Zerone is outstanding on this data set, as suggested
+very neat advantage in precision, only achieved by MACS when the complementary
+IDR analysis is performed. In this latter case, MACS + IDR achieves similar
+scores to those of Zerone, but at the cost of decreasing the total number of
+valid peaks found. These results confirm that the performance of Zerone is
+outstanding on this data set, as suggested
 by the middle panel of Fig.~\ref{fig:pareto}.
 
 \subsubsection{H3K4me3 signal on active promoters.}
@@ -629,7 +642,6 @@ near the TSS of actively transcribed genes
 of histone mark forming narrow peaks. We used the same TSS data set
 as above to benchmark the accurary of Zerone when discretizing
 this profile.
-
 
 \begin{table*}[!t]
 \processtable{Performance on the H3K4me3 data set.
@@ -648,12 +660,14 @@ harmonic mean between Precision and Recall.
         \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} &
         \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
         \midrule
-        BayesPeak$^{(1)}$ &  26,938 & 4,330 & 0.16 & 0.13 & 0.15 &   859 & 0.03 & 0.03 & 0.03 \\
-        BayesPeak$^{(2)}$ &  27,132 & 4,288 & 0.16 & 0.13 & 0.14 &   850 & 0.03 & 0.03 & 0.03 \\
-        JAMM              & 624,819 & 2,112 & 0.00 & 0.04 & 0.01 &   130 & 0.00 & 0.00 & 0.00 \\
-        MACS$^{(1)}$      &  29,125 & 6,614 & 0.23 & 0.22 & 0.22 & 1,261 & 0.04 & 0.04 & 0.04 \\
-        MACS$^{(2)}$      &  29,420 & 6,542 & 0.22 & 0.22 & 0.22 & 1,261 & 0.04 & 0.04 & 0.04 \\
-        Zerone            &  15,602 & 6,989 & 0.45 & 0.25 & 0.32 & 1,320 & 0.08 & 0.04 & 0.06 \\
+        BayesPeak$^{(1)}$  &  26,938 & 4,330 & 0.16 & 0.13 & 0.15 &   859 & 0.03 & 0.03 & 0.03 \\
+        BayesPeak$^{(2)}$  &  27,132 & 4,288 & 0.16 & 0.13 & 0.14 &   850 & 0.03 & 0.03 & 0.03 \\
+        JAMM               & 624,819 & 2,112 & 0.00 & 0.04 & 0.01 &   130 & 0.00 & 0.00 & 0.00 \\
+        MACS$^{(1)}$       &  29,125 & 6,614 & 0.23 & 0.22 & 0.22 & 1,261 & 0.04 & 0.04 & 0.04 \\
+        MACS$^{(2)}$       &  29,420 & 6,542 & 0.22 & 0.22 & 0.22 & 1,261 & 0.04 & 0.04 & 0.04 \\
+        MACS$^{(1)}$ + IDR &  20,045 & 6,382 & 0.32 & 0.21 & 0.26 & 1,226 & 0.06 & 0.04 & 0.05 \\
+        MACS$^{(2)}$ + IDR &  20,045 & 6,382 & 0.32 & 0.21 & 0.26 & 1,233 & 0.06 & 0.04 & 0.05 \\
+        Zerone             &  15,602 & 6,989 & 0.45 & 0.25 & 0.32 & 1,320 & 0.08 & 0.04 & 0.06 \\
         \botrule
 \end{tabular}}{The numbers in parentheses indicate the results on the two
 replicates separately.}
@@ -661,9 +675,10 @@ replicates separately.}
 
 Table \ref{tab:H3K4} shows that Zerone achieves better $F_1$ score,
 better precision and better recall than the other tools, again with
-a very neat advantage in precision. This shows that Zerone accurately
-describes profiles of this category.
-
+a very neat advantage in precision. In this case, discarding the
+nonreproducible peaks found by MACS only gives a mild increase in
+precision, that does not reach the performance of Zerone in this data
+set. This shows that Zerone accurately describes profiles of this category.
 
 \subsubsection{H3K36me3-enriched domains on active genes.}
 There is no consensus sequence to determine the location of histone
