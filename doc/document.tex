@@ -174,9 +174,10 @@ and NB distributions.
   the Poisson distribution is poor. The NB distribution
   gives a good fit at the tail, but not for windows with
   0 and 1 read. The ZINB distribution gives a good fit
-  over the whole range. Source: ENCODE file wgEncodeSydhTfbsK562InputRawData.fastq
-  from repository
-\href{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC}{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC}.
+  over the whole range. Source: ENCODE file ENCFF000VEK.
+  %file wgEncodeSydhTfbsK562InputRawData.fastq.gz
+  %from repository
+%\href{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC}{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC}.
 }\label{fig:ZINB_fit}
 \end{figure}
 
@@ -424,10 +425,13 @@ Subsequently we used FIMO \citep{pmid21330290} from the MEME suite version
 4.10.1 \citep{pmid19458158} to identify and map CTCF motif occurences in
 the human genome. The positions of TSS were extracted from the knownGene
 table of the UCSC Genes annotation \citep{Karolchik2004}.
-Gene expression was determined from a genomic run-on sequencing (GRO-seq)
+Gene expression in sections \ref{subsub:pol2} and \ref{subsub:h3k4me3}
+was determined from a genomic run-on sequencing (GRO-seq)
 data set on the cell line K562 (GEO accession GSM1480325).
 All the genomic features overlapping with at least one GRO-seq tag
 were considered to be expressed.
+RNA counts in section \ref{subsub:h3k36me3} were obtained from the
+ENCODE data set EH000163 (already mapped .bigWig files).
 
 A full replay of the benchmark including all the necessary data sets
 is available from the associated Docker image.
@@ -592,6 +596,7 @@ specificity for transcription factor profiles, as was suggested by
 the left panel of Fig.~\ref{fig:pareto}.
 
 \subsubsection{Pol2 binding around transcription start sites.}
+\label{subsub:pol2}
 To compare the behavior of the discretizers on the Pol2 profile,
 we determined the extent to which the enriched regions contained
 Transcription Start Sites (TSS), as Pol2 is expected to bind near
@@ -635,6 +640,7 @@ outstanding on this data set, as suggested by the middle panel of
 Fig.~\ref{fig:pareto}.
 
 \subsubsection{H3K4me3 signal on active promoters.}
+\label{subsub:h3k4me3}
 The histone mark H3K4me3 is enriched on active promoters and
 near the TSS of actively transcribed genes
 \citep{pmid15680324,pmid17512414,pmid17277777}. It is thus an example
@@ -679,6 +685,7 @@ precision, that does not reach the performance of Zerone.
 This shows that Zerone accurately describes profiles of this category.
 
 \subsubsection{H3K36me3-enriched domains on active genes.}
+\label{subsub:h3k36me3}
 There is no consensus sequence to determine the location of histone
 modifications. However, it is known that the bodies of active genes
 are enriched in H3K36me3 \citep{pmid16122420,pmid23739122}. Therefore,
