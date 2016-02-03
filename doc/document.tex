@@ -295,8 +295,8 @@ on empirical criteria (see associated Docker container for detail).
 The definition of success is thus subjective, but the training is
 performed on representative data.
 
-We discretized 144 replicated ChIP-seq experiments, together with their
-respective input control.
+We discretized 144 replicated ChIP-seq experiments together with their
+respective input control (see associated Docker container).
 We labelled the output of the discretization as positive (91 cases)
 or negative (53 cases), based on visual inspection and on the available
 literature about the chromatin features. The most common cases of
@@ -529,6 +529,12 @@ discretization can lie on the left of the Pareto front, and those on
 the front represent an optimum. Others are suboptimal, since it is
 possible to capture more reads with the same amount of targets.
 
+We benchmarked Zerone against three ChIP-seq discretizers.
+We included MACS as the standard method for ChIP-seq peak calling,
+BayesPeak because it is powered by an HMM with ZINB emissions
+similar to the model implemented in Zerone, and JAMM because, as
+Zerone, it can perform joint discretization of experimental replicates.
+
 This representation reveals that discretizing the CTCF profile yields
 similar outputs regardless of the software (Fig.~\ref{fig:pareto},
 left panel). On the other hand, discretizing the Pol2, the H3K4me3 or
@@ -719,26 +725,21 @@ while discovering enriched windows not found by the others.
 \end{figure}
 
 \subsection{Speed and memory footprint}
-We benchmarked Zerone against three ChIP-seq discretizers.
-We included MACS as the standard method for ChIP-seq peak calling,
-BayesPeak because it is powered by an HMM with ZINB emissions
-similar to the model implemented in Zerone, and JAMM because, as
-Zerone, it can perform joint discretization of experimental replicates.
-
 We compared the running times of the different programs on discretizing
 four data sets of similar size that represent three major types of
-ChIP-seq signal usually observed. The CTCF signal consists of sharp
+ChIP-seq signal. The CTCF signal consists of sharp
 peaks at the transcription factor binding site, the H3K36me3 signal
 consists of broad domains, and both the H3K4me3 and Pol2 signals consist
 of peaks at promoters---Pol2 potentially showing broad domains on the
-body of transcribed genes too.
+body of transcribed genes as well.
 
 The results were similar between experiments, and Zerone was
 consistently the fastest tool, with a running time of around 5 minutes
-(Fig.~\ref{fig:perf}, top row). The advantage is only marginal over
+(Fig.~\ref{fig:perf}, top row). The advantage is marginal over
 MACS, which ran for around 10 minutes, but it is substantial over
-BayesPeak and JAMM, which ran in over 9 hours. The results for peak
-memory usage were more variable between experiments (Fig.~\ref{fig:perf},
+JAMM and BayesPeak which ran in hours or in days, respectively.
+The results for peak memory usage were variable between experiments
+(Fig.~\ref{fig:perf},
 bottom row). MACS achieved the best performance with a memory
 footprint around 0.5~GB, followed by Zerone around 0.7~GB.
 BayesPeak and JAMM each used more than 1.5~GB.
@@ -778,9 +779,7 @@ data heterogeneity. Firstly, the statistical model is fitted
 in order to harmonize the replicates and solve conflicts by maximum
 likelihood. Secondly, automatic quality control is performed
 after the discretization. The principle of this step is somewhat
-similar to anomaly detection. As examples of trusted ChIP-seq
-discretizations will increase, the classifier can be refined to
-reach greater accuracy. Note that control profiles play a key
+similar to anomaly detection. Note that control profiles play a key
 role in the process. In order to evaluate the quality of the
 discretization, Zerone implicitly assumes that the user
 has provided controls that properly capture systematic biases
@@ -829,6 +828,10 @@ discretizations on the Pareto front, adjusting the threshold to the
 conditions would be challenging for lack of an underlying model.
 This is one of the major strengths of Zerone: the statistical model
 automatically adjusts conservativity and sensitivity in a sensible way.
+
+In summary, the superior performance of Zerone on different classes
+of profiles, combined with the automatic quality control meet the
+needs for general and robust ChIP-seq tools.
 
 \section*{Acknowledgement}
 \paragraph{Funding\textcolon}
