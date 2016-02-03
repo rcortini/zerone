@@ -3,6 +3,6 @@
 
 #include "zerone.h"
 
-ChIP_t * parse_input_files(char **, char **);
+ChIP_t * parse_input_files(char **, char **, const int);
 
 #endif

@@ -38,6 +38,7 @@ const char *USAGE =
 "  Input options\n"
 "    -0 --mock: given file is a mock control\n"
 "    -1 --chip: given file is a ChIP-seq experiment\n"
+"    -w --window: window size in bp (default 300)\n"
 "\n"
 "  Output options\n"
 "    -l --list-output: output list of targets (default table)\n"
@@ -111,22 +112,24 @@ int main(int argc, char **argv) {
    int no_ChIP_specified = 1;
 
    static int list_flag = 0;
-   static int conf_flag = 0;
+   static int confd_flag = 0;
+   static int window = 300;
 
    // Parse options.
    while(1) {
       int option_index = 0;
       static struct option long_options[] = {
-         {"list-output", no_argument,       &list_flag, 1 },
-         {"confidence",  no_argument,       &conf_flag, 1 },
-         {"mock",        required_argument,         0, '0'},
-         {"chip",        required_argument,         0, '1'},
-         {"help",        no_argument,               0, 'h'},
-         {"version",     no_argument,               0, 'v'},
+         {"list-output", no_argument,       &list_flag,  1 },
+         {"confidence",  no_argument,       &confd_flag, 1 },
+         {"mock",        required_argument,          0, '0'},
+         {"chip",        required_argument,          0, '1'},
+         {"help",        no_argument,                0, 'h'},
+         {"version",     no_argument,                0, 'v'},
+         {"window",      required_argument,          0, 'w'},
          {0, 0, 0, 0}
       };
 
-      int c = getopt_long(argc, argv, "0:1:chl",
+      int c = getopt_long(argc, argv, "0:1:chlw:",
             long_options, &option_index);
 
       // Done parsing named options. //
@@ -155,12 +158,16 @@ int main(int argc, char **argv) {
          break;
 
       case 'c':
-         conf_flag = 1;
+         confd_flag = 1;
          break;
 
       case 'v':
          say_version();
          return EXIT_SUCCESS;
+
+      case 'w':
+         window = atoi(optarg);
+         break;
 
       default:
          // Cannot parse. //
@@ -179,6 +186,12 @@ int main(int argc, char **argv) {
    debug_print("%s", "done parsing arguments\n");
 
    // Check options.
+   if (window <= 0) {
+      fprintf(stderr,
+            "zerone error: window must be a positive integer\n");
+      say_usage();
+      return EXIT_FAILURE;
+   }
    if (no_mock_specified) {
       fprintf(stderr,
          "zerone error: specify a file for mock control experiment\n");
@@ -192,13 +205,13 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
    }
 
-   if (conf_flag && list_flag) {
+   if (confd_flag && list_flag) {
       fprintf(stderr, "ignoring --confidence flag for list output\n");
-      conf_flag = 0;
+      confd_flag = 0;
    }
 
    // Process input files.
-   ChIP_t *ChIP = parse_input_files(mock_fnames, ChIP_fnames);
+   ChIP_t *ChIP = parse_input_files(mock_fnames, ChIP_fnames, window);
 
    if (ChIP == NULL) {
       fprintf(stderr, "error while reading input\n");
@@ -251,17 +264,17 @@ int main(int argc, char **argv) {
          char *name = ChIP->nm + 32*i;
          for (int j = 0 ; j < ChIP->sz[i] ; j++) {
             if (!target && Z->path[wid] == Z->map[2]) {
-               fprintf(stdout, "%s\t%d\t", name, 300*j + 1);
+               fprintf(stdout, "%s\t%d\t", name, window*j + 1);
                target = 1;
             }
             else if (target && Z->path[wid] != Z->map[2]) {
-               fprintf(stdout, "%d\n", 300*(j+1));
+               fprintf(stdout, "%d\n", window*(j+1));
                target = 0;
             }
             wid++;
          }
          if (target) {
-            fprintf(stdout, "%d\n", 300 * ChIP->sz[i]);
+            fprintf(stdout, "%d\n", window * ChIP->sz[i]);
             target = 0;
          }
       }
@@ -272,13 +285,13 @@ int main(int argc, char **argv) {
       for (int i = 0 ; i < ChIP->nb ; i++) {
          char *name = ChIP->nm + 32*i;
          for (int j = 0 ; j < ChIP->sz[i] ; j++) {
-            fprintf(stdout, "%s\t%d\t%d\t%d", name, 300*j + 1,
-                  300*(j+1), Z->path[wid]);
+            fprintf(stdout, "%s\t%d\t%d\t%d", name, window*j + 1,
+                  window*(j+1), Z->path[wid]);
             for (int k = 0 ; k < Z->ChIP->r ; k++) {
                fprintf(stdout, "\t%d", Z->ChIP->y[k+wid*Z->ChIP->r]);
             }
             // Print confidence if required.
-            if (conf_flag) {
+            if (confd_flag) {
                fprintf(stdout, "\t%.3f", Z->phi[2+wid*3]);
             }
             fprintf(stdout, "\n");
