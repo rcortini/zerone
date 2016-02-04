@@ -112,6 +112,8 @@ specify the mock and chip options as many times as needed, as shown below.
 Enter the option \texttt{-h} or \texttt{--help} for usage instructions and
 \texttt{--version} to print the version number.
 
+\pagebreak
+
 \subsection{Output}
 
 Running Zerone as shown above should produce an output like the following.
@@ -151,16 +153,18 @@ The fifth column contains the read count of all the control profiles summed
 together, and the rest of the columns contain the read count of each of the
 target profiles.
 
+\pagebreak
+
 The \texttt{-c} or \texttt{--confidence} option adds an extra column
 with the probability that the given window is a target. This expresses the
 confidence that a target is real and can be used for post-processing. To
-test this feature, you can run
+test this feature, you can run this line.
 
 \begin{verbatim}
 ./zerone -c -0 data/mock.sam -1 data/ctcf1.sam -1 data/ctcf2.sam
 \end{verbatim}
 
-You should obtain the following outut.
+You should obtain the following output.
 
 \begin{verbatim}
 # QC score: 1.289
@@ -198,8 +202,6 @@ chr1    990001  990600
 chr1    994201  995400
 chr1    998701  999900
 \end{verbatim}
-
-\pagebreak
 
 \subsection*{The Zerone R package}
 
