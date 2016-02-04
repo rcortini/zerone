@@ -19,9 +19,6 @@ int    ERR;
 #define SUCCESS 1
 #define FAILURE 0
 
-// XXX This has to become a function parameter XXX //
-#define BIN_SIZE 300
-
 // Prime number for the size of hash table.
 #define HSIZE 997
 #define BSIZE 100000000
@@ -98,7 +95,7 @@ struct generic_state_t {
 
 
 //  ---- Declaration of local functions  ---- //
-int      autoparse (const char *, hash_t *);
+int      autoparse (const char *, hash_t *, const int);
 iter_t   choose_iterator (const char *);
 
 // Iterators.
@@ -133,8 +130,9 @@ int      is_gzipped (FILE *);
 ChIP_t *
 parse_input_files
 (
-   char * mock_fnames[],
-   char * ChIP_fnames[]
+         char * mock_fnames[],
+         char * ChIP_fnames[],
+   const int    window
 )
 {
 
@@ -157,7 +155,7 @@ parse_input_files
 
       debug_print("%s %s\n", "autoparsing mock file", mock_fnames[i]);
 
-      if(!autoparse(mock_fnames[i], hashtab[0])) {
+      if(!autoparse(mock_fnames[i], hashtab[0], window)) {
          debug_print("%s", "autoparse failed\n");
          goto clean_and_return;
       }
@@ -184,7 +182,7 @@ parse_input_files
 
       nhashes++;
 
-      if (!autoparse(ChIP_fnames[i], hashtab[nhashes-1])) {
+      if (!autoparse(ChIP_fnames[i], hashtab[nhashes-1], window)) {
          debug_print("%s", "autoparse failed\n");
          goto clean_and_return;
       }
@@ -340,7 +338,8 @@ int
 autoparse
 (
    const char   * fname,
-         hash_t * hashtab
+         hash_t * hashtab,
+   const int      window
 )
 {
 
@@ -383,7 +382,7 @@ autoparse
       }
 
       // Add read to counts.
-      if (!add_to_rod(&lnk->counts, loc.pos / BIN_SIZE)) {
+      if (!add_to_rod(&lnk->counts, loc.pos / window)) {
          debug_print("%s", "adding read failed\n");
          status = FAILURE;
          goto clean_and_return;

@@ -42,7 +42,7 @@ test_add_to_rod
 
    rod->sz= 32;
    rod->mx = 0;
-   memset(rod->array, 0, 32*sizeof(uint32_t));
+   bzero(rod->array, 32*sizeof(uint32_t));
 
    test_assert(add_to_rod(&rod, 0));
    test_assert(rod->mx == 0);
@@ -519,7 +519,7 @@ test_autoparse
       return;
    }
 
-   test_assert(autoparse("test_file_good.map", hashtab));
+   test_assert(autoparse("test_file_good.map", hashtab, 300));
    test_assert_critical(hashtab != NULL);
 
    lnk = lookup_or_insert("chr6", hashtab);
@@ -534,9 +534,34 @@ test_autoparse
    test_assert_critical(lnk != NULL);
    test_assert(lnk->counts->array[445385] == 1);
 
+   // Try a different window size.
+   destroy_hash(hashtab);
+   hashtab = calloc(HSIZE, sizeof(link_t *));
+
+   if (hashtab == NULL) {
+      fprintf(stderr, "error in test function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return;
+   }
+
+   test_assert(autoparse("test_file_good.map", hashtab, 200));
+   test_assert_critical(hashtab != NULL);
+
+   lnk = lookup_or_insert("chr6", hashtab);
+   test_assert_critical(lnk != NULL);
+   test_assert(lnk->counts->array[476256] == 1);
+
+   lnk = lookup_or_insert("chr18", hashtab);
+   test_assert_critical(lnk != NULL);
+   test_assert(lnk->counts->array[82537] == 1);
+
+   lnk = lookup_or_insert("chrX", hashtab);
+   test_assert_critical(lnk != NULL);
+   test_assert(lnk->counts->array[668077] == 1);
+
    // Try parsing a non gem file.
    redirect_stderr();
-   test_assert(!autoparse("tests_parse.c", hashtab));
+   test_assert(!autoparse("tests_parse.c", hashtab, 300));
    unredirect_stderr();
    test_assert(hashtab != NULL);
    test_assert(strncmp("unknown format for file tests_parse.c",
@@ -544,14 +569,14 @@ test_autoparse
 
    // Try parsing bad gem files.
    redirect_stderr();
-   test_assert(!autoparse("test_file_bad1.map", hashtab));
+   test_assert(!autoparse("test_file_bad1.map", hashtab, 300));
    unredirect_stderr();
    test_assert(hashtab != NULL);
    test_assert(strncmp("format conflict in line:\n",
             caught_in_stderr(), 25) == 0);
 
    redirect_stderr();
-   test_assert(!autoparse("test_file_bad2.map", hashtab));
+   test_assert(!autoparse("test_file_bad2.map", hashtab, 300));
    unredirect_stderr();
    test_assert(hashtab != NULL);
    test_assert(strncmp("format conflict in line:\n",
@@ -561,7 +586,7 @@ test_autoparse
    // at position 0 in this file, so the parser will choke
    // on it. But there are 8 sequences before, that should
    // fill the hash as tested below.
-   test_assert(!autoparse("test_file_good.bam", hashtab));
+   test_assert(!autoparse("test_file_good.bam", hashtab, 300));
    test_assert_critical(hashtab != NULL);
 
    lnk = lookup_or_insert("insert", hashtab);
@@ -574,14 +599,14 @@ test_autoparse
 
    // Now test .bed format. Also check the error message.
    redirect_stderr();
-   test_assert(!autoparse("test_file_bad1.bed", hashtab));
+   test_assert(!autoparse("test_file_bad1.bed", hashtab, 300));
    unredirect_stderr();
    test_assert(hashtab != NULL);
    test_assert(strcmp("format conflict in line:\nchr1\t34\twrong\n",
             caught_in_stderr()) == 0);
 
    redirect_stderr();
-   test_assert(!autoparse("test_file_bad2.bed", hashtab));
+   test_assert(!autoparse("test_file_bad2.bed", hashtab, 300));
    unredirect_stderr();
    test_assert(hashtab != NULL);
    test_assert(strcmp("format conflict in line:\n"
@@ -705,7 +730,7 @@ test_parse_input_files
    char *mock_fnames_1[] = { "test_file_good.map", NULL };
    char *ChIP_fnames_1[] = { "test_file_good.map", NULL };
 
-   ChIP = parse_input_files(mock_fnames_1, ChIP_fnames_1);
+   ChIP = parse_input_files(mock_fnames_1, ChIP_fnames_1, 300);
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);
@@ -718,11 +743,25 @@ test_parse_input_files
    free(ChIP);
    ChIP = NULL;
 
+   // Try again with a different window size.
+   ChIP = parse_input_files(mock_fnames_1, ChIP_fnames_1, 200);
+   test_assert_critical(ChIP != NULL);
+   test_assert(ChIP->r == 2);
+   test_assert(ChIP->nb == 3);
+   test_assert(ChIP->sz[0] == 668077);
+   test_assert(ChIP->sz[1] == 476256);
+   test_assert(ChIP->sz[2] == 82537);
+
+   // Manually destroy 'ChIP'.
+   free(ChIP->y);
+   free(ChIP);
+   ChIP = NULL;
+
    // Same test with gzipped files.
    char *mock_fnames_2[] = { "test_file_good.map.gz", NULL };
    char *ChIP_fnames_2[] = { "test_file_good.map.gz", NULL };
 
-   ChIP = parse_input_files(mock_fnames_2, ChIP_fnames_2);
+   ChIP = parse_input_files(mock_fnames_2, ChIP_fnames_2, 300);
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);
