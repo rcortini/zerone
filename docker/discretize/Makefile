@@ -22,10 +22,14 @@ H3k4me3_all= $(Uw_input) $(H3k4me3_target)1 $(H3k4me3_target)2
 H3k36me3_all= $(Uw_input) $(H3k36me3_target)1 $(H3k36me3_target)2
 Pol2_all= $(Pol2_input) $(Pol2_target)1 $(Pol2_target)2
 
-PROF= Ctcf H3k4me3 H3k36me3 Pol2
+NARR= Ctcf H3k4me3 Pol2
+PROF= $(NARR) H3k36me3
 BOUT= $(addprefix $B,$(addsuffix 1.bed,$(PROF))) \
       $(addprefix $B,$(addsuffix 2.bed,$(PROF)))
-JOUT= $(addprefix $J,$(addsuffix .bed,$(PROF)))
+#JOUT= $(addprefix $J,$(addsuffix .bed,$(PROF)))
+P= /peaks/filtered.peaks.
+JOUT= $(addprefix $J,$(addsuffix $PnarrowPeak,$(NARR))) \
+      $(addprefix $J,$(addsuffix $PbroadPeak,H3k36me3))
 MOUT= $(addprefix $M,$(addsuffix 1.bed,$(PROF))) \
       $(addprefix $M,$(addsuffix 2.bed,$(PROF)))
 ZOUT= $(addprefix $Z,$(addsuffix .bed,$(PROF)))
@@ -103,7 +107,7 @@ $BPol2%.bed: $(Pol2_target)%.bed $(Pol2_input).bed $(BayesPeak)
 	$BBayesPeak2bed.py tmp > $@
 	rm tmp
 
-$JCtcf.bed: $(addsuffix .bed,$(Ctcf_all)) $JJAMM.sh $(CHRSIZE)
+$JCtcf$PnarrowPeak: $(addsuffix .bed,$(Ctcf_all)) $JJAMM.sh $(CHRSIZE)
 	mkdir -p $JCtcf/input $JCtcf/target
 	cp $(Uw_input).bed $JCtcf/input/$(Uw_input).bed
 	cp $(Ctcf_target)1.bed $JCtcf/target/$(Ctcf_target)1.bed
@@ -114,7 +118,7 @@ $JCtcf.bed: $(addsuffix .bed,$(Ctcf_all)) $JJAMM.sh $(CHRSIZE)
 	    -s $JCtcf/target \
 	    -c $JCtcf/input
 
-$JH3k4me3.bed: $(addsufifix .bed,$(H3k4me3_all)) $JJAMM.sh $(CHRSIZE)
+$JH3k4me3$PnarrowPeak: $(addsufifix .bed,$(H3k4me3_all)) $JJAMM.sh $(CHRSIZE)
 	mkdir -p $JH3k4me3/input $JH3k4me3/target
 	cp $(Uw_input).bed $JH3k4me3/input/$(Uw_input).bed
 	cp $(H3k4me3_target)1.bed $JH3k4me3/target/$(H3k4me3_target)1.bed
@@ -125,7 +129,7 @@ $JH3k4me3.bed: $(addsufifix .bed,$(H3k4me3_all)) $JJAMM.sh $(CHRSIZE)
 	    -s $JH3k4me3/target \
 	    -c $JH3k4me3/input
 
-$JH3k36me3.bed: $(addsuffix .bed,$(H3k36me3_all)) $JJAMM.sh $(CHRSIZE)
+$JH3k36me3$PbroadPeak: $(addsuffix .bed,$(H3k36me3_all)) $JJAMM.sh $(CHRSIZE)
 	mkdir -p $JH3k36me3/input $JH3k36me3/target
 	cp $(Uw_input).bed $JH3k36me3/input/$(Uw_input).bed
 	cp $(H3k36me3_target)1.bed $JH3k36me3/target/$(H3k36me3_target)1.bed
@@ -137,7 +141,7 @@ $JH3k36me3.bed: $(addsuffix .bed,$(H3k36me3_all)) $JJAMM.sh $(CHRSIZE)
 	    -c $JH3k36me3/input \
 	    -r region
 
-$JPol2.bed: $(addsuffix .bed,$(Pol2_all)) $JJAMM.sh $(CHRSIZE)
+$JPol2$PnarrowPeak: $(addsuffix .bed,$(Pol2_all)) $JJAMM.sh $(CHRSIZE)
 	mkdir -p $JPol2/input $JPol2/target
 	cp $(Pol2_input).bed $JPol2/input/$(Pol2_input).bed
 	cp $(Pol2_target)1.bed $JPol2/target/$(Pol2_target)1.bed
