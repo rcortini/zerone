@@ -1,3 +1,21 @@
+/* Copyright 2015, 2016 Pol Cusco and Guillaume Filion
+
+   This file is part of Zerone.
+
+   Zerone is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   Zerone is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with Zerone. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "debug.h"
 #include "hmm.h"
 
@@ -12,29 +30,29 @@ fwd
    // output //
          double       * restrict prob
 )
-// SYNOPSIS:                                                             
-//   Forward algorithm.                                                  
-//                                                                       
-// NUMERIC ROBUSTNESS:                                                   
-//   This implementation is robust to NAs and to underflow. In case of   
-//   NA or underflow it will ignore the emission and treat the           
-//   observation as missing (i.e. only the transitions at that position  
-//   will contribute to the output). If the emission probabilities are   
-//   passed as negative numbers, the algorithm will assume that they are 
-//   given in log space.                                                 
-//                                                                       
-// ARGUMENTS:                                                            
-//   'm': the number of states                                           
-//   'n': the length of the sequence of observations                     
-//   'Q': (m,m) transition matrix ('Q[i+j*m]' is a ij transtition).      
-//   'init': (m) initial probabilities                                   
-//   'prob': (m,n) emission probabilities                                
-//                                                                       
-// RETURN:                                                               
-//   The total log-likelihood.                                           
-//                                                                       
-// SIDE EFFECTS:                                                         
-//   Replaces 'prob' by forward alphas.                                  
+// SYNOPSIS:
+//   Forward algorithm.
+//
+// NUMERIC ROBUSTNESS:
+//   This implementation is robust to NAs and to underflow. In case of
+//   NA or underflow it will ignore the emission and treat the
+//   observation as missing (i.e. only the transitions at that position
+//   will contribute to the output). If the emission probabilities are
+//   passed as negative numbers, the algorithm will assume that they are
+//   given in log space.
+//
+// ARGUMENTS:
+//   'm': the number of states
+//   'n': the length of the sequence of observations
+//   'Q': (m,m) transition matrix ('Q[i+j*m]' is a ij transtition).
+//   'init': (m) initial probabilities
+//   'prob': (m,n) emission probabilities
+//
+// RETURN:
+//   The total log-likelihood.
+//
+// SIDE EFFECTS:
+//   Replaces 'prob' by forward alphas.
 {
 
    int i;           // State index.
@@ -135,22 +153,22 @@ bwd
          double       * restrict phi,
          double       * restrict T
 )
-// SYNOPSIS:                                                             
-//   Backward algorithm with Markovian backward smoothing.               
-//                                                                       
-// ARGUMENTS:                                                            
-//   'm': the number of states                                           
-//   'n': the length of the sequence of observations                     
-//   'Q': (m,m) transition matrix ('Q[i+j*m]' is a ij transtition).      
-//   'alpha': (m,n) the forward alpha probabilities                      
-//   'phi': (m,n) probabilities of states given observations             
-//   'T': (m,m) sum of conditional transitions probabilties              
-//                                                                       
-// RETURN:                                                               
-//   'void'                                                              
-//                                                                       
-// SIDE EFFECTS:                                                         
-//   Updates 'phi' and 'T' in place.                                     
+// SYNOPSIS:
+//   Backward algorithm with Markovian backward smoothing.
+//
+// ARGUMENTS:
+//   'm': the number of states
+//   'n': the length of the sequence of observations
+//   'Q': (m,m) transition matrix ('Q[i+j*m]' is a ij transtition).
+//   'alpha': (m,n) the forward alpha probabilities
+//   'phi': (m,n) probabilities of states given observations
+//   'T': (m,m) sum of conditional transitions probabilties
+//
+// RETURN:
+//   'void'
+//
+// SIDE EFFECTS:
+//   Updates 'phi' and 'T' in place.
 
 {
 
@@ -175,20 +193,20 @@ bwd
    memcpy(phi+(n-1)*m, alpha+(n-1)*m, m * sizeof(double));
 
 //-----------------------------------------------------------------------
-// Here we work out the local reverse kernel.                            
-// ak(i) is the probability of being in state i at step k given Y1,...,k 
-// bk(i) is the beta function defined by the forward-backward decom-     
-// position, such that ak(i)bk(i) is the probability of being in state i 
-// at step k given Y1,...,n.                                             
-//                                                                       
-// 'R[j+i*m]' = P(Xk=i|Xk+1=j,Y1,...,n) =                                
-//       P(Xk=i,Xk+1=j,Y1,...,n) / P(Xk+1=j,Y1,...,n) =                  
-//       ak(i)Q(i,j)gk+1(j)bk+1(j) / ak+1(j)bk+1(j) =                    
-//       ak(i)Q(i,j)gk+1(j) / sum_i ak(i)Q(i,j)gk+1(j)                   
-//       ak(i)Q(i,j) / sum_i ak(i)Q(i,j)                                 
-//                                                                       
-// P(Xk=i|Y1,...,n) = sum_j P(Xk=i|Xk+1=j,Y1,...,n) * P(Xk+1=j|Y1,...,n) 
-// which gives the line 'phi[j+k*m] += phi[i+(k+1)*m] * R[i+j*m]'.       
+// Here we work out the local reverse kernel.
+// ak(i) is the probability of being in state i at step k given Y1,...,k
+// bk(i) is the beta function defined by the forward-backward decom-
+// position, such that ak(i)bk(i) is the probability of being in state i
+// at step k given Y1,...,n.
+//
+// 'R[j+i*m]' = P(Xk=i|Xk+1=j,Y1,...,n) =
+//       P(Xk=i,Xk+1=j,Y1,...,n) / P(Xk+1=j,Y1,...,n) =
+//       ak(i)Q(i,j)gk+1(j)bk+1(j) / ak+1(j)bk+1(j) =
+//       ak(i)Q(i,j)gk+1(j) / sum_i ak(i)Q(i,j)gk+1(j)
+//       ak(i)Q(i,j) / sum_i ak(i)Q(i,j)
+//
+// P(Xk=i|Y1,...,n) = sum_j P(Xk=i|Xk+1=j,Y1,...,n) * P(Xk+1=j|Y1,...,n)
+// which gives the line 'phi[j+k*m] += phi[i+(k+1)*m] * R[i+j*m]'.
 //-----------------------------------------------------------------------
 
    // Next iterations of the backward pass.
@@ -229,29 +247,29 @@ fwdb
          double       * restrict phi,
          double       * restrict T
 )
-// SYNOPSIS:                                                             
-//   Forward-backward algorithm with Markovian backward smoothing.       
-//                                                                       
-// NUMERIC ROBUSTNESS:                                                   
-//   This implementation is robust to NAs and to underflow. In case of   
-//   NA or underflow it will ignore the emission and treat the           
-//   observation as missing (i.e. only the transitions at that position  
-//   will contribute to the output).                                     
-//                                                                       
-// ARGUMENTS:                                                            
-//   'm': the number of states                                           
-//   'n': the length of the sequence of observations                     
-//   'Q': (m,m) transition matrix ('Q[i+j*m]' is a ij transtition).      
-//   'init': (m) initial probabilities                                   
-//   'prob': (m,n) emission probabilities                                
-//   'phi': (m,n) probabilities given observations                       
-//   'T': (m,m) sum of conditional transitions probabilties              
-//                                                                       
-// RETURN:                                                               
-//   The total log-likelihood.                                           
-//                                                                       
-// SIDE EFFECTS:                                                         
-//   Replaces 'prob' by alphas, updates 'phi' and 'T' in place.          
+// SYNOPSIS:
+//   Forward-backward algorithm with Markovian backward smoothing.
+//
+// NUMERIC ROBUSTNESS:
+//   This implementation is robust to NAs and to underflow. In case of
+//   NA or underflow it will ignore the emission and treat the
+//   observation as missing (i.e. only the transitions at that position
+//   will contribute to the output).
+//
+// ARGUMENTS:
+//   'm': the number of states
+//   'n': the length of the sequence of observations
+//   'Q': (m,m) transition matrix ('Q[i+j*m]' is a ij transtition).
+//   'init': (m) initial probabilities
+//   'prob': (m,n) emission probabilities
+//   'phi': (m,n) probabilities given observations
+//   'T': (m,m) sum of conditional transitions probabilties
+//
+// RETURN:
+//   The total log-likelihood.
+//
+// SIDE EFFECTS:
+//   Replaces 'prob' by alphas, updates 'phi' and 'T' in place.
 {
 
    double loglik = fwd(m, n, Q, init, prob);
@@ -272,26 +290,26 @@ viterbi(
    // output //
                   int * restrict path
 )
-// SYNOPSIS:                                                             
-//   Log-space implementation of the Viterbi algorithm.                  
-//                                                                       
-// NUMERIC STABILITY:                                                    
-//   This implementation is not NA-robust. Overflow and underflow are    
-//   unlikely in log space and are not handled for that reason.          
-//                                                                       
-// ARGUMENTS:                                                            
-//   'm': the number of states                                           
-//   'n': the length of the sequence of observations                     
-//   'log_Q': (m,m) log transition matrix.                               
-//   'log_i': (m) log initial probabilities                              
-//   'log_p': (m,n) log emission probabilities                           
-//   'path': (n) Viterbi path.                                           
-//                                                                       
-// RETURN:                                                               
-//   The Viterbi path.                                                   
-//                                                                       
-// SIDE EFFECTS:                                                         
-//   Updates 'path' in place.                                            
+// SYNOPSIS:
+//   Log-space implementation of the Viterbi algorithm.
+//
+// NUMERIC STABILITY:
+//   This implementation is not NA-robust. Overflow and underflow are
+//   unlikely in log space and are not handled for that reason.
+//
+// ARGUMENTS:
+//   'm': the number of states
+//   'n': the length of the sequence of observations
+//   'log_Q': (m,m) log transition matrix.
+//   'log_i': (m) log initial probabilities
+//   'log_p': (m,n) log emission probabilities
+//   'path': (n) Viterbi path.
+//
+// RETURN:
+//   The Viterbi path.
+//
+// SIDE EFFECTS:
+//   Updates 'path' in place.
 {
 
    int i;        // State index.
@@ -361,25 +379,25 @@ block_fwdb(
          double       * restrict phi,
          double       * restrict sumtrans
 )
-// SYNOPSIS:                                                             
-//   Wrapper for 'fwdb' which separates independent fragments of a       
-//   time series.                                                        
-//                                                                       
-// ARGUMENTS:                                                            
-//   'm': the number of states                                           
-//   'nblocks': the number of fragments in the time series               
-//   'size': (nblocks) the lengths of the fragments of the time series   
-//   'Q': (m,m) transition matrix ('Q[i+j*m]' is a ij transtition)       
-//   'init': (m) initial probabilities                                   
-//   'prob': (n) the emssion probabilities                               
-//   'phi': (m,n) probabilities given observations                       
-//   'sumtrans': (m,m) sum of conditional transitions probabilties       
-//                                                                       
-// RETURN:                                                               
-//   'void'                                                              
-//                                                                       
-// SIDE EFFECTS:                                                         
-//   Updates 'prob', 'phi', 'sumtrans' and 'loglik' in place.            
+// SYNOPSIS:
+//   Wrapper for 'fwdb' which separates independent fragments of a
+//   time series.
+//
+// ARGUMENTS:
+//   'm': the number of states
+//   'nblocks': the number of fragments in the time series
+//   'size': (nblocks) the lengths of the fragments of the time series
+//   'Q': (m,m) transition matrix ('Q[i+j*m]' is a ij transtition)
+//   'init': (m) initial probabilities
+//   'prob': (n) the emssion probabilities
+//   'phi': (m,n) probabilities given observations
+//   'sumtrans': (m,m) sum of conditional transitions probabilties
+//
+// RETURN:
+//   'void'
+//
+// SIDE EFFECTS:
+//   Updates 'prob', 'phi', 'sumtrans' and 'loglik' in place.
 {
 
    // Initialization.
@@ -416,7 +434,7 @@ is_undefined(
    const double * slice,
          int      m
 )
-// SYNOPSIS:                                                             
+// SYNOPSIS:
 //   Helper function for `block_viterbi`. A set of 'm' emission
 //   probabilities is considered undefined if one of them is NA,
 //   or if they are all equal to -inf in log space.
@@ -443,29 +461,29 @@ block_viterbi
    // output //
                   int * restrict path
 )
-// SYNOPSIS:                                                             
-//   Viterbi algorithm for fragmented time series. The arguments can be  
-//   passed in linear or in log space.                                   
-//                                                                       
-// NUMERIC STABLITY:                                                     
-//   This implementation is NA-robust by omission. If NAs are present    
-//   at a given step, all the emission probabilities of that step are    
-//   set to 0, so they do not contribute to the Viterbi path.            
-//                                                                       
-// ARGUMENTS:                                                            
-//   'm': the number of states                                           
-//   'nblocks': the number of fragments in the time series               
-//   'size': (nblocks) the lengths of the fragments of the time series   
-//   'Q': (m,m) transition matrix                                        
-//   'init': (m) initial probabilities                                   
-//   'prob': (n) emssion probabilities                                   
-//   'path': (n) Viterbi path                                            
-//                                                                       
-// RETURN:                                                               
-//   'void'                                                              
-//                                                                       
-// SIDE EFFECTS:                                                         
-//   Updates 'path' in place.                                            
+// SYNOPSIS:
+//   Viterbi algorithm for fragmented time series. The arguments can be
+//   passed in linear or in log space.
+//
+// NUMERIC STABLITY:
+//   This implementation is NA-robust by omission. If NAs are present
+//   at a given step, all the emission probabilities of that step are
+//   set to 0, so they do not contribute to the Viterbi path.
+//
+// ARGUMENTS:
+//   'm': the number of states
+//   'nblocks': the number of fragments in the time series
+//   'size': (nblocks) the lengths of the fragments of the time series
+//   'Q': (m,m) transition matrix
+//   'init': (m) initial probabilities
+//   'prob': (n) emssion probabilities
+//   'path': (n) Viterbi path
+//
+// RETURN:
+//   'void'
+//
+// SIDE EFFECTS:
+//   Updates 'path' in place.
 {
 
    int n = 0;

@@ -1,3 +1,21 @@
+/* Copyright 2015, 2016 Pol Cusco and Guillaume Filion
+
+   This file is part of Zerone.
+
+   Zerone is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   Zerone is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with Zerone. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "unittest.h"
 #include "zinm.c"
 
@@ -378,7 +396,7 @@ test_mle_nb
 
    // These test cases have been verified with R.
    zinb_par_t *par;
-   
+
    // 0:14, 1:5, 2:4, 3:1, 5:1
    int x1[25] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                   1,1,1,1,1,2,2,2,2,3,5 };
@@ -457,9 +475,9 @@ test_mle_zinb
 {
 
    // Cases checked by simulated annealing.
-   
+
    zinb_par_t *par;
-   
+
    // 0:53, 1:8, 2:9, 3:8, 4:4, 5:7, 6:3, 7:3, 8:1, 9:3, 10:1
    int x1[100] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -521,7 +539,7 @@ test_fail_mle_nb
    unredirect_stderr();
    test_assert(par == NULL);
    test_assert(strncmp(caught_in_stderr(), "memory error", 12) == 0);
-   
+
    redirect_stderr();
    set_alloc_failure_countdown_to(3);
    par = mle_nb(obs, 10);
@@ -584,7 +602,7 @@ test_fail_mle_zinb
    unredirect_stderr();
    test_assert(par == NULL);
    test_assert(strncmp(caught_in_stderr(), "memory error", 12) == 0);
-   
+
    redirect_stderr();
    set_alloc_failure_countdown_to(2);
    par = mle_nb(obs, 13);
@@ -592,7 +610,7 @@ test_fail_mle_zinb
    unredirect_stderr();
    test_assert(par == NULL);
    test_assert(strncmp(caught_in_stderr(), "memory error", 12) == 0);
-   
+
    redirect_stderr();
    set_alloc_failure_countdown_to(3);
    par = mle_zinb(obs, 13);
