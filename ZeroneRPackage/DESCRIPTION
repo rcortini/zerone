@@ -6,4 +6,4 @@ Author: Guillaume Filion
 Maintainer: Guillaume Filion <guillaume.filion@gmail.com>
 LazyData: true
 Description: Provides HMM for mixture model negative multinomial emissions.
-License: GPL (>=2)
+License: GPL (>=3)
