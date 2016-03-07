@@ -62,7 +62,7 @@ extractfeat
       }
    }
 
-   feat[6] = meanphi / ntargets;
+   feat[6] = (ntargets == 0) ? 0.0 : meanphi / ntargets;
    feat[7] = meanpath / n;
 
    for (int i = 0 ; i < DIM ; i++) {

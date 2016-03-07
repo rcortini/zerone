@@ -171,7 +171,8 @@ bwd
    memset(T, 0.0, m*m * sizeof(double));
 
    // First iteration of the backward pass.
-   memset(phi, 0.0, m*n * sizeof(double));
+   // memset(phi, 0.0, m*n * sizeof(double));
+   bzero(phi, m*n * sizeof(double));
    memcpy(phi+(n-1)*m, alpha+(n-1)*m, m * sizeof(double));
 
 //-----------------------------------------------------------------------
