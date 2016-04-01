@@ -74,6 +74,9 @@ zerone_R_call
    ChIP_t *ChIP = new_ChIP(r, nb, y, name, size);
    zerone_t * zerone = do_zerone(ChIP);
 
+   free(ChIP);
+   zerone->ChIP = NULL;
+
    if (zerone == NULL) {
       Rprintf("Rzerone error\n");
       return R_NilValue;

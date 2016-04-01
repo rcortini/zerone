@@ -184,10 +184,11 @@ do_zerone
    int map[3] = {0,1,2};
    for (int i = 1 ; i < 3 ; i++) {
       if (Z->p[i*(r+1)] > Z->p[map[0]*(r+1)]) map[0] = i;
-      if (Z->p[i*(r+1)] < Z->p[map[2]*(r+1)]) map[2] = i;
+      if (Z->p[(i-1)*(r+1)] < Z->p[map[2]*(r+1)]) map[2] = i-1;
    }
    // The middle state is the remaining one.
    map[1] = 3-map[0]-map[2];
+   debug_print("map: [%d, %d, %d]\n", map[0], map[1], map[2]);
 
    if (map[0] != 0 || map[1] != 1 || map[2] != 2) reorder(Z, map);
 
