@@ -228,7 +228,6 @@ int main(int argc, char **argv) {
       exit(EXIT_FAILURE);
    }
 
-   debug_print("map: %d, %d, %d\n", Z->map[0], Z->map[1], Z->map[2]);
    debug_print("%s", "Q:\n");
    debug_print("%.3f %.3f %.3f\n", Z->Q[0], Z->Q[3], Z->Q[6]);
    debug_print("%.3f %.3f %.3f\n", Z->Q[1], Z->Q[4], Z->Q[7]);
@@ -257,11 +256,11 @@ int main(int argc, char **argv) {
       for (int i = 0 ; i < ChIP->nb ; i++) {
          char *name = ChIP->nm + 32*i;
          for (int j = 0 ; j < ChIP->sz[i] ; j++) {
-            if (!target && Z->path[wid] == Z->map[2]) {
+            if (!target && Z->path[wid] == 2) {
                fprintf(stdout, "%s\t%d\t", name, window*j + 1);
                target = 1;
             }
-            else if (target && Z->path[wid] != Z->map[2]) {
+            else if (target && Z->path[wid] != 2) {
                fprintf(stdout, "%d\n", window*(j+1));
                target = 0;
             }
