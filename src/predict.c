@@ -41,25 +41,22 @@ extractfeat
    // XXX This bit is confusing. Needs to be discussed. XXX //
    unsigned int r = ChIP->r + 1;
 
-   // 'map' contains the permutation of the states.
-   int *map = Z->map;
-
    // Add the values of the transition matrix Q to the feature vector...
-   feat[0] = Z->Q[map[2] + map[0]*m];
-   feat[1] = Z->Q[map[2] + map[1]*m];
-   feat[2] = Z->Q[map[0] + map[2]*m];
+   feat[0] = Z->Q[2 + 0*m];
+   feat[1] = Z->Q[2 + 1*m];
+   feat[2] = Z->Q[0 + 2*m];
 
    double ummax = 0.0;
    double ubmax = 0.0;
    double mbmax = 0.0;
 
    for (int i = 2; i < r; i++) {
-      double umratio = (p[i+map[0]*r] / (1 - p[map[0]*r])) /
-         (p[i+map[1]*r] / (1 - p[map[1]*r]));
-      double ubratio = (p[i+map[0]*r] / (1 - p[map[0]*r])) /
-         (p[i+map[2]*r] / (1 - p[map[2]*r]));
-      double mbratio = (p[i+map[1]*r] / (1 - p[map[1]*r])) /
-         (p[i+map[2]*r] / (1 - p[map[2]*r]));
+      double umratio = (p[i+0*r] / (1 - p[0*r])) /
+         (p[i+1*r] / (1 - p[1*r]));
+      double ubratio = (p[i+0*r] / (1 - p[0*r])) /
+         (p[i+2*r] / (1 - p[2*r]));
+      double mbratio = (p[i+1*r] / (1 - p[1*r])) /
+         (p[i+2*r] / (1 - p[2*r]));
       if (umratio > ummax) ummax = umratio;
       if (ubratio > ubmax) ubmax = ubratio;
       if (mbratio > mbmax) mbmax = mbratio;
@@ -73,10 +70,10 @@ extractfeat
    double meanpath = 0;
    int ntargets = 0;
    for (int j = 0; j < n; j++) {
-      if (Z->path[j] == map[2]) {
+      if (Z->path[j] == 2) {
          ntargets++;
          meanpath++;
-         meanphi += Z->phi[j * m + map[2]];
+         meanphi += Z->phi[j * m + 2];
       }
    }
 
