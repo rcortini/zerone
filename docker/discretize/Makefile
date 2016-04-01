@@ -26,9 +26,10 @@ NARR= Ctcf H3k4me3 Pol2
 PROF= $(NARR) H3k36me3
 BOUT= $(addprefix $B,$(addsuffix 1.bed,$(PROF))) \
       $(addprefix $B,$(addsuffix 2.bed,$(PROF)))
-#JOUT= $(addprefix $J,$(addsuffix .bed,$(PROF)))
 P= /peaks/filtered.peaks.
 JOUT= $(addprefix $J,$(addsuffix $PnarrowPeak,$(NARR))) \
+      $(addprefix $J,$(addsuffix $PnarrowPeak,$(addsuffix 1,$(NARR)))) \
+      $(addprefix $J,$(addsuffix $PnarrowPeak,$(addsuffix 2,$(NARR)))) \
       $(addprefix $J,$(addsuffix $PbroadPeak,H3k36me3))
 MOUT= $(addprefix $M,$(addsuffix 1.bed,$(PROF))) \
       $(addprefix $M,$(addsuffix 2.bed,$(PROF)))
@@ -118,6 +119,26 @@ $JCtcf$PnarrowPeak: $(addsuffix .bed,$(Ctcf_all)) $JJAMM.sh $(CHRSIZE)
 	    -s $JCtcf/target \
 	    -c $JCtcf/input
 
+$JCtcf1$PnarrowPeak: $(addsuffix .bed,$(Ctcf_all)) $JJAMM.sh $(CHRSIZE)
+	mkdir -p $JCtcf1/input $JCtcf1/target
+	cp $(Uw_input).bed $JCtcf1/input/$(Uw_input).bed
+	cp $(Ctcf_target)1.bed $JCtcf1/target/$(Ctcf_target)1.bed
+	bash $JJAMM.sh \
+	    -g $(CHRSIZE) \
+	    -o $JCtcf1 \
+	    -s $JCtcf1/target \
+	    -c $JCtcf1/input
+
+$JCtcf2$PnarrowPeak: $(addsuffix .bed,$(Ctcf_all)) $JJAMM.sh $(CHRSIZE)
+	mkdir -p $JCtcf2/input $JCtcf2/target
+	cp $(Uw_input).bed $JCtcf2/input/$(Uw_input).bed
+	cp $(Ctcf_target)2.bed $JCtcf2/target/$(Ctcf_target)2.bed
+	bash $JJAMM.sh \
+	    -g $(CHRSIZE) \
+	    -o $JCtcf2 \
+	    -s $JCtcf2/target \
+	    -c $JCtcf2/input
+
 $JH3k4me3$PnarrowPeak: $(addsufifix .bed,$(H3k4me3_all)) $JJAMM.sh $(CHRSIZE)
 	mkdir -p $JH3k4me3/input $JH3k4me3/target
 	cp $(Uw_input).bed $JH3k4me3/input/$(Uw_input).bed
@@ -128,6 +149,26 @@ $JH3k4me3$PnarrowPeak: $(addsufifix .bed,$(H3k4me3_all)) $JJAMM.sh $(CHRSIZE)
 	    -o $JH3k4me3 \
 	    -s $JH3k4me3/target \
 	    -c $JH3k4me3/input
+
+$JH3k4me31$PnarrowPeak: $(addsufifix .bed,$(H3k4me3_all)) $JJAMM.sh $(CHRSIZE)
+	mkdir -p $JH3k4me31/input $JH3k4me31/target
+	cp $(Uw_input).bed $JH3k4me31/input/$(Uw_input).bed
+	cp $(H3k4me3_target)1.bed $JH3k4me31/target/$(H3k4me3_target)1.bed
+	bash $JJAMM.sh \
+	    -g $(CHRSIZE) \
+	    -o $JH3k4me31 \
+	    -s $JH3k4me31/target \
+	    -c $JH3k4me31/input
+
+$JH3k4me32$PnarrowPeak: $(addsufifix .bed,$(H3k4me3_all)) $JJAMM.sh $(CHRSIZE)
+	mkdir -p $JH3k4me32/input $JH3k4me32/target
+	cp $(Uw_input).bed $JH3k4me32/input/$(Uw_input).bed
+	cp $(H3k4me3_target)2.bed $JH3k4me32/target/$(H3k4me3_target)2.bed
+	bash $JJAMM.sh \
+	    -g $(CHRSIZE) \
+	    -o $JH3k4me32 \
+	    -s $JH3k4me32/target \
+	    -c $JH3k4me32/input
 
 $JH3k36me3$PbroadPeak: $(addsuffix .bed,$(H3k36me3_all)) $JJAMM.sh $(CHRSIZE)
 	mkdir -p $JH3k36me3/input $JH3k36me3/target
@@ -151,6 +192,26 @@ $JPol2$PnarrowPeak: $(addsuffix .bed,$(Pol2_all)) $JJAMM.sh $(CHRSIZE)
 	    -o $JPol2 \
 	    -s $JPol2/target \
 	    -c $JPol2/input
+
+$JPol21$PnarrowPeak: $(addsuffix .bed,$(Pol2_all)) $JJAMM.sh $(CHRSIZE)
+	mkdir -p $JPol21/input $JPol21/target
+	cp $(Pol2_input).bed $JPol21/input/$(Pol2_input).bed
+	cp $(Pol2_target)1.bed $JPol21/target/$(Pol2_target)1.bed
+	bash $JJAMM.sh \
+	    -g $(CHRSIZE) \
+	    -o $JPol21 \
+	    -s $JPol21/target \
+	    -c $JPol21/input
+
+$JPol22$PnarrowPeak: $(addsuffix .bed,$(Pol2_all)) $JJAMM.sh $(CHRSIZE)
+	mkdir -p $JPol22/input $JPol22/target
+	cp $(Pol2_input).bed $JPol22/input/$(Pol2_input).bed
+	cp $(Pol2_target)2.bed $JPol22/target/$(Pol2_target)2.bed
+	bash $JJAMM.sh \
+	    -g $(CHRSIZE) \
+	    -o $JPol22 \
+	    -s $JPol22/target \
+	    -c $JPol22/input
 
 $MCtcf%.bed: $(Ctcf_target)%.sam $(Uw_input).sam
 	macs2 callpeak \
