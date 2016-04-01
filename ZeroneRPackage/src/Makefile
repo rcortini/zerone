@@ -22,15 +22,20 @@ INCLUDES= $(addprefix -I, $(INC_DIR))
 OBJECTS= zerone.o zinm.o hmm.o utils.o xxhash.o
 
 CC= gcc
-CFLAGS= -std=gnu99 -fPIC -g -Wall -O3
+CFLAGS= -std=gnu99 -fPIC -Wall
 
+all: CFLAGS += -O3
 all: Rzerone.so
+
+debug: CFLAGS += -DDEBUG -g -O0
+debug: SHLIBFLAGS += -d
+debug: Rzerone.so
 
 %.o: $(SRC_DIR)/%.c $(SRC_DIR)/%.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 Rzerone.so: $(OBJECTS)
-	R CMD SHLIB $(INCLUDES) Rzerone.c $(OBJECTS)
+	R CMD SHLIB $(SHLIBFLAGS) $(INCLUDES) Rzerone.c $(OBJECTS)
 
 clean:
 	rm -f $(OBJECTS) Rzerone.o Rzerone.so

@@ -27,8 +27,6 @@ void test_block_fwdb_NA (void);
 void test_viterbi (void);
 void test_block_viterbi (void);
 void test_block_viterbi_NA (void);
-void test_update_trans (void);
-void test_bw_zinm (void);
 
 
 // Test cases from tests_utils.c
@@ -40,7 +38,6 @@ void test_indexts (void);
 
 
 // Test cases from tests_zinb.c
-void test_zinm_prob (void);
 void test_eval_nb_f (void);
 void test_eval_nb_dfda (void);
 void test_eval_zinb_f (void);
@@ -75,12 +72,16 @@ void test_getgzline_err (void);
 void test_parse_input_files (void);
 
 
-// Test cases from test_predict.c
+// Test cases from tests_predict.c
 void test_predict (void);
 
 
-// test cases from test_zerone.c
+// test cases from tests_zerone.c
+void test_reorder (void);
+void test_zinm_prob (void);
+void test_bw_zinm (void);
 void test_eval_bw_f (void);
+void test_update_trans (void);
 
 
 int
@@ -97,7 +98,6 @@ main(
       {"utils/compress_histo",    test_compress_histo},
       {"utils/tabulate",          test_tabulate},
       {"utils/indexts",           test_indexts},
-      {"zinm/zinm_prob",          test_zinm_prob},
       {"zinm/eval_nb_f",          test_eval_nb_f},
       {"zinm/eval_nb_dfda",       test_eval_nb_dfda},
       {"zinm/eval_zinb_f",        test_eval_zinb_f},
@@ -120,8 +120,6 @@ main(
       {"hmm/viterbi",             test_viterbi},
       {"hmm/block_viterbi",       test_block_viterbi},
       {"hmm/block_viterbi (NAs)", test_block_viterbi_NA},
-      {"hmm/update_trans",        test_update_trans},
-      {"hmm/bw_zinm",             test_bw_zinm},
       {"parse/bloom",             test_bloom},
       {"parse/add_to_rod",        test_add_to_rod},
       {"parse/djb2",              test_djb2},
@@ -138,6 +136,10 @@ main(
       {"parse/getgzline_err",     test_getgzline_err},
       {"parse/parse_input_files", test_parse_input_files},
       {"predict/predict",         test_predict},
+      {"zerone/reorder",          test_reorder},
+      {"zerone/zinm_prob",        test_zinm_prob},
+      {"zerone/bw_zinm",          test_bw_zinm},
+      {"zerone/update_trans",     test_update_trans},
       {"zerone/eval_bw_f",        test_eval_bw_f},
       {NULL, NULL}
    };

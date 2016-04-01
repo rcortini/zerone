@@ -20,11 +20,122 @@
 #include "utils.h"
 #include "zerone.c"
 
+
+void
+test_reorder
+(void)
+{
+
+   // --- Setup --- //
+   int map[3] = {1,2,0};
+
+   const uint m = 3;
+   const uint n = 2;
+   const uint r = 3;
+
+   // The constant C1 facilitates the definition of 'p'.
+   const double p[12] = {
+      1, 2,  3,  4,
+      5, 6,  7,  8,
+      9, 10, 11, 12,
+   };
+
+   // The ChIP data is irrelevant.
+   int y[6] = {
+      0, 0, 0,
+      0, 0, 0,
+   };
+
+   double phi[6] = {
+      1, 2, 3,
+      4, 5, 6,
+   };
+
+   double pem[6] = {
+      1, 2, 3,
+      4, 5, 6,
+   };
+
+   ChIP_t *ChIP = new_ChIP(m, 1, y, NULL, &n);
+
+   double Q[9] = {
+      1,2,3,
+      4,5,6,
+      7,8,9
+   };
+
+   zerone_t *zerone = new_zerone(r, ChIP);
+
+   // Parameters 'a' and 'pi' are set to 0 (irrelevant).
+   set_zerone_par(zerone, Q, 0.0, 0.0, p);
+   zerone->phi = malloc(6*sizeof(double));
+   zerone->pem = malloc(6*sizeof(double));
+
+   if (zerone->phi == NULL || zerone->pem == NULL) {
+      fprintf(stderr, "error in test function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return;
+   }
+
+   memcpy(zerone->phi, phi, 6*sizeof(double));
+   memcpy(zerone->pem, pem, 6*sizeof(double));
+
+   // --- Test --- //
+   
+   reorder(zerone, map);
+
+   double expected_Q[9] = {
+      5,6,4,
+      8,9,7,
+      2,3,1
+   };
+
+   for (int i = 0 ; i < 9 ; i++) {
+      test_assert(zerone->Q[i] == expected_Q[i]);
+   }
+
+   double expected_p[12] = {
+      5, 6,  7,  8,
+      9, 10, 11, 12,
+      1, 2,  3,  4,
+   };
+
+   for (int i = 0 ; i < 12 ; i++) {
+      test_assert(zerone->p[i] == expected_p[i]);
+   }
+
+   double expected_phi[6] = {
+      2, 3, 1,
+      5, 6, 4,
+   };
+
+   for (int i = 0 ; i < 6 ; i++) {
+      test_assert(zerone->phi[i] == expected_phi[i]);
+   }
+
+   double expected_pem[6] = {
+      2, 3, 1,
+      5, 6, 4,
+   };
+
+   for (int i = 0 ; i < 6 ; i++) {
+      test_assert(zerone->pem[i] == expected_pem[i]);
+   }
+
+   // --- Teardown --- //
+   free(ChIP);
+   zerone->ChIP = NULL;
+   destroy_zerone_all(zerone);
+
+}
+
+
 void
 test_zinm_prob
 (void)
 {
 
+   // --- Setup --- //
    const uint m = 3;
    const uint n = 7;
    const uint r = 3;
@@ -60,6 +171,8 @@ test_zinm_prob
    int index[7] = {-1,-1,-1,-1,-1,-1,-1};
    double pem[21];
    indexts(n, r, y, index);
+
+   // --- Test --- //
 
    //--               Test output type 0               --//
    int out = 0;
@@ -143,6 +256,7 @@ test_zinm_prob
    // Test the warning message.
    test_assert_stderr("warning: renormalizing 'p'\n");
 
+   // --- Teardown --- //
    free(ChIP);
    zerone->ChIP = NULL;
    destroy_zerone_all(zerone);
@@ -248,44 +362,6 @@ test_update_trans
    return;
 
 }
-
-#if 0
-void
-test_read_file
-(void)
-{
-
-   FILE *inputf = fopen("sample_file.txt", "r");
-   test_assert_critical(inputf != NULL);
-   ChIP_t *ChIP = read_file(inputf);
-   fclose(inputf);
-
-   test_assert_critical(ChIP != NULL);
-   test_assert(ChIP->r == 3);
-
-   test_assert(ChIP->nb == 1);
-   test_assert(ChIP->sz[0] == 5);
-
-   int *y = ChIP->y;
-   int expected_y[15] = {
-      -1,-1,-1,
-      -1,-1,-1,
-      -1,-1,-1,
-       0, 0, 0,
-       2, 1, 0,
-   };
-   for (size_t i = 0 ; i < 15 ; i++) {
-      test_assert(y[i] == expected_y[i]);
-   }
-
-   free(ChIP->y);
-   free(ChIP);
-
-   return;
-
-}
-#endif
-
 
 void
 test_eval_bw_f

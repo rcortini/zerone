@@ -60,34 +60,34 @@ reorder
    const unsigned int r = Z->ChIP->r;
    const unsigned int n = nobs(Z->ChIP);
 
-   // Reorder Q
+   // Reorder 'Q'.
    double Q[9] = {0};
    for (int i = 0 ; i < 3 ; i++) {
    for (int j = 0 ; j < 3 ; j++) {
-      Q[map[i]+map[j]*3] = Z->Q[i+j*3];
+      Q[i+j*3] = Z->Q[map[i]+map[j]*3];
    }
    }
    memcpy(Z->Q, Q, 9 * sizeof(double));
 
-   // Reorder p
+   // Reorder 'p'.
    double p[3*64] = {0};
    for (int i = 0 ; i < 3 ; i++) {
    for (int j = 0 ; j < r+1 ; j++) {
-      p[j+map[i]*(r+1)] = Z->p[j+i*(r+1)];
+      p[j+i*(r+1)] = Z->p[j+map[i]*(r+1)];
    }
    }
    memcpy(Z->p, p, 3*(r+1) * sizeof(double));
 
-   // Reorder phi
+   // Reorder 'phi'.
    double buffer[3] = {0};
    for (int i = 0 ; i < n ; i++) {
-      for (int j = 0 ; j < 3 ; j++) buffer[map[j]] = Z->phi[j+i*3];
+      for (int j = 0 ; j < 3 ; j++) buffer[j] = Z->phi[map[j]+i*3];
       memcpy(Z->phi + 3*i, buffer, 3 * sizeof(double));
    }
 
-   // Reorder pem
+   // Reorder 'pem'.
    for (int i = 0 ; i < n ; i++) {
-      for (int j = 0 ; j < 3 ; j++) buffer[map[j]] = Z->pem[j+i*3];
+      for (int j = 0 ; j < 3 ; j++) buffer[j] = Z->pem[map[j]+i*3];
       memcpy(Z->pem + 3*i, buffer, 3 * sizeof(double));
    }
 
@@ -186,6 +186,7 @@ do_zerone
       if (Z->p[i*(r+1)] > Z->p[map[0]*(r+1)]) map[0] = i;
       if (Z->p[i*(r+1)] < Z->p[map[2]*(r+1)]) map[2] = i;
    }
+   // The middle state is the remaining one.
    map[1] = 3-map[0]-map[2];
 
    if (map[0] != 0 || map[1] != 1 || map[2] != 2) reorder(Z, map);
