@@ -112,7 +112,7 @@ extract_features
    // Feature 2: average number of targets.
    features[2] = n_yes / n;
 
-   // Feature 3: mimum explained variance.
+   // Feature 3: minimum explained variance.
    features[3] = 1.0;
    
    for (int j = 1 ; j < r ; j++) {
@@ -121,6 +121,12 @@ extract_features
    }
 
    // Feature 4: minimum correlation on targets.
+   // This cannot be computed if only one profile is available.
+   if (r < 3) {
+      features[4] = 0.0/0.0;
+      goto clean_and_return;
+   }
+
    features[4] = 1.0;
 
    for (int j = 1 ; j < r ; j++) {
@@ -184,6 +190,7 @@ predict
 
    // Add the hyperplane intercept.
    return (label - RHO);
+
 }
 
 double
