@@ -21,8 +21,8 @@
 #include "utils.h"
 #include "zinm.h"
 
-#ifndef _JAHMM_HEADER
-#define _JAHMM_HEADER
+#ifndef _ZERONE_HEADER
+#define _ZERONE_HEADER
 
 #define BW_MAXITER 100     // BW iterations //
 #define BT_MAXITER 20      // Backtrack iterations //

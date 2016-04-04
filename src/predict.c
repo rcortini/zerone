@@ -24,90 +24,144 @@
 #include "predict.h"
 #include "svmdata.h"
 
+#define SQ(a) (a)*(a)
+
 // Below are the global constants declared in svmdata.h.
 // GAMMA, RHO, CENTER, SCALE, SV, COEFFS, DIM, NSV
 
 double *
-extractfeat
+extract_features
 (
    zerone_t * Z,
-   double   * feat
+   double   * features
 )
 {
    ChIP_t *ChIP = Z->ChIP;
    double * p = Z->p;
-   unsigned int m = Z->m;
-   unsigned int n = nobs(ChIP);
-   // XXX This bit is confusing. Needs to be discussed. XXX //
-   unsigned int r = ChIP->r + 1;
+   const unsigned int m = Z->m;
+   const unsigned int n = nobs(ChIP);
+   const unsigned int r = ChIP->r;
 
-   // Add the values of the transition matrix Q to the feature vector...
-   feat[0] = Z->Q[2 + 0*m];
-   feat[1] = Z->Q[2 + 1*m];
-   feat[2] = Z->Q[0 + 2*m];
+   // Feature 0: tansition from "top" to "mid".
+   features[0] = Z->Q[2 + 1*m];
 
-   double ummax = 0.0;
-   double ubmax = 0.0;
-   double mbmax = 0.0;
-
-   for (int i = 2; i < r; i++) {
-      double umratio = (p[i+0*r] / (1 - p[0*r])) /
-         (p[i+1*r] / (1 - p[1*r]));
-      double ubratio = (p[i+0*r] / (1 - p[0*r])) /
-         (p[i+2*r] / (1 - p[2*r]));
-      double mbratio = (p[i+1*r] / (1 - p[1*r])) /
-         (p[i+2*r] / (1 - p[2*r]));
-      if (umratio > ummax) ummax = umratio;
-      if (ubratio > ubmax) ubmax = ubratio;
-      if (mbratio > mbmax) mbmax = mbratio;
+   // Feature 1: smallest "top" to "mid" signal ratio.
+   features[1] = 10;
+   for (int i = 2; i < r+1; i++) {
+      double ratio = (p[i+2*(r+1)] / p[0+2*(r+1)]) /
+         (p[i+1*(r+1)] / p[0+1*(r+1)]);
+      if (ratio < features[1]) features[1] = ratio;
    }
 
-   feat[3] = ummax;
-   feat[4] = ubmax;
-   feat[5] = mbmax;
+   double *mean_yes = calloc(r, sizeof(double));
+   double *mean_no = calloc(r, sizeof(double));
+   double *prod_yes = calloc(r*r, sizeof(double));
+   double *var = calloc(r, sizeof(double));
 
-   double meanphi = 0;
-   double meanpath = 0;
-   int ntargets = 0;
-   for (int j = 0; j < n; j++) {
-      if (Z->path[j] == 2) {
-         ntargets++;
-         meanpath++;
-         meanphi += Z->phi[j * m + 2];
+   if (mean_yes == NULL || mean_no == NULL ||
+               var == NULL || prod_yes == NULL) {
+      fprintf(stderr, "memory error %s:%d\n", __FILE__, __LINE__);
+      // Fill feature vector with NAs.
+      for (int i = 0 ; i < DIM ; i++) features[i] = 0.0/0.0;
+      goto clean_and_return;
+   }
+
+   double n_yes = 0.0;
+
+   // Scan data and collect intermediate values to
+   // compute means, variances and covariances.
+   for (int i = 0; i < n; i++) {
+      if (Z->path[i] == 2) {
+         n_yes++;
+         for (int j = 1 ; j < r ; j++) {
+            mean_yes[j] += ChIP->y[j+i*r];
+            for (int k = j ; k < r ; k++) {
+               prod_yes[j+k*r] +=
+                  ChIP->y[j+i*r] * ChIP->y[k+i*r];
+            }
+         }
+      }
+      else {
+         for (int j = 1 ; j < r ; j++) {
+            mean_no[j] += ChIP->y[j+i*r];
+         }
+      }
+      for (int j = 1 ; j < r ; j++) {
+         var[j] += (ChIP->y[j+i*r]) * (ChIP->y[j+i*r]);
       }
    }
 
-   feat[6] = (ntargets == 0) ? 0.0 : meanphi / ntargets;
-   feat[7] = meanpath / n;
+   double n_no = n - n_yes;
 
-   for (int i = 0 ; i < DIM ; i++) {
-      debug_print("feature %d: %.3f\n", i, feat[i]);
+   if (n_yes < 1 || n_no < 1) {
+      // Limit case: avoid division by 0
+      // and set following features to 0.
+      features[2] = features[3] = features[4] = 0.0;
+      goto clean_and_return;
    }
 
-   return feat;
+   for (int j = 1 ; j < r ; j++) {
+      var[j] = var[j] / n - SQ((mean_no[j] + mean_yes[j]) / n);
+      mean_no[j] /= n_no;
+      mean_yes[j] /= n_yes;
+      for (int k = j ; k < r ; k++) {
+         prod_yes[j+k*r] /= n_yes;
+      }
+   }
+
+   // Feature 2: average number of targets.
+   features[2] = n_yes / n;
+
+   // Feature 3: mimum explained variance.
+   features[3] = 1.0;
+   
+   for (int j = 1 ; j < r ; j++) {
+      double v = n_yes*n_no * SQ(mean_yes[j]-mean_no[j]) / (var[j]*SQ(n));
+      if (v < features[3]) features[3] = v;
+   }
+
+   // Feature 4: minimum correlation on targets.
+   features[4] = 1.0;
+
+   for (int j = 1 ; j < r ; j++) {
+   for (int k = j+1 ; k < r ; k++) {
+      double c = (prod_yes[j+k*r] - mean_yes[j]*mean_yes[k]) /
+         sqrt((prod_yes[j+j*r] - SQ(mean_yes[j])) *
+               (prod_yes[k+k*r] - SQ(mean_yes[k])));
+      if (c < features[4]) features[4] = c;
+   }
+   }
+
+clean_and_return:
+   free(mean_yes);
+   free(mean_no);
+   free(prod_yes);
+   free(var);
+
+   return features;
 
 }
 
 double *
 zscale
 (
-   double * feat
+   double * features
 )
 {
    // Z-score scaling.
    for (int i = 0; i < DIM; i++) {
-      feat[i] = (feat[i] - CENTER[i]) / SCALE[i];
-      debug_print("scaled feature %d: %.3f\n", i, feat[i]);
+      features[i] = (features[i] - CENTER[i]) / SCALE[i];
+      debug_print("scaled feature %d: %.3f\n", i, features[i]);
    }
 
-   return feat;
+   return features;
 
 }
 
 double
 predict
 (
-   double *feat
+   double *scaled_features
 )
 {
 
@@ -117,7 +171,7 @@ predict
    for (int i = 0; i < NSV; i++) {
       double sum = 0.0;
       for (int j = 0; j < DIM; j++) {
-         double dist = feat[j] - SV[i + j * NSV];
+         double dist = scaled_features[j] - SV[i + j * NSV];
          sum += dist * dist;
       }
       kvals[i] = exp(-GAMMA * sum);
@@ -128,21 +182,26 @@ predict
    double label = 0.0;
    for (int i = 0; i < NSV; i++) label += COEFS[i] * kvals[i];
 
-   // Add the intercept term of the hyperplane before returning.
-   debug_print("SVM score: %.3f\n", label - RHO);
+   // Add the hyperplane intercept.
    return (label - RHO);
 }
 
 double
-zerone_predict
+zerone_qc
 (
-   zerone_t * zerone
+   zerone_t * zerone,
+   double   * features
 )
 {
 
-   double feat[DIM] = {0};
-   zscale(extractfeat(zerone, feat));
+   // Extract and store unscaled features.
+   extract_features(zerone, features);
 
-   return predict(feat);
+   // Copy features and scale.
+   double scaled_features[DIM] = {0};
+   memcpy(scaled_features, features, DIM * sizeof(double));
+   zscale(scaled_features);
+
+   return predict(scaled_features);
 
 }

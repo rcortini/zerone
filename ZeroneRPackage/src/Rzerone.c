@@ -20,6 +20,7 @@
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 #include "../../src/zerone.h"
+#include "../../src/predict.h"
 
 
 // Register the method 'zerone_R_call()'.
@@ -66,6 +67,12 @@ zerone_R_call
       return R_NilValue;
    }
 
+   double *features = malloc(5 * sizeof(double));
+   if (features == NULL) {
+      Rprintf("Rzerone memory error %s:%d\n", __FILE__, __LINE__);
+      return R_NilValue;
+   }
+
    for (size_t i = 1 ; i < r+1 ; i++) {
       int *v = INTEGER(coerceVector(VECTOR_ELT(RY, i), INTSXP));
       for (size_t j = 0 ; j < n ; j++) y[i-1+j*r] = v[j];
@@ -73,6 +80,8 @@ zerone_R_call
 
    ChIP_t *ChIP = new_ChIP(r, nb, y, name, size);
    zerone_t * zerone = do_zerone(ChIP);
+
+   extract_features(zerone, features);
 
    free(ChIP);
    zerone->ChIP = NULL;
@@ -129,6 +138,10 @@ zerone_R_call
    PROTECT(L = allocVector(REALSXP, 1));
    *REAL(L) = zerone->l;
 
+   SEXP FEAT;
+   PROTECT(FEAT = allocVector(REALSXP, 5));
+   memcpy(REAL(FEAT), features, 5 * sizeof(double));
+
    SEXP dimQ;
    PROTECT(dimQ = allocVector(INTSXP, 2));
    INTEGER(dimQ)[0] = m;
@@ -154,7 +167,7 @@ zerone_R_call
    setAttrib(PEM, R_DimSymbol, dimPEM);
 
    SEXP RETLIST;
-   PROTECT(RETLIST = allocVector(VECSXP, 8));
+   PROTECT(RETLIST = allocVector(VECSXP, 9));
    SET_VECTOR_ELT(RETLIST, 0, Q);
    SET_VECTOR_ELT(RETLIST, 1, A);
    SET_VECTOR_ELT(RETLIST, 2, PI_);
@@ -163,8 +176,9 @@ zerone_R_call
    SET_VECTOR_ELT(RETLIST, 5, PEM);
    SET_VECTOR_ELT(RETLIST, 6, PATH);
    SET_VECTOR_ELT(RETLIST, 7, L);
+   SET_VECTOR_ELT(RETLIST, 8, FEAT);
 
-   UNPROTECT(13);
+   UNPROTECT(14);
 
    destroy_zerone_all(zerone);
 

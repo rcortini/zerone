@@ -21,6 +21,7 @@
 
 #include "zerone.h"
 
-double zerone_predict(zerone_t *);
+double   zerone_qc(zerone_t *, double *);
+double * extract_features(zerone_t *, double *);
 
 #endif

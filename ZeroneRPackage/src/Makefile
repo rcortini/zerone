@@ -19,7 +19,7 @@ SRC_DIR= ../../src
 INC_DIR= ../../src
 
 INCLUDES= $(addprefix -I, $(INC_DIR))
-OBJECTS= zerone.o zinm.o hmm.o utils.o xxhash.o
+OBJECTS= predict.o zerone.o zinm.o hmm.o utils.o xxhash.o
 
 CC= gcc
 CFLAGS= -std=gnu99 -fPIC -Wall

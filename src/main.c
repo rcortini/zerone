@@ -245,10 +245,13 @@ int main(int argc, char **argv) {
    }
 
    // Quality control.
-   double QCscore = zerone_predict(Z);
-   fprintf(stdout, "# QC score: %.3f\n", QCscore);
+   double feat[5];
+   double QC = zerone_qc(Z, feat);
+   fprintf(stdout, "# QC score: %.3f\n", QC);
+   fprintf(stdout, "# featres: %.3f, %.3f, %.3f, %.3f, %.3f\n",
+                           feat[0], feat[1], feat[2], feat[3], feat[4]);
    fprintf(stdout, "# advice: %s discretization.\n",
-         QCscore >= 0 ? "accept" : "reject");
+         QC >= 0 ? "accept" : "reject");
 
    if (list_flag) {
       int wid = 0;

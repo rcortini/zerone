@@ -7,7 +7,8 @@ zerone <- function(y, returnall=FALSE) {
    names <- as.character(x$values)
    size <- as.integer(x$lengths)
    retval <- .Call(zerone_R_call, names, size, y)
-   names(retval) <- c("Q", "a", "pi", "p", "phi", "pem", "path", "l")
+   names(retval) <- c("Q", "a", "pi", "p", "phi",
+                              "pem", "path", "l", "features")
    if (returnall) {
       return(retval)
    }
