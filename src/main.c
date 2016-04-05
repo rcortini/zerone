@@ -248,7 +248,7 @@ int main(int argc, char **argv) {
    double feat[5];
    double QC = zerone_qc(Z, feat);
    fprintf(stdout, "# QC score: %.3f\n", QC);
-   fprintf(stdout, "# featres: %.3f, %.3f, %.3f, %.3f, %.3f\n",
+   fprintf(stdout, "# features: %.3f, %.3f, %.3f, %.3f, %.3f\n",
                            feat[0], feat[1], feat[2], feat[3], feat[4]);
    fprintf(stdout, "# advice: %s discretization.\n",
          QC >= 0 ? "accept" : "reject");

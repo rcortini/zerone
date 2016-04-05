@@ -41,7 +41,7 @@
     replicates into a single discretized profile. To identify low quality
     or irreproducible data, we trained a Support Vector Machine and
     integrated it as part of the discretization process. Zerone detects
-    low quality profiles with 2\% of errors. We also introduce a graphical
+    low quality profiles with 5\% of errors. We also introduce a graphical
     representation to compare discretization quality and we show that
     Zerone achieves outstanding accuracy. Finally, on current hardware,
     Zerone discretizes a ChIP-seq experiment on mammalian genomes in
@@ -306,12 +306,12 @@ poor data quality in ChIP-seq correspond to low signal-to-noise ratio
 reproducibility between replicates (\textit{e.g.} when samples are
 swapped). We created 38 additional negative cases obtained by discretizing
 nonreplicate profiles (\textit{e.g.} CTCF and Pol2) or controls without
-immunoprecipitation. Thus, a total of 182 cases (91 positive and 91
+immunoprecipitation. Thus, a total of 181 cases (91 positive and 90
 negative) were used to build a balanced data set.
 To identify failed discretizations, we used the paremeters of the
 fitted HMM. Based on the transition matrix, the emission paramaters,
 the Viterbi Path and the posterior probabilities,
-we computed 8 features expected to vary with the quality
+we computed 5 features expected to vary with the quality
 of the discretization, and we used them to train a classifier.
 The features consist of entries from the transition matrix ($Q_{3,1}$,
 $Q_{3,2}$ and $Q_{1,3}$, indicating the size of the targets), the
@@ -336,7 +336,7 @@ advantages over other approaches such as neural networks.
   Scaled Principal Component Analysis of the training data set
   (color version of the figure available online).
   Each symbol represents a discretization performed by Zerone. The
-  8 features extracted from each discretization are projected onto
+  5 features extracted from each discretization are projected onto
   the first three principal components. Positive examples
   are similar to each other, while negative examples
   are different from each other and from positive examples.
@@ -350,7 +350,7 @@ advantages over other approaches such as neural networks.
 We trained the SVM with a radial basis function kernel and
 selected the hyperparameters that maximized the prediction
 performance on test sets using a 10-fold cross-validation scheme.
-The prediction accuracy on the trusted set was 98.3\%.
+The prediction accuracy on the trusted set was 95\%.
 We then implemented a prediction function in Zerone that used the
 model trained by the SVM to classify the discretizations and
 suggest whether they should be accepted or discarded. Unlike
@@ -461,12 +461,12 @@ on the idea that estimating distributional parameters from
 overly noisy or divergent profiles should give a signature that
 can be picked up by a specially trained classifier.
 
-We identified 8 summary statistics that characterize the quality of
-the discretization (including the transition parameters of the HMM,
-the mean number of targets and their mean posterior probability)
+We identified 5 summary statistics that characterize the quality of
+the discretization (including a transition parameter of the HMM,
+the mean number of targets and their correlation across replicates)
 and trained an SVM to recognize failures. We thus obtained a
-classifier able to identify failed discretization
-with 98.3\% accuracy (see section \ref{sub:training}).
+classifier able to identify a failed discretization
+with 95\% accuracy (see section \ref{sub:training}).
 
 This feature is essential for high throughput automatic pipelines.
 For instance, when discretizing ENCODE ChIP-seq profiles obtained in
@@ -479,6 +479,20 @@ Once aware of the issue, users can handle it properly (for instance,
 by discarding the protein or by working with a single replicate).
 Without automatic quality control, the low quality of the first replicate
 would have been missed.
+
+Low quality experiments can also be detected using the IDR framework.
+Briefly, a number of pairwise IDR analyses are performed on the replicates,
+as described in the IDR website
+(\href{https://sites.google.com/site/anshulkundaje/projects/idr}
+{https://sites.google.com/site/anshulkundaje/projects/idr}),
+and experiments below a certain reproducibility score are flagged as faulty.
+Zerone's quality control and this IDR-based method agreed in 85\% of the cases.
+It is important to note that, unless Zerone, this method can only be applied
+on peaky profiles, and that it only detects low quality experiments based on
+replicate consistency (and indirectly, coverage), ignoring other potential
+sources or error such as the discretization process itself.
+Moreover, it is a manual, multi-step, computationally more intensive process
+that grows in complexity with every replicate added.
 
 \subsection{Accuracy}
 
