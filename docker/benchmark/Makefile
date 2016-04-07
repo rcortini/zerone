@@ -8,9 +8,6 @@ bigWigToBedGraph:
 	wget $(BW2BURL)$@
 	chmod +x $@
 
-GSM1480325_K562_GROseq_%.bigWig:
-	wget http://www.ncbi.nlm.nih.gov/geo/download/?acc=GSM1480325&format=file&file=$@
-
 GSM1480325_K562_GROseq_%.bed: GSM1480325_K562_GROseq_%.bigWig bigWigToBedGraph
 	./bigWigToBedGraph $< $@
 
