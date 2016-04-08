@@ -433,6 +433,14 @@ were considered to be expressed.
 RNA counts in section \ref{subsub:h3k36me3} were obtained from the
 ENCODE data set EH000163 (already mapped .bigWig files).
 
+Zerone's quality control was compared to the IDR-based method
+for flagging replicates with low consistency
+(such method is described in the IDR website mentioned above).
+Briefly, a number of pairwise comparisons are done between all the replicates,
+to check that the number of reproducible peaks is similar between replicates,
+between random splits of each replicate, and between random splits of a pooled
+profile. Experiments that do not satisfy these conditions are flagged as faulty.
+
 A full replay of the benchmark including all the necessary data sets
 is available from the associated Docker image.
 
@@ -481,15 +489,10 @@ Without automatic quality control, the low quality of the first replicate
 would have been missed.
 
 Low quality experiments can also be detected using the IDR framework.
-Briefly, a number of pairwise IDR analyses are performed on the replicates,
-as described in the IDR website
-(\href{https://sites.google.com/site/anshulkundaje/projects/idr}
-{https://sites.google.com/site/anshulkundaje/projects/idr}),
-and experiments below a certain reproducibility score are flagged as faulty.
-Zerone's quality control and this IDR-based method agreed in 85\% of the cases
+This method and Zerone's quality control agreed in 85\% of the cases
 (see associated Docker container).
-It is important to note that, unless Zerone, this method can only be applied
-on peaky profiles, and that it only detects low quality experiments based on
+It is important to note that IDR can only be applied
+on peaky profiles, and that it detects low quality experiments based solely on
 replicate consistency (and indirectly, coverage), ignoring other potential
 sources of error such as the discretization process itself.
 Moreover, it is a manual, multi-step, computationally more intensive process
