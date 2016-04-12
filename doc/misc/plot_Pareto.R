@@ -101,8 +101,11 @@ points(sum(ovZ)/1000, sum(gCTCF$count[ovZ]) / nCTCF, cex=1.3, pch=19, col=COL[4]
 setwd(data.dir)
 BayesPeak1 <- read.table('BayesPeak/Pol21.bed', stringsAsFactors=FALSE)
 BayesPeak2 <- read.table('BayesPeak/Pol22.bed', stringsAsFactors=FALSE)
-JAMM <- read.table('JAMM/Pol2/peaks/filtered.peaks.narrowPeak', stringsAsFactors=FALSE)[1:3]
-JAMM <- JAMM[nchar(JAMM$V1) <= 5, ]
+#JAMM <- read.table('JAMM/Pol2/peaks/filtered.peaks.narrowPeak', stringsAsFactors=FALSE)[1:3]
+#JAMM <- JAMM[nchar(JAMM$V1) <= 5, ]
+JAMM <- read.table('benchmark/idrCode/JAMM/Pol2-overlapped-peaks.txt')
+JAMM <- subset(JAMM, IDR < 0.05)[, 1:3]
+colnames(JAMM) <- c('V1', 'V2', 'V3')
 #MACS1 <- read.table('MACS/Pol21_peaks.narrowPeak', stringsAsFactors=FALSE)[1:3]
 #MACS2 <- read.table('MACS/Pol22_peaks.narrowPeak', stringsAsFactors=FALSE)[1:3]
 MACS1 <- read.table('MACS/Pol21.bed', stringsAsFactors=FALSE)[1:3]
@@ -151,8 +154,11 @@ points(sum(ovZ)/1000, sum(gPol2$count[ovZ]) / nPol2, cex=1.3, pch=19, col=COL[4]
 setwd(data.dir)
 BayesPeak1 <- read.table('BayesPeak/H3k4me31.bed', stringsAsFactors=FALSE)
 BayesPeak2 <- read.table('BayesPeak/H3k4me32.bed', stringsAsFactors=FALSE)
-JAMM <- read.table('JAMM/H3k4me3/peaks/filtered.peaks.narrowPeak', stringsAsFactors=FALSE)[1:3]
-JAMM <- JAMM[nchar(JAMM$V1) <= 5, ]
+#JAMM <- read.table('JAMM/H3k4me3/peaks/filtered.peaks.narrowPeak', stringsAsFactors=FALSE)[1:3]
+#JAMM <- JAMM[nchar(JAMM$V1) <= 5, ]
+JAMM <- read.table('benchmark/idrCode/JAMM/H3k4me3-overlapped-peaks.txt')
+JAMM <- subset(JAMM, IDR < 0.05)[, 1:3]
+colnames(JAMM) <- c('V1', 'V2', 'V3')
 #MACS1 <- read.table('MACS/H3k4me31_peaks.narrowPeak', stringsAsFactors=FALSE)[1:3]
 #MACS2 <- read.table('MACS/H3k4me32_peaks.narrowPeak', stringsAsFactors=FALSE)[1:3]
 MACS1 <- read.table('MACS/H3k4me31.bed', stringsAsFactors=FALSE)[1:3]

@@ -150,14 +150,15 @@ count, a natural choice for this distribution is the zero-inflated
 negative binomial (ZINB), \textit{i.e.} the mixture of a negative
 binomial distribution and a distribution concentrated at 0
 \citep{pmid21787385}.
+Fig.~\ref{fig:ZINB_fit} shows that the
+ZINB distribution gives a better fit to ChIP-seq data than Poisson
+and NB distributions.
 
 The ZINB distribution has 3 parameters that can be fitted by maximum
 likelihood. Zerone uses a custom solver based on the Newton-Raphson
 method, which converges much faster than the popular routine
 \texttt{zeroinfl} \citep{psclb} from the R package
-\texttt{pscl} \citep{R,pscla}. Fig.~\ref{fig:ZINB_fit} shows that the
-ZINB distribution gives a better fit to ChIP-seq data than Poisson
-and NB distributions.
+\texttt{pscl} \citep{R,pscla}.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.55]{ZINB_fit.pdf}}
