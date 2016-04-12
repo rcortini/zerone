@@ -151,6 +151,12 @@ Pokholok, D.~K., Harbison, C.~T., Levine, S., Cole, M., Hannett, N.~M., Lee,
 \newblock {\em R: A Language and Environment for Statistical Computing\/}.
 \newblock R Foundation for Statistical Computing, Vienna, Austria.
 
+\bibitem[Rabiner(1989)Rabiner]{18626}
+Rabiner, L.~R. (1989).
+\newblock A tutorial on hidden markov models and selected applications in
+  speech recognition.
+\newblock {\em Proceedings of the IEEE\/}, {\bf 77}(2), 257--286.
+
 \bibitem[Rashid {\em et~al.}(2011)Rashid, Giresi, Ibrahim, Sun, and
   Lieb]{pmid21787385}
 Rashid, N.~U., Giresi, P.~G., Ibrahim, J.~G., Sun, W., and Lieb, J.~D. (2011).

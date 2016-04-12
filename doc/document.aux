@@ -19,40 +19,39 @@
 \newlabel{sub:hmm}{{{2.1}}{2}}
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces  Using the ZINB distribution to model ChIP-seq data (color version of the figure available online). Reads from a mock control data set were mapped onto the human genome and pooled in 300\nobreakspace  {}bp windows after removing duplicates. The histogram of the read counts is shown in black (no immunoprecipitation was performed in this experiment, so this variation corresponds to the `baseline'). The colored histograms show the maximum likelihood fit of the Poisson, Negative Binomial (NB) and Zero-Inflated Negative Binomial (ZINB) distributions. The fit of the Poisson distribution is poor. The NB distribution gives a good fit at the tail, but not for windows with 0 and 1 read. The ZINB distribution gives a good fit over the whole range. Source: ENCODE file ENCFF000VEK. }}{2}}
 \newlabel{fig:ZINB_fit}{{1}{2}}
+\citation{18626}
 \citation{1054010}
 \citation{Chang2011}
 \citation{e1071}
 \citation{pmid23103880}
-\@writefile{toc}{\contentsline {subsection}{\numberline {{2.2}}ChIP-seq preprocessing}{3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {{2.3}}Quality control}{3}}
-\newlabel{sub:training}{{{2.3}}{3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {{2.4}}Benchmark data sets and conditions}{3}}
-\newlabel{sub:bench_cond}{{{2.4}}{3}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces  Scaled Principal Component Analysis of the training data set (color version of the figure available online). Each symbol represents a discretization performed by Zerone. The 5 features extracted from each discretization are projected onto the first three principal components. The two groups overlap, which creates an ambiguous zone where failures and successes are indistinguishable. }}{3}}
-\newlabel{fig:pca}{{2}{3}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Summary statistics of the data sets used for benchmarking. }}{3}}
-\newlabel{tab:summary}{{1}{3}}
 \citation{pmid24194598}
 \citation{pmid21330290}
 \citation{pmid19458158}
 \citation{Karolchik2004}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{2.2}}ChIP-seq preprocessing}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{2.3}}Quality control}{3}}
+\newlabel{sub:training}{{{2.3}}{3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces  Scaled Principal Component Analysis of the training data set (color version of the figure available online). Each symbol represents a discretization performed by Zerone. The 5 features extracted from each discretization are projected onto the first three principal components. The two groups overlap, which creates an ambiguous zone where failures and successes are indistinguishable. }}{3}}
+\newlabel{fig:pca}{{2}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{2.4}}Benchmark data sets and conditions}{3}}
+\newlabel{sub:bench_cond}{{{2.4}}{3}}
 \citation{pmid21059603}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces  ChIP-seq profiles of JARID1A in H1 ES cells (300 bp windows). The first replicate is not similar to the second, and it does not contain any target. }}{4}}
-\newlabel{fig:jarid}{{3}{4}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Summary statistics of the data sets used for benchmarking. }}{4}}
+\newlabel{tab:summary}{{1}{4}}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Results}{4}}
 \newlabel{sec:results}{{3}{4}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{3.1}}Automatic quality control}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces  Graphical representation of discretizations. Genomic windows of the ChIP-seq profile are ordered by decreasing amount of reads on the $x$ axis, and the cumulative amount of reads is plotted on the $y$ axis. This line forms a Pareto front representing the maximum number of reads for a given number of windows. Discretizations are represented as a single point on this plane (black disc) whose coordinates are the number of targets and the total number of reads covered by the targets. The dark triangle represents discretizations that are more conservative and discover more targets. }}{4}}
-\newlabel{fig:expl}{{4}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces  ChIP-seq profiles of JARID1A in H1 ES cells (300 bp windows). The first replicate is not similar to the second, and it does not contain any target. }}{4}}
+\newlabel{fig:jarid}{{3}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{3.2}}Accuracy}{4}}
 \citation{pmid16122420}
 \citation{pmid23739122}
 \citation{pmid17382889}
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces  Characteristics of the discretizations for different programs (color version of the figure available online). The representation is obtained as shown on Fig.\nobreakspace  {}4\hbox {}. When discretizing the CTCF, the Pol2 and the H3K4me3 profile, Zerone produces discretizations that are very close to the Pareto front. In the case of H3K36me3, the discretization is off the Pareto front, but it is more sensible than the others. }}{5}}
 \newlabel{fig:pareto}{{5}{5}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {{3.2}}Accuracy}{5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces  Graphical representation of discretizations. Genomic windows of the ChIP-seq profile are ordered by decreasing amount of reads on the $x$ axis, and the cumulative amount of reads is plotted on the $y$ axis. This line forms a Pareto front representing the maximum number of reads for a given number of windows. Discretizations are represented as a single point on this plane (black disc) whose coordinates are the number of targets and the total number of reads covered by the targets. The dark triangle represents discretizations that are more conservative and discover more targets. }}{5}}
+\newlabel{fig:expl}{{4}{5}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.1}}Identification of CTCF binding sites.}{5}}
-\newlabel{subsub:pol2}{{{{3.2}.2}}{5}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.2}}Pol2 binding around transcription start sites.}{5}}
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Performance on the CTCF motifs data set. True and false positives are defined as peaks with and without a CTCF motif, respectively. Total: number of peaks found by the program. Motif: subset of those containing at least one CTCF motif. Precision: Motif divided by Total. Recall: number of motifs covered by peaks divided by the number of motifs in the genome. $F_{1}$ score: harmonic mean between Precision and Recall. }}{5}}
 \newlabel{tab:ctcf}{{2}{5}}
 \citation{pmid15680324}
@@ -60,6 +59,8 @@
 \citation{pmid17277777}
 \citation{pmid16122420}
 \citation{pmid23739122}
+\newlabel{subsub:pol2}{{{{3.2}.2}}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.2}}Pol2 binding around transcription start sites.}{6}}
 \newlabel{subsub:h3k4me3}{{{{3.2}.3}}{6}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.3}}H3K4me3 signal on active promoters.}{6}}
 \newlabel{subsub:h3k36me3}{{{{3.2}.4}}{6}}
@@ -96,14 +97,15 @@
 \bibcite{pmid24349523}{{19}{2013}{{Park {\em  et~al.}}}{{Park, Lee, Bhupindersingh, and Iyer}}}
 \bibcite{pmid16122420}{{20}{2005}{{Pokholok {\em  et~al.}}}{{Pokholok, Harbison, Levine, Cole, Hannett, Lee, Bell, Walker, Rolfe, Herbolsheimer, Zeitlinger, Lewitter, Gifford, and Young}}}
 \bibcite{R}{{21}{2014}{{R Core Team}}{{R Core Team}}}
-\bibcite{pmid21787385}{{22}{2011}{{Rashid {\em  et~al.}}}{{Rashid, Giresi, Ibrahim, Sun, and Lieb}}}
-\bibcite{pmid19772557}{{23}{2009}{{Spyrou {\em  et~al.}}}{{Spyrou, Stark, Lynch, and Tavaré}}}
-\bibcite{pmid21059603}{{24}{2011}{{Szalkowski and Schmid}}{{Szalkowski and Schmid}}}
-\bibcite{pmid24173036}{{25}{2013}{{Teytelman {\em  et~al.}}}{{Teytelman, Thurtle, Rine, and van Oudenaarden}}}
-\bibcite{1054010}{{26}{1967}{{Viterbi}}{{Viterbi}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces  Running times and peak memory footprint of the discretizers on the four ChIP-seq data sets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. Note the logarithmic scale in the running times. }}{8}}
+\bibcite{18626}{{22}{1989}{{Rabiner}}{{Rabiner}}}
+\bibcite{pmid21787385}{{23}{2011}{{Rashid {\em  et~al.}}}{{Rashid, Giresi, Ibrahim, Sun, and Lieb}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces  Running times and peak memory footprint of the discretizers on the four ChIP-seq data sets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. The bars in dark grey represent the total running time when IDR is also computed (for JAMM and MACS). Note that the logarithmic scale misrepresents the relative fraction of time spent on each task. }}{8}}
 \newlabel{fig:perf}{{7}{8}}
 \@writefile{toc}{\contentsline {paragraph}{Funding\text  {\rm  :}}{8}}
-\bibcite{psclb}{{27}{2008}{{Zeileis {\em  et~al.}}}{{Zeileis, Kleiber, and Jackman}}}
-\bibcite{pmid18798982}{{28}{2008}{{Zhang {\em  et~al.}}}{{Zhang, Liu, Meyer, Eeckhoute, Johnson, Bernstein, Nusbaum, Myers, Brown, Li, and Liu}}}
+\bibcite{pmid19772557}{{24}{2009}{{Spyrou {\em  et~al.}}}{{Spyrou, Stark, Lynch, and Tavaré}}}
+\bibcite{pmid21059603}{{25}{2011}{{Szalkowski and Schmid}}{{Szalkowski and Schmid}}}
+\bibcite{pmid24173036}{{26}{2013}{{Teytelman {\em  et~al.}}}{{Teytelman, Thurtle, Rine, and van Oudenaarden}}}
+\bibcite{1054010}{{27}{1967}{{Viterbi}}{{Viterbi}}}
+\bibcite{psclb}{{28}{2008}{{Zeileis {\em  et~al.}}}{{Zeileis, Kleiber, and Jackman}}}
+\bibcite{pmid18798982}{{29}{2008}{{Zhang {\em  et~al.}}}{{Zhang, Liu, Meyer, Eeckhoute, Johnson, Bernstein, Nusbaum, Myers, Brown, Li, and Liu}}}
 \global\@namedef{@lastpage@}{9}
