@@ -296,39 +296,26 @@ on empirical criteria (see associated Docker container for detail).
 The definition of success is thus subjective, but the training is
 performed on representative data.
 
-We discretized 144 replicated ChIP-seq experiments together with their
-respective input control (see associated Docker container).
-We labelled the output of the discretization as positive (91 cases)
-or negative (53 cases), based on visual inspection and on the available
-literature about the chromatin features. The most common cases of
+We discretized 96 replicated ChIP-seq experiments together with their
+respective input control (see associated Docker container). Based on
+visual inspection and on the available literature, we determined
+that discretization was successful in 91 cases that consituted the
+positive examples of our training set. The most common cases of
 poor data quality in ChIP-seq correspond to low signal-to-noise ratio
 (\textit{e.g.} when the antibody is not specific), and lack of
 reproducibility between replicates (\textit{e.g.} when samples are
-swapped). We created 38 additional negative cases obtained by discretizing
+swapped). We created 91 negative cases obtained by discretizing
 nonreplicate profiles (\textit{e.g.} CTCF and Pol2) or controls without
-immunoprecipitation. Thus, a total of 181 cases (91 positive and 90
-negative) were used to build a balanced data set.
-To identify failed discretizations, we used the paremeters of the
-fitted HMM. Based on the transition matrix, the emission paramaters,
-the Viterbi Path and the posterior probabilities,
-we computed 5 features expected to vary with the quality
-of the discretization, and we used them to train a classifier.
-The features consist of entries from the transition matrix ($Q_{3,1}$,
-$Q_{3,2}$ and $Q_{1,3}$, indicating the size of the targets), the
-maximum value of the ratios between $p_2, \ldots, p_r$ for each
-pair of states (indicating the signal to noise ratio), the average
-posterior probability of targets (indicating the confidence of the
-discretizer) and the amount of targets.
+immunoprecipitation. Thus, a total of 182 cases (91 positive and 91
+negative) were used to build a balanced data set. We extracted 5
+features from the output of Zerone to train a classifier:
+the transition matrix entry $Q_{2,0}$ (indicating the size of the
+targets), the minimum value of the ratios
+$p_2(2)/p_2(1), \ldots, p_r(2)/p_r(1)$ (indicating the
+signal to noise ratio), the amount of targets, the fraction of
+variance explained by the discretization and the correlation between
+replicates.
 
-Our first attempts with logistic regression suggested that linear
-classifiers are unable to properly separate these two classes because
-they overlap in the feature space (Fig.~\ref{fig:pca}). To obtain a
-more complex separation, we used a Support Vector Machine
-(SVM, \citealp{Chang2011,e1071}), as this approach
-allows nonlinear classification by mapping
-the training data to a kernel space. Also, SVMs are fast to train and
-they require only one hyperparameter to be fitted, which were
-advantages over other approaches such as neural networks.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.45]{PCA.pdf}}
@@ -337,23 +324,21 @@ advantages over other approaches such as neural networks.
   (color version of the figure available online).
   Each symbol represents a discretization performed by Zerone. The
   5 features extracted from each discretization are projected onto
-  the first three principal components. Positive examples
-  are similar to each other, while negative examples
-  are different from each other and from positive examples.
-  The two groups overlap, which creates an ambiguous zone where
-  failures and successes are indistinguishable. The right panel
-  suggests that nonlinear classification is more appropriate to
-  classify discretizations.
+  the first three principal components. The two groups overlap,
+  which creates an ambiguous zone where failures and successes are
+  indistinguishable.
 }\label{fig:pca}
 \end{figure}
 
+
+To separate the points in the feature space (Fig.~\ref{fig:pca}),
+we used a Support Vector Machine (SVM, \citealp{Chang2011,e1071}),
+as SVMs allow non linear classification, are fast to train and 
+require only one hyperparameter to be fitted.
 We trained the SVM with a radial basis function kernel and
 selected the hyperparameters that maximized the prediction
 performance on test sets using a 10-fold cross-validation scheme.
-The prediction accuracy on the trusted set was 95\%.
-We then implemented a prediction function in Zerone that used the
-model trained by the SVM to classify the discretizations and
-suggest whether they should be accepted or discarded. Unlike
+The prediction accuracy on the training set was 95\%. Unlike
 quality control methods based on individual peaks (such as the
 IDR for instance) the quality control implemented in Zerone is
 `all-or-none', \textit{i.e.} the profile is rejected or accepted
@@ -433,13 +418,13 @@ were considered to be expressed.
 RNA counts in section \ref{subsub:h3k36me3} were obtained from the
 ENCODE data set EH000163 (already mapped .bigWig files).
 
-Zerone's quality control was compared to the IDR-based method
-for flagging replicates with low consistency
-(such method is described in the IDR website mentioned above).
-Briefly, a number of pairwise comparisons are done between all the replicates,
-to check that the number of reproducible peaks is similar between replicates,
-between random splits of each replicate, and between random splits of a pooled
-profile. Experiments that do not satisfy these conditions are flagged as faulty.
+The quality control of Zerone was compared to the IDR-based method
+for flagging replicates with low consistency. Briefly, pairwise
+comparisons are performed between all the replicates to check that
+the number of reproducible peaks is similar between them. The
+same comparisons are also performed between random splits of each
+replicate, and between random splits of a pooled profile. Experiments
+that do not satisfy these conditions are flagged as faulty.
 
 A full replay of the benchmark including all the necessary data sets
 is available from the associated Docker image.
@@ -463,18 +448,16 @@ is available from the associated Docker image.
 The most novel feature of Zerone is an embedded automatic quality
 control step taking place after the discretization. It not only
 ensures that the discretization is sensible, but also that the
-replicates are similar to each other and that ChIP-seq profiles
+replicates are similar to each other and that the ChIP-seq profiles
 are not too similar to the mock controls. Our approach is based
-on the idea that estimating distributional parameters from
-overly noisy or divergent profiles should give a signature that
+on the idea that discretizations from overly noisy or
+divergent profiles should have a signature that
 can be picked up by a specially trained classifier.
 
 We identified 5 summary statistics that characterize the quality of
-the discretization (including a transition parameter of the HMM,
-the mean number of targets and their correlation across replicates)
-and trained an SVM to recognize failures. We thus obtained a
-classifier able to identify a failed discretization
-with 95\% accuracy (see section \ref{sub:training}).
+the discretization and trained an SVM to recognize failures. We thus
+obtained a classifier able to identify a failed discretization with
+95\% accuracy (see section \ref{sub:training}).
 
 This feature is essential for high throughput automatic pipelines.
 For instance, when discretizing ENCODE ChIP-seq profiles obtained in
@@ -488,15 +471,15 @@ by discarding the protein or by working with a single replicate).
 Without automatic quality control, the low quality of the first replicate
 would have been missed.
 
-Low quality experiments can also be detected using the IDR framework.
-This method and Zerone's quality control agreed in 85\% of the cases
-(see associated Docker container).
-It is important to note that IDR can only be applied
-on peaky profiles, and that it detects low quality experiments based solely on
-replicate consistency (and indirectly, coverage), ignoring other potential
-sources of error such as the discretization process itself.
-Moreover, it is a manual, multi-step, computationally more intensive process
-that grows in complexity with every replicate added.
+Low quality profiles can also be detected using IDR. On a test
+set of 30 chromatin features from H1 ES cells, we obtained 85\%
+agreement between the quality control of Zerone and discretization
+with MACS followed by IDR-based flagging (see section
+\ref{sub:bench_cond} and associated Docker
+container). It is important to note that IDR does not apply to
+profiles with broad domains and that it represents a significant
+computational burden when there are many replicates or many targets
+sites.
 
 \subsection{Accuracy}
 
