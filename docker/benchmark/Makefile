@@ -1,7 +1,8 @@
 BW2BURL= http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64.v287/
 GRO= GSM1480325_K562_GROseq_plus.bed GSM1480325_K562_GROseq_minus.bed
+FIGURES= performance.pdf
 
-all: $(GRO)
+all: $(GRO) $(FIGURES)
 	#make -C ../discretize
 
 bigWigToBedGraph:
@@ -11,5 +12,5 @@ bigWigToBedGraph:
 GSM1480325_K562_GROseq_%.bed: GSM1480325_K562_GROseq_%.bigWig bigWigToBedGraph
 	./bigWigToBedGraph $< $@
 
-# FigX.pdf:
-# Run R scripts that do the analyses and output the figures.
+performance.pdf: performance.R
+	Rscript $<

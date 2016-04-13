@@ -29,6 +29,11 @@ COPY /BayesPeak/BayesPeak.R /BayesPeak/
 
 RUN mkdir /benchmark
 COPY /benchmark/Makefile /benchmark/
+COPY /benchmark/ctcf_motif_covergage.R /benchmark/
+COPY /benchmark/ctcf_motifs.bed /benchmark/
+COPY /benchmark/tss_covergage.R /benchmark/
+COPY /benchmark/hg19_TSS.bed /benchmark/
+COPY /benchmark/performance.R /benchmark/
 COPY /benchmark/GSM1480325_K562_GROseq_*.bigWig /benchmark/
 COPY /benchmark/H1ESC_files_path.txt /benchmark/
 COPY /benchmark/H1ESC_files_pairings.txt /benchmark/
