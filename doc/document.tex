@@ -626,7 +626,9 @@ transcription start site (TSS), respectively. Total: number of peaks
 found by the program. TSS: subset of those containing at least one
 TSS. Precision: TSS divided by Total. Recall: number of TSS covered
 by peaks divided by the number of TSS in the genome. $F_{1}$ score:
-harmonic mean between Precision and Recall.
+harmonic mean between Precision and Recall. A TSS is called active
+if a 1 kb window centered around it contains at least 10 GRO-seq
+reads.
 \label{tab:tss}}
 {\begin{tabular}{lr|rccc|rccc}
         \multicolumn{2}{c}{} & \multicolumn{4}{c}{\textbf{All TSS}} & \multicolumn{4}{c}{\textbf{Active TSS}} \\
@@ -652,9 +654,12 @@ replicates separately.}
 
 Table~\ref{tab:tss} shows that Zerone obtains the highest $F_1$
 score. Here the precision of Zerone is almost as high at that of MACS
-+ IDR, with a better recall. These results confirm that the performance
-of Zerone is good on this data set, as suggested by the middle panel of
-Fig.~\ref{fig:pareto}.
++ IDR, with a better recall. Zerone also discovers the highest net
+number of TSS and active TSS, consistent with its higher position
+in Figure~\ref{fig:pareto}. Zerone calls an intermediate number of
+targets, JAMM calling the most and JAMM + IDR the least.
+These results confirm that the performance
+of Zerone is good on this data set.
 
 \subsubsection{H3K4me3 signal on active promoters.}
 \label{subsub:h3k4me3}
@@ -672,7 +677,9 @@ transcription start site (TSS), respectively. Total: the number of peaks
 found by the program. TSS: the subset of those containing at least one
 TSS. Precision: TSS divided by Total. Recall: the number of TSS contained
 in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the
-harmonic mean between Precision and Recall.
+harmonic mean between Precision and Recall. A TSS is called active
+if a 1 kb window centered around it contains at least 10 GRO-seq
+reads.
 \label{tab:H3K4}}
 {\begin{tabular}{lr|rccc|rccc}
         \multicolumn{2}{c}{} & \multicolumn{4}{c}{\textbf{All TSS}} & \multicolumn{4}{c}{\textbf{Active TSS}} \\
@@ -701,7 +708,11 @@ better precision and better recall than the other tools, with
 a neat advantage in precision. In this case, discarding the
 nonreproducible peaks found by MACS only gives a mild increase in
 precision, that does not reach the performance of Zerone.
-This shows that Zerone accurately describes profiles of this category.
+Again, Zerone discovers the highest net number of TSS and active
+TSS, consistently with its position above the other tools in
+Figure~\ref{fig:pareto}. In this example, Zerone also calls
+less targets than the other tools. This shows that Zerone accurately
+describes profiles of this category.
 
 \subsubsection{H3K36me3-enriched domains on active genes.}
 \label{subsub:h3k36me3}
