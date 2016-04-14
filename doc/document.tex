@@ -102,7 +102,7 @@ forward, but the IDR is undefined when more than two replicates are
 available. Besides, keeping only the reproducible ChIP-seq peaks is not
 always the best option. If one of the replicates is mislabelled,
 for instance, it is more appropriate to reject the data set than to keep
-the common ChIP peaks. In summary, how to integrate ChIP-seq data
+the common peaks. In summary, how to integrate ChIP-seq data
 from different sources and with variable qualities is still an open
 problem.
 
@@ -161,7 +161,7 @@ The ZINB distribution has 3 parameters that can be fitted by maximum
 likelihood. Zerone uses a custom solver based on the Newton-Raphson
 method, which converges much faster than the popular routine
 \texttt{zeroinfl} \citep{psclb} from the R package
-\texttt{pscl} \citep{R,pscla}.
+\texttt{pscl} \citep{pscla}.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.55]{ZINB_fit.pdf}}
@@ -273,7 +273,8 @@ corresponds to the `least unlikely' state. The final call depends on
 whether the weight of evidence is higher for the presence of the
 peak or for its absence. If the conflict is strong, the confidence
 in the final call will be weak, which can lead to a rejection of
-the profile as a whole if such cases are too frequent (see below).
+the profile as a whole if such cases are too frequent
+(see section \ref{sub:training}).
 
 Transition parameters are updated through the forward-backward
 algorithm \citep{18626}, and emission parameters are updated by solving
@@ -300,12 +301,12 @@ data is not known because success is partly subjective and because
 there is no gold standard for protein binding in live cells.
 We prepared an experimental data set where we labelled the
 output of Zerone as positive (success) or negative (failure) based
-on empirical criteria (see associated Docker container for detail).
+on empirical criteria (see associated Docker image for detail).
 The definition of success is thus subjective, but the training is
 performed on representative data.
 
 We discretized 96 replicated ChIP-seq experiments together with their
-respective input control (see associated Docker container). Based on
+respective input control (see associated Docker image). Based on
 visual inspection and on the available literature, we determined
 that discretization was successful in 91 cases that consituted the
 positive examples of our training set. The most common cases of
@@ -340,13 +341,14 @@ replicates.
 
 
 To separate the points in the feature space (Fig.~\ref{fig:pca}),
-we used a Support Vector Machine (SVM, \citealp{Chang2011,e1071}),
-as SVMs allow non linear classification, are fast to train and
-require only one hyperparameter to be fitted.
-We trained the SVM with a radial basis function kernel and
+we used a Support Vector Machine (SVM, \citealp{Chang2011,e1071})
+with a radial basis function kernel,
+as they allow non linear classification, are fast to train and
+require only two hyperparameters to be fitted.
+We trained the SVM and
 selected the hyperparameters that maximized the prediction
 performance on test sets using a 10-fold cross-validation scheme.
-The prediction accuracy on the training set was 95\%. Unlike
+The average prediction accuracy on these sets was 95\%. Unlike
 quality control methods based on individual peaks (such as the
 IDR for instance) the quality control implemented in Zerone is
 `all-or-none', \textit{i.e.} the profile is rejected or accepted
@@ -359,10 +361,10 @@ on the human leukemia cell line K562. Reference assembly UCSC hg19 was
 used throughout. The data was downloaded from the repository
 \href{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC}{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC} in November 2013.
 We mapped all the raw reads on the human genome with
-GEM \citep[gem-mapper version 1.376 beta, gem-indexer version
+GEM \citep[\texttt{gem-mapper} version 1.376 beta, \texttt{gem-indexer} version
 1.423 beta,][]{pmid23103880}, using the options \texttt{--unique-mapping} and
 \texttt{-q ignore}. We converted the mapped files to SAM format with
-gem-2-sam version 1.423 beta.
+\texttt{gem-2-sam} version 1.423 beta.
 
 To compare Zerone to other discretizers, we analysed four different
 ChIP-seq data sets: CCCTC-binding factor (CTCF), RNA polymerase II
@@ -416,24 +418,26 @@ The CTCF motif was obtained from the JASPAR database version
 5.0{\textunderscore}ALPHA \citep[motif ID MA0139.1,][]{pmid24194598}.
 Subsequently we used FIMO \citep{pmid21330290} from the MEME suite version
 4.10.1 \citep{pmid19458158} to identify and map CTCF motif occurences in
-the human genome. The positions of TSS were extracted from the knownGene
+the human genome. The positions of Transcription Start Sites (TSS)
+were extracted from the knownGene
 table of the UCSC Genes annotation \citep{Karolchik2004}.
 Gene expression in sections \ref{subsub:pol2} and \ref{subsub:h3k4me3}
 was determined from a genomic run-on sequencing (GRO-seq)
 data set on the cell line K562 (GEO accession GSM1480325).
-All the genomic features overlapping with at least one GRO-seq tag
-were considered to be expressed.
+%All the genomic features overlapping with at least one GRO-seq tag
+%were considered to be expressed.
 RNA counts in section \ref{subsub:h3k36me3} were obtained from the
-ENCODE data set EH000163 (already mapped .bigWig files).
+ENCODE data set EH000163 (already mapped bigWig files).
 
 The quality control of Zerone was compared to the IDR-based method
-for flagging replicates with low consistency. Briefly, pairwise
+for flagging replicates with low consistency
+(described in the above IDR website). Briefly, pairwise
 comparisons are performed between all the replicates to check that
 the number of reproducible peaks is similar between them. The
 same comparisons are also performed between random splits of each
 replicate, and between random splits of a pooled profile. Experiments
 that do not satisfy these conditions are flagged as faulty (see
-associated Docker container for detail).
+associated Docker image for detail).
 
 A full replay of the benchmark including all the necessary data sets
 is available from the associated Docker image.
@@ -485,7 +489,7 @@ set of 30 chromatin features from H1 ES cells, we obtained 85\%
 agreement between the quality control of Zerone and discretization
 with MACS followed by IDR-based flagging (see section
 \ref{sub:bench_cond} and associated Docker
-container). It is important to note that IDR does not apply to
+image). It is important to note that IDR does not apply to
 profiles with broad domains and that it represents a significant
 computational burden when there are many replicates or many targets
 sites.
@@ -574,7 +578,7 @@ motifs. We obtained a reference data set containing the positions of
 
 Table~\ref{tab:ctcf} shows that Zerone has the best $F_1$ score (the
 harmonic mean of precision and recall) and the second highest recall
-score, close to that of JAMM. On the other hand, several other tools
+score, close to that of JAMM. On the other hand, two other tools
 have a higher precision, especially when used with IDR. JAMM discovers
 the largest amount of motifs, but it also has the highest number
 of targets. For this score, Zerone comes in second position, with a
@@ -617,15 +621,15 @@ the left panel of Fig.~\ref{fig:pareto}.
 \label{subsub:pol2}
 To compare the behavior of the discretizers on the Pol2 profile,
 we determined the extent to which the enriched regions contained
-Transcription Start Sites (TSS), as Pol2 is expected to bind near
-annotated TSS. We also overlapped this annotation with a data set of
+annotated TSS, as Pol2 is expected to bind near them.
+We also overlapped this annotation with a data set of
 gene expression obtained by GRO-seq in order to separate the
 promoters of transcribed from nontranscribed genes.
 
 \begin{table*}[!tbp]
 \processtable{Performance on the Pol2 data set.
 True and false positives are defined as peaks with and without a
-transcription start site (TSS), respectively. Total: number of peaks
+TSS, respectively. Total: number of peaks
 found by the program. TSS: subset of those containing at least one
 TSS. Precision: TSS divided by Total. Recall: number of TSS covered
 by peaks divided by the number of TSS in the genome. $F_{1}$ score:
@@ -668,15 +672,15 @@ of Zerone is good on this data set.
 \label{subsub:h3k4me3}
 The histone mark H3K4me3 is enriched on active promoters and
 near the TSS of actively transcribed genes
-\citep{pmid15680324,pmid17512414,pmid17277777}. It is thus an example
-of histone mark forming narrow peaks. We used the same TSS data set
+\citep{pmid15680324,pmid17512414,pmid17277777}. It is an example
+of a histone mark forming narrow peaks. We used the same TSS data set
 as above to benchmark the accurary of Zerone when discretizing
 this profile.
 
 \begin{table*}[!t]
 \processtable{Performance on the H3K4me3 data set.
 True and false positives are defined as peaks with and without a
-transcription start site (TSS), respectively. Total: the number of peaks
+TSS, respectively. Total: the number of peaks
 found by the program. TSS: the subset of those containing at least one
 TSS. Precision: TSS divided by Total. Recall: the number of TSS contained
 in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the
@@ -753,7 +757,7 @@ while discovering enriched windows not found by the others.
   H3K36me3 targets identified by a program. The size of the circles
   is proportional to the coverage of the targets, and their overlap
   approximates the amount of targets shared by the programs. Note
-  that the discretizations made by BayesPeak overlap completely and
+  that the discretizations made by BayesPeak overlap almost completely and
   are indistinguishable in this representation.
 }\label{fig:venn}
 \end{figure}
@@ -785,7 +789,7 @@ multiple inputs simultaneously. This makes a difference for pipelines
 where all files have to be processed in parallel with the minimum
 amount of resources. In this benchmark, Zerone processed twice as
 many files per run as MACS. Per processed file, Zerone is thus
-four time faster than MACS while using 30\% less memory.
+four times faster than MACS while using 30\% less memory.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{performance.pdf}}

@@ -146,11 +146,6 @@ Pokholok, D.~K., Harbison, C.~T., Levine, S., Cole, M., Hannett, N.~M., Lee,
 \newblock {Genome-wide map of nucleosome acetylation and methylation in yeast.}
 \newblock {\em {Cell}\/}, {\bf 122}(4), 517--27.
 
-\bibitem[{R Core Team}(2014){R Core Team}]{R}
-{R Core Team} (2014).
-\newblock {\em R: A Language and Environment for Statistical Computing\/}.
-\newblock R Foundation for Statistical Computing, Vienna, Austria.
-
 \bibitem[Rabiner(1989)Rabiner]{18626}
 Rabiner, L.~R. (1989).
 \newblock A tutorial on hidden markov models and selected applications in
