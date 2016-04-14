@@ -575,7 +575,10 @@ motifs. We obtained a reference data set containing the positions of
 Table~\ref{tab:ctcf} shows that Zerone has the best $F_1$ score (the
 harmonic mean of precision and recall) and the second highest recall
 score, close to that of JAMM. On the other hand, several other tools
-have a higher precision, especially when used with IDR.
+have a higher precision, especially when used with IDR. JAMM discovers
+the largest amount of motifs, but it also has the highest number
+of targets. For this score, Zerone comes in second position, with a
+much lower amount of targets.
 
 \begin{table}[!b]
 \processtable{Performance on the CTCF motifs data set.
@@ -819,10 +822,11 @@ discretization, Zerone implicitly assumes that the user
 has provided controls that properly capture systematic biases
 such as batch effects, mappability and copy number variations.
 
-The quality control (QC) implemented in Zerone goes beyond the
+The quality control implemented in Zerone goes beyond the
 Irreproducible Discovery Rate \citep[IDR,][]{li2011} in several
 ways. Zerone measures the quality of the discretization and not only
-the consistency between replicates. Also, the QC of Zerone is neither
+the consistency between replicates. Also, the quality control of
+Zerone is neither
 limited to a specific type of profile (\textit{e.g.} sharp peaks),
 nor to a preset number of replicates. Finally, issuing an
 `all-or-none' call about the discretization is better practice
