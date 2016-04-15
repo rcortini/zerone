@@ -178,7 +178,7 @@ method, which converges much faster than the popular routine
   the Poisson distribution is poor. The NB distribution
   gives a good fit at the tail, but not for windows with
   0 and 1 read. The ZINB distribution gives a good fit
-  over the whole range. Source: ENCODE file ENCFF000VEK.
+  over the whole range. Data from ENCODE file ENCFF000VEK.
 %\href{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC}{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC}.
 }\label{fig:ZINB_fit}
 \end{figure}
@@ -258,7 +258,8 @@ parameters $\pi$ and $\alpha$ are state-independent since they represent
 the baseline distribution of reads in the genomic windows. For this
 reason they are fitted from the negative control profiles before the
 Baum-Welch cycles (as a side note, fitting them with the Baum-Welch
-algorithm sometimes lead to aberrant solutions). The other parameters
+algorithm slows convergence and sometimes leads to
+aberrant solutions). The other parameters
 are state-dependent since they represent the amount of reads per window
 in each replicate, depending on the abundance of the chromatin feature.
 Overall, the total number of estimated parameters is $3r+9$, where $r$
@@ -289,9 +290,12 @@ bp) by their mid-point and PCR duplicates (\textit{i.e.} reads mapping to
 the same location in the same orientation) are removed. The window size
 should not be smaller than the sonication fragment length and
 it should be set so that there are on average more than 3-4 mapped reads
-per window. Zerone decompresses gzipped input files if required. There is
+per window. Zerone decompresses on the fly input files compressed by
+gzip or bgzf (BAM format). There is
 no upper limit to the number of input files to discretize simultaneously,
-but there must be at least one negative control and one ChIP-seq experiment.
+but there must be at least one negative control and one ChIP-seq
+experiment (at least two for the quality control to be meaningful,
+see below).
 
 \subsection{Quality control}
 \label{sub:training}
@@ -314,8 +318,9 @@ poor data quality in ChIP-seq correspond to low signal-to-noise ratio
 (\textit{e.g.} when the antibody is not specific), and lack of
 reproducibility between replicates (\textit{e.g.} when samples are
 swapped). We created 91 negative cases obtained by discretizing
-nonreplicate profiles (\textit{e.g.} CTCF and Pol2) or controls without
-immunoprecipitation. Thus, a total of 182 cases (91 positive and 91
+controls without immunoprecipitation, or
+nonreplicate profiles (\textit{e.g.} by treating CTCF and Pol2 profiles
+as replicates). Thus, a total of 182 cases (91 positive and 91
 negative) were used to build a balanced data set. We extracted 5
 features from the output of Zerone to train a classifier:
 the transition matrix entry $Q_{2,0}$ (indicating the size of the
@@ -335,7 +340,7 @@ replicates.
   5 features extracted from each discretization are projected onto
   the first three principal components. The two groups overlap,
   which creates an ambiguous zone where failures and successes are
-  indistinguishable.
+  hard to distinguish.
 }\label{fig:pca}
 \end{figure}
 
@@ -370,12 +375,13 @@ To compare Zerone to other discretizers, we analysed four different
 ChIP-seq data sets: CCCTC-binding factor (CTCF), RNA polymerase II
 (Pol2), tri-methylated histone H3 at lysine 4 (H3K4me3)
 and tri-methylated histone H3 at lysine 36 (H3K36me3).
-Each data set consists of a mock profile without immunoprecipitation
-and two replicate ChIP-seq profiles.
+Each data set consists of a mock or input profile without
+immunoprecipitation and two replicate ChIP-seq profiles.
 The ENCODE accession numbers for these four data sets are
 ENCSR000DWE, ENCSR000FAJ, ENCSR000DWB and ENCSR000DWD respectively.
 For the Pol2 data set, we used the control experiment ENCSR000EWK.
-Table~\ref{tab:summary} gives a global overview of the data sets.
+Table~\ref{tab:summary} gives a global overview of the data sets
+used for benchmarking.
 
 \begin{table}[!tbp]
 \processtable{Summary statistics of the data sets used for benchmarking.
@@ -396,8 +402,10 @@ Table~\ref{tab:summary} gives a global overview of the data sets.
         H3K36me3$^{(1)}$ & 36 & 18,174,968 & 13,847,015 \\
         H3K36me3$^{(2)}$ & 36 & 18,495,290 & 14,419,200 \\
         \botrule
-\end{tabular}}{The input profile marked as Pol2 was used to discretize the
-Pol2 profiles. All the other profiles were discretized with the other input.
+\end{tabular}}{Input controls and ChIP-seq expermients were matched
+by laboratory of origin. The input profile labelled as Pol2 was used to
+discretize the Pol2 profiles. All the other profiles were discretized
+with the unlabelled input file.
 The numbers in parentheses indicate the two experimental replicates.}
 \end{table}
 
@@ -429,18 +437,19 @@ data set on the cell line K562 (GEO accession GSM1480325).
 RNA counts in section \ref{subsub:h3k36me3} were obtained from the
 ENCODE data set EH000163 (already mapped bigWig files).
 
-The quality control of Zerone was compared to the IDR-based method
-for flagging replicates with low consistency
-(described in the above IDR website). Briefly, pairwise
-comparisons are performed between all the replicates to check that
-the number of reproducible peaks is similar between them. The
-same comparisons are also performed between random splits of each
-replicate, and between random splits of a pooled profile. Experiments
-that do not satisfy these conditions are flagged as faulty (see
-associated Docker image for detail).
+The quality control of Zerone was compared to a method based on IDR
+to flag replicates with low consistency or low quality
+(described in \href{https://sites.google.com/site/anshulkundaje/projects/idr}{https://sites.google.com/site/anshulkundaje/projects/idr}).
+Briefly, this method uses the script \texttt{batch-consistency-analysis.r}
+to perform pairwise comparisons between all the
+replicates to check that the number of reproducible peaks is
+similar between them. The same comparisons are also performed between
+random splits of each replicate, and between random splits of a
+pooled profile. Experiments that do not satisfy minimal criteria
+are flagged as faulty.
 
 A full replay of the benchmark including all the necessary data sets
-is available from the associated Docker image.
+and scripts is available from the associated Docker image.
 
 \end{methods}
 
@@ -484,15 +493,23 @@ by discarding the protein or by working with a single replicate).
 Without automatic quality control, the low quality of the first replicate
 would have been missed.
 
-Low quality profiles can also be detected using IDR. On a test
-set of 30 chromatin features from H1 ES cells, we obtained 85\%
-agreement between the quality control of Zerone and discretization
-with MACS followed by IDR-based flagging (see section
-\ref{sub:bench_cond} and associated Docker
-image). It is important to note that IDR does not apply to
-profiles with broad domains and that it represents a significant
+Low quality profiles can also be detected using IDR. We ran either
+Zerone or MACS followed by IDR-based flagging on a test
+set of 30 chromatin features from H1 ES cells. The agreement
+between the two methods was 85\% (see section
+\ref{sub:bench_cond} and associated Docker image). We excluded 5
+cases where either MACS or IDR failed to run. Among the 8 cases
+of disagreement, Zerone accepted 3 and rejected 5, suggesting that
+it is slightly more stringent than MACS + IDR. It is important to
+note that the quality control of Zerone is more general than IDR-based
+flagging since
+it applies to all types of signal without upper limit on the number
+of replicates. In contrast, IDR is a tool for pairwise comparisons
+and it does not apply to profiles with broad domains. Also
+note that IDR-based flagging in itself can represent a significant
 computational burden when there are many replicates or many targets
-sites.
+sites (section~\ref{sub:perf} shows some examples of the computational
+cost of IDR).
 
 \subsection{Accuracy}
 
@@ -536,22 +553,29 @@ characteristics of a discretization. Unfortunately, there is no gold
 standard to estimate the trade-off between false positives and false
 negatives in ChIP-seq experiments, and thus there is no objective way
 to rank discretizers \citep{pmid21059603}. However, we can compare
-them with a partial order, as explained below.
-
-When arranging genomic windows from high to low amount of ChIP-seq
+them with a partial order as follows: when arranging genomic
+windows from high to low amount of ChIP-seq
 reads, the cumulative number of reads forms a Pareto front.
 It represents the largest amount of reads that can be captured by the
 given amount of targets (Fig.~\ref{fig:expl}). A discretization can
 be represented as a point on the $xy$ plane.  By construction, no
 discretization can lie on the left of the Pareto front, and those on
 the front represent an optimum. Others are suboptimal, since it is
-possible to capture more reads with the same amount of targets.
+possible to capture more reads with the same amount of targets
+(or the same amount of reads with less targets).
 
 We benchmarked Zerone against three ChIP-seq discretizers.
 We included MACS as the standard method for ChIP-seq peak calling,
 BayesPeak because it is powered by an HMM with ZINB emissions
 similar to the model implemented in Zerone, and JAMM because, as
 Zerone, it can perform joint discretization of experimental replicates.
+We used four datasets of similar size that represent three major
+types of ChIP-seq signal (Table~\ref{tab:summary}). The CTCF
+signal consists of sharp
+peaks at the transcription factor binding site, the H3K36me3 signal
+consists of broad domains, and both the H3K4me3 and Pol2 signals consist
+of peaks at promoters---Pol2 potentially showing broad domains on the
+body of transcribed genes as well.
 
 This representation reveals that discretizing the CTCF profile yields
 similar outputs regardless of the software (Fig.~\ref{fig:pareto},
@@ -561,25 +585,25 @@ all the cases, Zerone produces the discretization capturing the most
 reads. For CTCF, Pol2 and H3K4me3 it lies on the Pareto front. For
 H3K36me3, it lies somewhat off the Pareto front, but at a sensible
 location. As detailed below, H3K36me3 is deposited on transcribed
-genes \citep{pmid16122420,pmid23739122} so the coverage is expected to
-be higher than for transcription factors. Taken together, this data
-shows that Zerone produces discretizations that are sensitive and
-adapted to the profile being discretized.
+genes \citep{pmid16122420,pmid23739122} so the coverage of targets
+should be higher than for transcription factors and for other profiles
+with sharp peaks. Taken together, these results shows that Zerone
+produces discretizations that are sensitive and adapted to the
+profile being discretized.
 
 \subsubsection{Identification of CTCF binding sites.}
 CTCF binds a 20~bp consensus sequence that is highly conserved in
 vertebrates. In humans, nearly 80\% of the CTCF binding sites contain
 the consensus motif \citep{pmid17382889}. In order to determine the
-capacity of the different programs to call peaks of CTCF binding, we
-compared the discretized profiles against a data set of CTCF binding
-motifs. We obtained a reference data set containing the positions of
-85,690 occurences of the CTCF motif (see section
-\ref{sub:bench_cond}).
+capacity of the different tools to call peaks of CTCF binding, we
+compared the discretized profiles against a reference data set
+containing the positions of 85,690 occurences of the CTCF motif
+(see section \ref{sub:bench_cond}).
 
 Table~\ref{tab:ctcf} shows that Zerone has the best $F_1$ score (the
 harmonic mean of precision and recall) and the second highest recall
-score, close to that of JAMM. On the other hand, two other tools
-have a higher precision, especially when used with IDR. JAMM discovers
+score, close to that of JAMM. On the other hand, JAMM and MACS had
+much higher precision when used in combination with IDR. JAMM discovers
 the largest amount of motifs, but it also has the highest number
 of targets. For this score, Zerone comes in second position, with a
 much lower amount of targets.
@@ -621,7 +645,8 @@ the left panel of Fig.~\ref{fig:pareto}.
 \label{subsub:pol2}
 To compare the behavior of the discretizers on the Pol2 profile,
 we determined the extent to which the enriched regions contained
-annotated TSS, as Pol2 is expected to bind near them.
+annotated TSS, as the residence time of Pol2 is highest at promoters
+\citep{pmid19056941}.
 We also overlapped this annotation with a data set of
 gene expression obtained by GRO-seq in order to separate the
 promoters of transcribed from nontranscribed genes.
@@ -763,25 +788,28 @@ while discovering enriched windows not found by the others.
 \end{figure}
 
 \subsection{Speed and memory footprint}
-We compared the running times of the different programs on discretizing
-four data sets of similar size that represent three major types of
-ChIP-seq signal. The CTCF signal consists of sharp
-peaks at the transcription factor binding site, the H3K36me3 signal
-consists of broad domains, and both the H3K4me3 and Pol2 signals consist
-of peaks at promoters---Pol2 potentially showing broad domains on the
-body of transcribed genes as well.
-
-The results were similar between experiments for files with 7 to
-36 million reads (see Table~\ref{tab:summary}). Zerone was
+\label{sub:perf}
+We compared the running times of the different programs on
+discretizing the four data sets used above, containing
+7 to 36 million reads (Table~\ref{tab:summary}).
+The results were similar between experiments. Zerone was
 consistently the fastest tool, with a running time of around 5 minutes
 (Fig.~\ref{fig:perf}, top row). The advantage is marginal over
 MACS, which ran for around 10 minutes, but it is substantial over
 JAMM and BayesPeak which ran in hours or in days, respectively.
+Post-processing the output with IDR did not significantly increase
+the running time of MACS, but it did so for JAMM, bringing the total
+running time over a week (Fig.~\ref{fig:perf}, dark grey bars).
 The results for peak memory usage were variable between experiments
 (Fig.~\ref{fig:perf},
 bottom row). MACS achieved the best performance with a memory
 footprint around 0.5~GB, followed by Zerone around 0.7~GB.
-BayesPeak and JAMM each used more than 1.5~GB.
+BayesPeak and JAMM each used more than 1.5~GB. The memory usage
+of Zerone does not depend on the sequence depth of the experiment,
+but solely on the number of replicates and the total number of
+windows in the genome. As an example, for the human genome at
+300 bp resolution, the memory footprint of Zerone is expected to
+be around 500~MB + 40~MB per replicate.
 
 The benchmark is partly confounded by the fact that BayesPeak and MACS
 discretize a single input per run, whereas Zerone and JAMM discretize
@@ -827,7 +855,7 @@ has provided controls that properly capture systematic biases
 such as batch effects, mappability and copy number variations.
 
 The quality control implemented in Zerone goes beyond the
-Irreproducible Discovery Rate \citep[IDR,][]{li2011} in several
+IDR \citep{li2011} in several
 ways. Zerone measures the quality of the discretization and not only
 the consistency between replicates. Also, the quality control of
 Zerone is neither
@@ -837,7 +865,7 @@ nor to a preset number of replicates. Finally, issuing an
 than silently ignoring the regions that differ between experiments
 (see \textit{e.g.} Fig.~\ref{fig:jarid}).
 
-Here we introduced a way to compare discretizers with an intuitive
+Here we also introduced a way to compare discretizers with an intuitive
 graphical representation (Fig.~\ref{fig:expl}). On this plane,
 the coordinates of a discretization indicate the number of targets
 (or occupancy) and the amount of reads captured by these targets.

@@ -16,7 +16,7 @@
 \@writefile{toc}{\contentsline {section}{\numberline {2}Methods}{2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.1}}Model and parameter estimation}{2}}
 \newlabel{sub:hmm}{{{2.1}}{2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces  Using the ZINB distribution to model ChIP-seq data (color version of the figure available online). Reads from a mock control data set were mapped onto the human genome and pooled in 300\nobreakspace  {}bp windows after removing duplicates. The histogram of the read counts is shown in black (no immunoprecipitation was performed in this experiment, so this variation corresponds to the `baseline'). The colored histograms show the maximum likelihood fit of the Poisson, Negative Binomial (NB) and Zero-Inflated Negative Binomial (ZINB) distributions. The fit of the Poisson distribution is poor. The NB distribution gives a good fit at the tail, but not for windows with 0 and 1 read. The ZINB distribution gives a good fit over the whole range. Source: ENCODE file ENCFF000VEK. }}{2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces  Using the ZINB distribution to model ChIP-seq data (color version of the figure available online). Reads from a mock control data set were mapped onto the human genome and pooled in 300\nobreakspace  {}bp windows after removing duplicates. The histogram of the read counts is shown in black (no immunoprecipitation was performed in this experiment, so this variation corresponds to the `baseline'). The colored histograms show the maximum likelihood fit of the Poisson, Negative Binomial (NB) and Zero-Inflated Negative Binomial (ZINB) distributions. The fit of the Poisson distribution is poor. The NB distribution gives a good fit at the tail, but not for windows with 0 and 1 read. The ZINB distribution gives a good fit over the whole range. Data from ENCODE file ENCFF000VEK. }}{2}}
 \newlabel{fig:ZINB_fit}{{1}{2}}
 \citation{18626}
 \citation{1054010}
@@ -26,7 +26,7 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.2}}ChIP-seq preprocessing}{3}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{2.3}}Quality control}{3}}
 \newlabel{sub:training}{{{2.3}}{3}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces  Scaled Principal Component Analysis of the training data set (color version of the figure available online). Each symbol represents a discretization performed by Zerone. The 5 features extracted from each discretization are projected onto the first three principal components. The two groups overlap, which creates an ambiguous zone where failures and successes are indistinguishable. }}{3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces  Scaled Principal Component Analysis of the training data set (color version of the figure available online). Each symbol represents a discretization performed by Zerone. The 5 features extracted from each discretization are projected onto the first three principal components. The two groups overlap, which creates an ambiguous zone where failures and successes are hard to distinguish. }}{3}}
 \newlabel{fig:pca}{{2}{3}}
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Summary statistics of the data sets used for benchmarking. }}{3}}
 \newlabel{tab:summary}{{1}{3}}
@@ -37,42 +37,44 @@
 \citation{pmid19458158}
 \citation{Karolchik2004}
 \citation{pmid21059603}
-\citation{pmid16122420}
-\citation{pmid23739122}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Results}{4}}
 \newlabel{sec:results}{{3}{4}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{3.1}}Automatic quality control}{4}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces  ChIP-seq profiles of JARID1A in H1 ES cells (300 bp windows). The first replicate is not similar to the second, and it does not contain any target. }}{4}}
 \newlabel{fig:jarid}{{3}{4}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {{3.2}}Accuracy}{4}}
+\citation{pmid16122420}
+\citation{pmid23739122}
 \citation{pmid17382889}
+\citation{pmid19056941}
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces  Characteristics of the discretizations for different programs (color version of the figure available online). The representation is obtained as shown on Fig.\nobreakspace  {}4\hbox {}. When discretizing the CTCF, the Pol2 and the H3K4me3 profile, Zerone produces discretizations that are very close to the Pareto front. In the case of H3K36me3, the discretization is off the Pareto front, but it is more sensible than the others. }}{5}}
 \newlabel{fig:pareto}{{5}{5}}
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces  Graphical representation of discretizations. Genomic windows of the ChIP-seq profile are ordered by decreasing amount of reads on the $x$ axis, and the cumulative amount of reads is plotted on the $y$ axis. This line forms a Pareto front representing the maximum number of reads for a given number of windows. Discretizations are represented as a single point on this plane (black disc) whose coordinates are the number of targets and the total number of reads covered by the targets. The dark triangle represents discretizations that are more conservative and discover more targets. }}{5}}
 \newlabel{fig:expl}{{4}{5}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.1}}Identification of CTCF binding sites.}{5}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Performance on the CTCF motifs data set. True and false positives are defined as peaks with and without a CTCF motif, respectively. Total: number of peaks found by the program. Motif: subset of those containing at least one CTCF motif. Precision: Motif divided by Total. Recall: number of motifs covered by peaks divided by the number of motifs in the genome. $F_{1}$ score: harmonic mean between Precision and Recall. }}{5}}
-\newlabel{tab:ctcf}{{2}{5}}
+\newlabel{subsub:pol2}{{{{3.2}.2}}{5}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.2}}Pol2 binding around transcription start sites.}{5}}
 \citation{pmid15680324}
 \citation{pmid17512414}
 \citation{pmid17277777}
 \citation{pmid16122420}
 \citation{pmid23739122}
-\newlabel{subsub:pol2}{{{{3.2}.2}}{6}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.2}}Pol2 binding around transcription start sites.}{6}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Performance on the Pol2 data set. True and false positives are defined as peaks with and without a TSS, respectively. Total: number of peaks found by the program. TSS: subset of those containing at least one TSS. Precision: TSS divided by Total. Recall: number of TSS covered by peaks divided by the number of TSS in the genome. $F_{1}$ score: harmonic mean between Precision and Recall. A TSS is called active if a 1 kb window centered around it contains at least 10 GRO-seq reads. }}{6}}
+\newlabel{tab:tss}{{3}{6}}
 \newlabel{subsub:h3k4me3}{{{{3.2}.3}}{6}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.3}}H3K4me3 signal on active promoters.}{6}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Performance on the CTCF motifs data set. True and false positives are defined as peaks with and without a CTCF motif, respectively. Total: number of peaks found by the program. Motif: subset of those containing at least one CTCF motif. Precision: Motif divided by Total. Recall: number of motifs covered by peaks divided by the number of motifs in the genome. $F_{1}$ score: harmonic mean between Precision and Recall. }}{6}}
+\newlabel{tab:ctcf}{{2}{6}}
 \newlabel{subsub:h3k36me3}{{{{3.2}.4}}{6}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {{{3.2}.4}}H3K36me3-enriched domains on active genes.}{6}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {{3.3}}Speed and memory footprint}{6}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces  Left panel: quality of the H3K36me3 discretization. Each bar represents the relative fraction of variance in RNA reads explained by the discretization of H3K36me3. The value for MACS was set to 1.0 and all other values were scaled accordingly. Right panel: Overlap between H3K36me3 targets (color version of the figure available online). Each circle represents the H3K36me3 targets identified by a program. The size of the circles is proportional to the coverage of the targets, and their overlap approximates the amount of targets shared by the programs. Note that the discretizations made by BayesPeak overlap almost completely and are indistinguishable in this representation. }}{6}}
-\newlabel{fig:venn}{{6}{6}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion and conclusions}{6}}
-\citation{li2011}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Performance on the Pol2 data set. True and false positives are defined as peaks with and without a TSS, respectively. Total: number of peaks found by the program. TSS: subset of those containing at least one TSS. Precision: TSS divided by Total. Recall: number of TSS covered by peaks divided by the number of TSS in the genome. $F_{1}$ score: harmonic mean between Precision and Recall. A TSS is called active if a 1 kb window centered around it contains at least 10 GRO-seq reads. }}{7}}
-\newlabel{tab:tss}{{3}{7}}
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Performance on the H3K4me3 data set. True and false positives are defined as peaks with and without a TSS, respectively. Total: the number of peaks found by the program. TSS: the subset of those containing at least one TSS. Precision: TSS divided by Total. Recall: the number of TSS contained in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the harmonic mean between Precision and Recall. A TSS is called active if a 1 kb window centered around it contains at least 10 GRO-seq reads. }}{7}}
 \newlabel{tab:H3K4}{{4}{7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces  Left panel: quality of the H3K36me3 discretization. Each bar represents the relative fraction of variance in RNA reads explained by the discretization of H3K36me3. The value for MACS was set to 1.0 and all other values were scaled accordingly. Right panel: Overlap between H3K36me3 targets (color version of the figure available online). Each circle represents the H3K36me3 targets identified by a program. The size of the circles is proportional to the coverage of the targets, and their overlap approximates the amount of targets shared by the programs. Note that the discretizations made by BayesPeak overlap almost completely and are indistinguishable in this representation. }}{7}}
+\newlabel{fig:venn}{{6}{7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {{3.3}}Speed and memory footprint}{7}}
+\newlabel{sub:perf}{{{3.3}}{7}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion and conclusions}{7}}
+\citation{li2011}
 \bibstyle{natbib}
 \bibdata{document,extra}
 \bibcite{pmid19458158}{{1}{2009}{{Bailey {\em  et~al.}}}{{Bailey, Boden, Buske, Frith, Grant, Clementi, Ren, Li, and Noble}}}
@@ -80,30 +82,31 @@
 \bibcite{baum1966}{{3}{1966}{{Baum and Petrie}}{{Baum and Petrie}}}
 \bibcite{pmid15680324}{{4}{2005}{{Bernstein {\em  et~al.}}}{{Bernstein, Kamal, Lindblad-Toh, Bekiranov, Bailey, Huebert, McMahon, Karlsson, Kulbokas, Gingeras, Schreiber, and Lander}}}
 \bibcite{Chang2011}{{5}{2011}{{Chang and Lin}}{{Chang and Lin}}}
-\bibcite{Dempster77maximumlikelihood}{{6}{1977}{{Dempster {\em  et~al.}}}{{Dempster, Laird, and Rubin}}}
-\bibcite{pmid21330290}{{7}{2011}{{Grant {\em  et~al.}}}{{Grant, Bailey, and Noble}}}
-\bibcite{pmid18463634}{{8}{2008}{{Guelen {\em  et~al.}}}{{Guelen, Pagie, Brasset, Meuleman, Faza, Talhout, Eussen, de~Klein, Wessels, de~Laat, and van Steensel}}}
-\bibcite{pmid17277777}{{9}{2007}{{Heintzman {\em  et~al.}}}{{Heintzman, Stuart, Hon, Fu, Ching, Hawkins, Barrera, Calcar, Qu, Ching, Wang, Weng, Green, Crawford, and Ren}}}
-\bibcite{pmid25223640}{{10}{2015}{{Ibrahim {\em  et~al.}}}{{Ibrahim, Lacadie, and Ohler}}}
-\bibcite{pscla}{{11}{2015}{{Jackman}}{{Jackman}}}
-\bibcite{Karolchik2004}{{12}{2004}{{Karolchik {\em  et~al.}}}{{Karolchik, Hinrichs, Furey, Roskin, Sugnet, Haussler, and Kent}}}
-\bibcite{pmid17382889}{{13}{2007}{{Kim {\em  et~al.}}}{{Kim, Abdullaev, Smith, Ching, Loukinov, Green, Zhang, Lobanenkov, and Ren}}}
-\bibcite{pmid23739122}{{14}{2013}{{Kimura}}{{Kimura}}}
-\bibcite{li2011}{{15}{2011}{{Li {\em  et~al.}}}{{Li, Brown, Huang, and Bickel}}}
-\bibcite{pmid23103880}{{16}{2012}{{Marco-Sola {\em  et~al.}}}{{Marco-Sola, Sammeth, Guigó, and Ribeca}}}
-\bibcite{pmid24194598}{{17}{2014}{{Mathelier {\em  et~al.}}}{{Mathelier, Zhao, Zhang, Parcy, Worsley-Hunt, Arenillas, Buchman, yu~Chen, Chou, Ienasescu, Lim, Shyr, Tan, Zhou, Lenhard, Sandelin, and Wasserman}}}
-\bibcite{e1071}{{18}{2014}{{Meyer {\em  et~al.}}}{{Meyer, Dimitriadou, Hornik, Weingessel, and Leisch}}}
-\bibcite{pmid24349523}{{19}{2013}{{Park {\em  et~al.}}}{{Park, Lee, Bhupindersingh, and Iyer}}}
-\bibcite{pmid16122420}{{20}{2005}{{Pokholok {\em  et~al.}}}{{Pokholok, Harbison, Levine, Cole, Hannett, Lee, Bell, Walker, Rolfe, Herbolsheimer, Zeitlinger, Lewitter, Gifford, and Young}}}
+\bibcite{pmid19056941}{{6}{2008}{{Core {\em  et~al.}}}{{Core, Waterfall, and Lis}}}
+\bibcite{Dempster77maximumlikelihood}{{7}{1977}{{Dempster {\em  et~al.}}}{{Dempster, Laird, and Rubin}}}
+\bibcite{pmid21330290}{{8}{2011}{{Grant {\em  et~al.}}}{{Grant, Bailey, and Noble}}}
+\bibcite{pmid18463634}{{9}{2008}{{Guelen {\em  et~al.}}}{{Guelen, Pagie, Brasset, Meuleman, Faza, Talhout, Eussen, de~Klein, Wessels, de~Laat, and van Steensel}}}
+\bibcite{pmid17277777}{{10}{2007}{{Heintzman {\em  et~al.}}}{{Heintzman, Stuart, Hon, Fu, Ching, Hawkins, Barrera, Calcar, Qu, Ching, Wang, Weng, Green, Crawford, and Ren}}}
 \@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces  Running times and peak memory footprint of the discretizers on the four ChIP-seq data sets. For programs that only allow single-profile discretization (\textit  {i.e.} BayesPeak and MACS), mean values (not the sum) are shown. The bars in dark grey represent the total running time when IDR is also computed (for JAMM and MACS). Note that the logarithmic scale misrepresents the relative fraction of time spent on each task. }}{8}}
 \newlabel{fig:perf}{{7}{8}}
 \@writefile{toc}{\contentsline {paragraph}{Funding\text  {\rm  :}}{8}}
-\bibcite{18626}{{21}{1989}{{Rabiner}}{{Rabiner}}}
-\bibcite{pmid21787385}{{22}{2011}{{Rashid {\em  et~al.}}}{{Rashid, Giresi, Ibrahim, Sun, and Lieb}}}
-\bibcite{pmid19772557}{{23}{2009}{{Spyrou {\em  et~al.}}}{{Spyrou, Stark, Lynch, and Tavaré}}}
-\bibcite{pmid21059603}{{24}{2011}{{Szalkowski and Schmid}}{{Szalkowski and Schmid}}}
-\bibcite{pmid24173036}{{25}{2013}{{Teytelman {\em  et~al.}}}{{Teytelman, Thurtle, Rine, and van Oudenaarden}}}
-\bibcite{1054010}{{26}{1967}{{Viterbi}}{{Viterbi}}}
-\bibcite{psclb}{{27}{2008}{{Zeileis {\em  et~al.}}}{{Zeileis, Kleiber, and Jackman}}}
-\bibcite{pmid18798982}{{28}{2008}{{Zhang {\em  et~al.}}}{{Zhang, Liu, Meyer, Eeckhoute, Johnson, Bernstein, Nusbaum, Myers, Brown, Li, and Liu}}}
+\bibcite{pmid25223640}{{11}{2015}{{Ibrahim {\em  et~al.}}}{{Ibrahim, Lacadie, and Ohler}}}
+\bibcite{pscla}{{12}{2015}{{Jackman}}{{Jackman}}}
+\bibcite{Karolchik2004}{{13}{2004}{{Karolchik {\em  et~al.}}}{{Karolchik, Hinrichs, Furey, Roskin, Sugnet, Haussler, and Kent}}}
+\bibcite{pmid17382889}{{14}{2007}{{Kim {\em  et~al.}}}{{Kim, Abdullaev, Smith, Ching, Loukinov, Green, Zhang, Lobanenkov, and Ren}}}
+\bibcite{pmid23739122}{{15}{2013}{{Kimura}}{{Kimura}}}
+\bibcite{li2011}{{16}{2011}{{Li {\em  et~al.}}}{{Li, Brown, Huang, and Bickel}}}
+\bibcite{pmid23103880}{{17}{2012}{{Marco-Sola {\em  et~al.}}}{{Marco-Sola, Sammeth, Guigó, and Ribeca}}}
+\bibcite{pmid24194598}{{18}{2014}{{Mathelier {\em  et~al.}}}{{Mathelier, Zhao, Zhang, Parcy, Worsley-Hunt, Arenillas, Buchman, yu~Chen, Chou, Ienasescu, Lim, Shyr, Tan, Zhou, Lenhard, Sandelin, and Wasserman}}}
+\bibcite{e1071}{{19}{2014}{{Meyer {\em  et~al.}}}{{Meyer, Dimitriadou, Hornik, Weingessel, and Leisch}}}
+\bibcite{pmid24349523}{{20}{2013}{{Park {\em  et~al.}}}{{Park, Lee, Bhupindersingh, and Iyer}}}
+\bibcite{pmid16122420}{{21}{2005}{{Pokholok {\em  et~al.}}}{{Pokholok, Harbison, Levine, Cole, Hannett, Lee, Bell, Walker, Rolfe, Herbolsheimer, Zeitlinger, Lewitter, Gifford, and Young}}}
+\bibcite{18626}{{22}{1989}{{Rabiner}}{{Rabiner}}}
+\bibcite{pmid21787385}{{23}{2011}{{Rashid {\em  et~al.}}}{{Rashid, Giresi, Ibrahim, Sun, and Lieb}}}
+\bibcite{pmid19772557}{{24}{2009}{{Spyrou {\em  et~al.}}}{{Spyrou, Stark, Lynch, and Tavaré}}}
+\bibcite{pmid21059603}{{25}{2011}{{Szalkowski and Schmid}}{{Szalkowski and Schmid}}}
+\bibcite{pmid24173036}{{26}{2013}{{Teytelman {\em  et~al.}}}{{Teytelman, Thurtle, Rine, and van Oudenaarden}}}
+\bibcite{1054010}{{27}{1967}{{Viterbi}}{{Viterbi}}}
+\bibcite{psclb}{{28}{2008}{{Zeileis {\em  et~al.}}}{{Zeileis, Kleiber, and Jackman}}}
+\bibcite{pmid18798982}{{29}{2008}{{Zhang {\em  et~al.}}}{{Zhang, Liu, Meyer, Eeckhoute, Johnson, Bernstein, Nusbaum, Myers, Brown, Li, and Liu}}}
 \global\@namedef{@lastpage@}{9}

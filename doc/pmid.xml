@@ -15,9 +15,9 @@
             <Day>29</Day>
         </DateCompleted>
         <DateRevised>
-            <Year>2015</Year>
-            <Month>04</Month>
-            <Day>22</Day>
+            <Year>2016</Year>
+            <Month>03</Month>
+            <Day>08</Day>
         </DateRevised>
         <Article PubModel="Electronic-eCollection">
             <Journal>
@@ -82,6 +82,12 @@
                     <Agency>NCI NIH HHS</Agency>
                     <Country>United States</Country>
                 </Grant>
+                <Grant>
+                    <GrantID>R01 CA095548</GrantID>
+                    <Acronym>CA</Acronym>
+                    <Agency>NCI NIH HHS</Agency>
+                    <Country>United States</Country>
+                </Grant>
             </GrantList>
             <PublicationTypeList>
                 <PublicationType UI="D016428">Journal Article</PublicationType>
@@ -128,76 +134,20 @@
         <CitationSubset>IM</CitationSubset>
         <CommentsCorrectionsList>
             <CommentsCorrections RefType="Cites">
-                <RefSource>Proc Natl Acad Sci U S A. 1999 Dec 21;96(26):14866-70</RefSource>
-                <PMID Version="1">10611304</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>PLoS One. 2010;5(7):e11471</RefSource>
-                <PMID Version="1">20628599</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Science. 2010 Dec 24;330(6012):1775-87</RefSource>
-                <PMID Version="1">21177976</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Mol Cell. 2011 Feb 18;41(4):480-92</RefSource>
-                <PMID Version="1">21329885</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Genome Res. 2011 Jun;21(6):875-84</RefSource>
-                <PMID Version="1">21515815</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nature. 2011 Jul 7;475(7354):114-7</RefSource>
-                <PMID Version="1">21697827</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nat Immunol. 2011 Oct;12(10):918-22</RefSource>
-                <PMID Version="1">21934668</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Methods Mol Biol. 2012;786:263-73</RefSource>
-                <PMID Version="1">21938632</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Cell. 2011 Dec 9;147(6):1408-19</RefSource>
-                <PMID Version="1">22153082</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Genome Res. 2012 Jan;22(1):9-24</RefSource>
-                <PMID Version="1">22090374</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Genome Biol. 2012;13(3):R16</RefSource>
-                <PMID Version="1">22424423</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Epigenomics. 2012 Jun;4(3):317-24</RefSource>
-                <PMID Version="1">22690667</PMID>
+                <RefSource>Mol Syst Biol. 2012;8:593</RefSource>
+                <PMID Version="1">22806141</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
                 <RefSource>Cell. 2012 Jun 22;149(7):1461-73</RefSource>
                 <PMID Version="1">22726434</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
-                <RefSource>Mol Syst Biol. 2012;8:593</RefSource>
-                <PMID Version="1">22806141</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>Nature. 2012 Sep 6;489(7414):57-74</RefSource>
-                <PMID Version="1">22955616</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
                 <RefSource>Nature. 2012 Sep 6;489(7414):75-82</RefSource>
                 <PMID Version="1">22955617</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
-                <RefSource>Nat Rev Genet. 2012 Dec;13(12):840-52</RefSource>
-                <PMID Version="1">23090257</PMID>
-            </CommentsCorrections>
-            <CommentsCorrections RefType="Cites">
-                <RefSource>PLoS Genet. 2013;9(2):e1003317</RefSource>
-                <PMID Version="1">23468649</PMID>
+                <RefSource>Proc Natl Acad Sci U S A. 1999 Dec 21;96(26):14866-70</RefSource>
+                <PMID Version="1">10611304</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
                 <RefSource>Trends Biochem Sci. 2000 Jul;25(7):325-30</RefSource>
@@ -300,8 +250,64 @@
                 <PMID Version="1">20513435</PMID>
             </CommentsCorrections>
             <CommentsCorrections RefType="Cites">
+                <RefSource>PLoS One. 2010;5(7):e11471</RefSource>
+                <PMID Version="1">20628599</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
                 <RefSource>Science. 2010 Dec 24;330(6012):1787-97</RefSource>
                 <PMID Version="1">21177974</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Science. 2010 Dec 24;330(6012):1775-87</RefSource>
+                <PMID Version="1">21177976</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Mol Cell. 2011 Feb 18;41(4):480-92</RefSource>
+                <PMID Version="1">21329885</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Genome Res. 2011 Jun;21(6):875-84</RefSource>
+                <PMID Version="1">21515815</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nature. 2011 Jul 7;475(7354):114-7</RefSource>
+                <PMID Version="1">21697827</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nat Immunol. 2011 Oct;12(10):918-22</RefSource>
+                <PMID Version="1">21934668</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nat Rev Genet. 2012 Dec;13(12):840-52</RefSource>
+                <PMID Version="1">23090257</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Cell. 2011 Dec 9;147(6):1408-19</RefSource>
+                <PMID Version="1">22153082</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Methods Mol Biol. 2012;786:263-73</RefSource>
+                <PMID Version="1">21938632</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>PLoS Genet. 2013;9(2):e1003317</RefSource>
+                <PMID Version="1">23468649</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Genome Res. 2012 Jan;22(1):9-24</RefSource>
+                <PMID Version="1">22090374</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Genome Biol. 2012;13(3):R16</RefSource>
+                <PMID Version="1">22424423</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Epigenomics. 2012 Jun;4(3):317-24</RefSource>
+                <PMID Version="1">22690667</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nature. 2012 Sep 6;489(7414):57-74</RefSource>
+                <PMID Version="1">22955616</PMID>
             </CommentsCorrections>
         </CommentsCorrectionsList>
         <MeshHeadingList>
@@ -5558,6 +5564,321 @@
             <ArticleId IdType="pii">S0092-8674(06)00380-1</ArticleId>
             <ArticleId IdType="doi">10.1016/j.cell.2006.02.041</ArticleId>
             <ArticleId IdType="pubmed">16630819</ArticleId>
+        </ArticleIdList>
+    </PubmedData>
+</PubmedArticle>
+
+
+<PubmedArticle>
+    <MedlineCitation Owner="NLM" Status="MEDLINE">
+        <PMID Version="1">19056941</PMID>
+        <DateCreated>
+            <Year>2008</Year>
+            <Month>12</Month>
+            <Day>19</Day>
+        </DateCreated>
+        <DateCompleted>
+            <Year>2009</Year>
+            <Month>01</Month>
+            <Day>09</Day>
+        </DateCompleted>
+        <DateRevised>
+            <Year>2015</Year>
+            <Month>02</Month>
+            <Day>19</Day>
+        </DateRevised>
+        <Article PubModel="Print-Electronic">
+            <Journal>
+                <ISSN IssnType="Electronic">1095-9203</ISSN>
+                <JournalIssue CitedMedium="Internet">
+                    <Volume>322</Volume>
+                    <Issue>5909</Issue>
+                    <PubDate>
+                        <Year>2008</Year>
+                        <Month>Dec</Month>
+                        <Day>19</Day>
+                    </PubDate>
+                </JournalIssue>
+                <Title>Science (New York, N.Y.)</Title>
+                <ISOAbbreviation>Science</ISOAbbreviation>
+            </Journal>
+            <ArticleTitle>Nascent RNA sequencing reveals widespread pausing and divergent initiation at human promoters.</ArticleTitle>
+            <Pagination>
+                <MedlinePgn>1845-8</MedlinePgn>
+            </Pagination>
+            <ELocationID EIdType="doi" ValidYN="Y">10.1126/science.1162228</ELocationID>
+            <Abstract>
+                <AbstractText>RNA polymerases are highly regulated molecular machines. We present a method (global run-on sequencing, GRO-seq) that maps the position, amount, and orientation of transcriptionally engaged RNA polymerases genome-wide. In this method, nuclear run-on RNA molecules are subjected to large-scale parallel sequencing and mapped to the genome. We show that peaks of promoter-proximal polymerase reside on approximately 30% of human genes, transcription extends beyond pre-messenger RNA 3' cleavage, and antisense transcription is prevalent. Additionally, most promoters have an engaged polymerase upstream and in an orientation opposite to the annotated gene. This divergent polymerase is associated with active genes but does not elongate effectively beyond the promoter. These results imply that the interplay between polymerases and regulators over broad promoter regions dictates the orientation and efficiency of productive transcription.</AbstractText>
+            </Abstract>
+            <AuthorList CompleteYN="Y">
+                <Author ValidYN="Y">
+                    <LastName>Core</LastName>
+                    <ForeName>Leighton J</ForeName>
+                    <Initials>LJ</Initials>
+                    <AffiliationInfo>
+                        <Affiliation>Department of Molecular Biology and Genetics, Cornell University, Ithaca, NY 14853, USA.</Affiliation>
+                    </AffiliationInfo>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Waterfall</LastName>
+                    <ForeName>Joshua J</ForeName>
+                    <Initials>JJ</Initials>
+                </Author>
+                <Author ValidYN="Y">
+                    <LastName>Lis</LastName>
+                    <ForeName>John T</ForeName>
+                    <Initials>JT</Initials>
+                </Author>
+            </AuthorList>
+            <Language>eng</Language>
+            <DataBankList CompleteYN="Y">
+                <DataBank>
+                    <DataBankName>GEO</DataBankName>
+                    <AccessionNumberList>
+                        <AccessionNumber>GSE13518</AccessionNumber>
+                    </AccessionNumberList>
+                </DataBank>
+            </DataBankList>
+            <GrantList CompleteYN="Y">
+                <Grant>
+                    <GrantID>GM25232</GrantID>
+                    <Acronym>GM</Acronym>
+                    <Agency>NIGMS NIH HHS</Agency>
+                    <Country>United States</Country>
+                </Grant>
+                <Grant>
+                    <GrantID>R01 GM025232</GrantID>
+                    <Acronym>GM</Acronym>
+                    <Agency>NIGMS NIH HHS</Agency>
+                    <Country>United States</Country>
+                </Grant>
+                <Grant>
+                    <GrantID>R01 GM025232-32</GrantID>
+                    <Acronym>GM</Acronym>
+                    <Agency>NIGMS NIH HHS</Agency>
+                    <Country>United States</Country>
+                </Grant>
+            </GrantList>
+            <PublicationTypeList>
+                <PublicationType UI="D016428">Journal Article</PublicationType>
+                <PublicationType UI="D052061">Research Support, N.I.H., Extramural</PublicationType>
+            </PublicationTypeList>
+            <ArticleDate DateType="Electronic">
+                <Year>2008</Year>
+                <Month>12</Month>
+                <Day>04</Day>
+            </ArticleDate>
+        </Article>
+        <MedlineJournalInfo>
+            <Country>United States</Country>
+            <MedlineTA>Science</MedlineTA>
+            <NlmUniqueID>0404511</NlmUniqueID>
+            <ISSNLinking>0036-8075</ISSNLinking>
+        </MedlineJournalInfo>
+        <ChemicalList>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D009707">Nucleosomes</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D016372">RNA, Antisense</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>0</RegistryNumber>
+                <NameOfSubstance UI="D012333">RNA, Messenger</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>EC 2.7.7.-</RegistryNumber>
+                <NameOfSubstance UI="D012319">RNA Polymerase II</NameOfSubstance>
+            </Chemical>
+            <Chemical>
+                <RegistryNumber>EC 2.7.7.6</RegistryNumber>
+                <NameOfSubstance UI="D012321">DNA-Directed RNA Polymerases</NameOfSubstance>
+            </Chemical>
+        </ChemicalList>
+        <CitationSubset>IM</CitationSubset>
+        <CommentsCorrectionsList>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nat Genet. 2006 Jun;38(6):626-35</RefSource>
+                <PMID Version="1">16645617</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nat Rev Mol Cell Biol. 2006 Aug;7(8):557-67</RefSource>
+                <PMID Version="1">16936696</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Cell. 2007 May 18;129(4):823-37</RefSource>
+                <PMID Version="1">17512414</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Science. 2007 Jun 8;316(5830):1484-8</RefSource>
+                <PMID Version="1">17510325</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nature. 2007 Jun 14;447(7146):799-816</RefSource>
+                <PMID Version="1">17571346</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Cell. 2007 Jul 13;130(1):77-88</RefSource>
+                <PMID Version="1">17632057</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Proc Natl Acad Sci U S A. 2007 Jul 24;104(30):12422-7</RefSource>
+                <PMID Version="1">17640892</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nat Genet. 2007 Dec;39(12):1512-6</RefSource>
+                <PMID Version="1">17994019</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nat Genet. 2007 Dec;39(12):1507-11</RefSource>
+                <PMID Version="1">17994021</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nat Methods. 2008 Jan;5(1):19-21</RefSource>
+                <PMID Version="1">18165803</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Genome Res. 2008 Mar;18(3):380-92</RefSource>
+                <PMID Version="1">18230803</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Science. 2008 Mar 28;319(5871):1791-2</RefSource>
+                <PMID Version="1">18369138</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nature. 2008 May 15;453(7193):358-62</RefSource>
+                <PMID Version="1">18408708</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nature. 2008 Jul 3;454(7200):126-30</RefSource>
+                <PMID Version="1">18509338</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Genes Dev. 2008 Jul 15;22(14):1921-33</RefSource>
+                <PMID Version="1">18628398</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Genome Res. 2008 Aug;18(8):1224-37</RefSource>
+                <PMID Version="1">18487515</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Science. 2008 Aug 15;321(5891):956-60</RefSource>
+                <PMID Version="1">18599741</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Science. 2008 Dec 19;322(5909):1849-51</RefSource>
+                <PMID Version="1">19056940</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Genome Res. 2004 Jan;14(1):62-6</RefSource>
+                <PMID Version="1">14707170</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Curr Opin Cell Biol. 2004 Jun;16(3):272-8</RefSource>
+                <PMID Version="1">15145351</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Trends Biochem Sci. 1989 Mar;14(3):105-10</RefSource>
+                <PMID Version="1">2658217</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="Cites">
+                <RefSource>Nature. 2005 Aug 11;436(7052):876-80</RefSource>
+                <PMID Version="1">15988478</PMID>
+            </CommentsCorrections>
+            <CommentsCorrections RefType="CommentIn">
+                <RefSource>Science. 2008 Dec 19;322(5909):1804-5</RefSource>
+                <PMID Version="1">19095933</PMID>
+            </CommentsCorrections>
+        </CommentsCorrectionsList>
+        <MeshHeadingList>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D002460">Cell Line</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D018899">CpG Islands</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D012321">DNA-Directed RNA Polymerases</DescriptorName>
+                <QualifierName MajorTopicYN="Y" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D015894">Genome, Human</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D006801">Humans</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D009707">Nucleosomes</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="Y" UI="D011401">Promoter Regions, Genetic</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D012319">RNA Polymerase II</DescriptorName>
+                <QualifierName MajorTopicYN="Y" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D016372">RNA, Antisense</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D012333">RNA, Messenger</DescriptorName>
+                <QualifierName MajorTopicYN="N" UI="Q000235">genetics</QualifierName>
+                <QualifierName MajorTopicYN="N" UI="Q000378">metabolism</QualifierName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="Y" UI="D017423">Sequence Analysis, RNA</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="N" UI="D024363">Transcription Initiation Site</DescriptorName>
+            </MeshHeading>
+            <MeshHeading>
+                <DescriptorName MajorTopicYN="Y" UI="D014158">Transcription, Genetic</DescriptorName>
+            </MeshHeading>
+        </MeshHeadingList>
+        <OtherID Source="NLM">NIHMS177763</OtherID>
+        <OtherID Source="NLM">PMC2833333</OtherID>
+    </MedlineCitation>
+    <PubmedData>
+        <History>
+            <PubMedPubDate PubStatus="aheadofprint">
+                <Year>2008</Year>
+                <Month>12</Month>
+                <Day>4</Day>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="pubmed">
+                <Year>2008</Year>
+                <Month>12</Month>
+                <Day>6</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="medline">
+                <Year>2009</Year>
+                <Month>1</Month>
+                <Day>10</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+            <PubMedPubDate PubStatus="entrez">
+                <Year>2008</Year>
+                <Month>12</Month>
+                <Day>6</Day>
+                <Hour>9</Hour>
+                <Minute>0</Minute>
+            </PubMedPubDate>
+        </History>
+        <PublicationStatus>ppublish</PublicationStatus>
+        <ArticleIdList>
+            <ArticleId IdType="pii">1162228</ArticleId>
+            <ArticleId IdType="doi">10.1126/science.1162228</ArticleId>
+            <ArticleId IdType="pubmed">19056941</ArticleId>
+            <ArticleId IdType="pmc">PMC2833333</ArticleId>
+            <ArticleId IdType="mid">NIHMS177763</ArticleId>
         </ArticleIdList>
     </PubmedData>
 </PubmedArticle>
