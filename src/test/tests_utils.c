@@ -62,3 +62,9 @@ test_indexts
    }
 
 }
+
+// Test cases for export
+const test_case_t test_cases_utils[] = {
+   {"utils/indexts",           test_indexts},
+   {NULL, NULL},
+};

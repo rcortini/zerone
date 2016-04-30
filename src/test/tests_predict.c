@@ -45,3 +45,10 @@ test_predict
    test_assert(fabs(predict(zscale(case3)) - 0.319410) < 1e-4);
 
 }
+
+// Test cases for export.
+const test_case_t test_cases_predict[] = {
+   {"predict/predict",         test_predict},
+   {NULL, NULL},
+};
+

@@ -31,7 +31,7 @@ CC= gcc
 INCLUDES= -I.. -Ilib
 COVERAGE= -fprofile-arcs -ftest-coverage
 CFLAGS= -std=gnu99 -g -Wall -O0 $(INCLUDES) $(COVERAGE)
-LDLIBS= -L`pwd` -Wl,-rpath=`pwd` -lunittest -lz -lm
+LDLIBS= -L`pwd` -Wl,-rpath=`pwd` -lunittest -lz -lm -lpthread
 
 $(P): $(OBJECTS) $(SOURCES) runtests.c
 	$(CC) $(CFLAGS) runtests.c $(OBJECTS) $(LDLIBS) -o $@

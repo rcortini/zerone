@@ -375,8 +375,20 @@ test_eval_bw_f
 //   double D,
 //   double E
 {
+   test_assert(0);
    return;
 //   double term1 = (D + a*A) / p0;
 //   double term2 = B * pi*a*pow(p0,a-1) / (pi*pow(p0,a)+1-pi);
 //   return p0 + E/(term1 + term2) - 1.0 / C;
 }
+
+// Test cases for export.
+const test_case_t test_cases_zerone[] = {
+   {"zerone/reorder",          test_reorder},
+   {"zerone/zinm_prob",        test_zinm_prob},
+   {"zerone/bw_zinm",          test_bw_zinm},
+   {"zerone/update_trans",     test_update_trans},
+   {"zerone/eval_bw_f",        test_eval_bw_f},
+   {NULL, NULL}
+};
+

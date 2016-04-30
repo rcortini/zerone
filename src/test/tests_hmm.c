@@ -781,3 +781,16 @@ test_block_viterbi_NA
    return;
 
 }
+
+// Test cases for export.
+const test_case_t test_cases_hmm[] = {
+   {"hmm/fwdb",                test_fwdb},
+   {"hmm/fwdb (NAs)",          test_fwdb_NA},
+   {"hmm/fwdb (underflow)",    test_underflow},
+   {"hmm/block_fwdb",          test_block_fwdb},
+   {"hmm/block_fwdb (NAs)",    test_block_fwdb_NA},
+   {"hmm/viterbi",             test_viterbi},
+   {"hmm/block_viterbi",       test_block_viterbi},
+   {"hmm/block_viterbi (NAs)", test_block_viterbi_NA},
+   {NULL, NULL},
+};

@@ -792,3 +792,24 @@ test_parse_input_files
    free(ChIP);
 
 }
+
+// Test cases for export.
+const test_case_t test_cases_parse[] = {
+   {"parse/bloom",             test_bloom},
+   {"parse/add_to_rod",        test_add_to_rod},
+   {"parse/djb2",              test_djb2},
+   {"parse/lookup_or_insert",  test_lookup_or_insert},
+   {"parse/stress_hash",       test_stress_hash},
+   {"parse/merge_hashes",      test_merge_hashes},
+   {"parse/choose_iterator",   test_choose_iterator},
+   {"parse/parse_gem",         test_parse_gem},
+   {"parse/parse_sam",         test_parse_sam},
+   {"parse/parse_bed",         test_parse_bed},
+   {"parse/parse_wig",         test_parse_wig},
+   {"parse/autoparse",         test_autoparse},
+   {"parse/getgzline",         test_getgzline},
+   {"parse/getgzline_err",     test_getgzline_err},
+   {"parse/parse_input_files", test_parse_input_files},
+   {NULL, NULL},
+};
+

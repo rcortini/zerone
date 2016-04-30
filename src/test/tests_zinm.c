@@ -703,3 +703,27 @@ test_err_handler
    free(par);
 
 }
+
+// Test cases for export.
+const test_case_t test_cases_zinm[] = {
+   {"zinm/new_histo",          test_new_histo},
+   {"zinm/histo_push",         test_histo_push},
+   {"zinm/compress_histo",     test_compress_histo},
+   {"zinm/tabulate",           test_tabulate},
+   {"zinm/eval_nb_f",          test_eval_nb_f},
+   {"zinm/eval_nb_dfda",       test_eval_nb_dfda},
+   {"zinm/eval_zinb_f",        test_eval_zinb_f},
+   {"zinm/eval_zinb_g",        test_eval_zinb_g},
+   {"zinm/eval_zinb_dfda",     test_eval_zinb_dfda},
+   {"zinm/eval_zinb_dfdp",     test_eval_zinb_dfdp},
+   {"zinm/eval_zinb_dgda",     test_eval_zinb_dgda},
+   {"zinm/ll_zinb",            test_ll_zinb},
+   {"zinm/nb_est_alpha",       test_nb_est_alpha},
+   {"zinm/mle_nb",             test_mle_nb},
+   {"zinm/mle_zinb",           test_mle_zinb},
+   {"zinm/fail_mle_nb",        test_fail_mle_nb},
+   {"zinm/fail_mle_zinb",      test_fail_mle_zinb},
+   {"zinm/err_handler",        test_err_handler},
+   {NULL, NULL},
+};
+
