@@ -134,7 +134,7 @@ int      add_to_rod (rod_t **, uint32_t);
 int      bloom_query_and_set(const char *, int, bloom_t);
 void     destroy_hash(hash_t *);
 link_t * lookup_or_insert (const char *, hash_t *);
-ChIP_t * merge_hashes (hash_t **, int);
+ChIP_t * merge_hashes (hash_t **, int, int);
 
 // Convenience functions.
 uint32_t djb2 (const char *);
@@ -158,7 +158,7 @@ parse_input_files
    hash_t * hashtab[512] = {0};  // Array of hash tables.
    int      nhashes = 0;         // Number of hashes.
 
-   // Create a unique hash for all mock files.
+   // Create a unique hash table for all mock files.
    hashtab[0] = calloc(HSIZE, sizeof(link_t *));
 
    if (hashtab[0] == NULL) {
@@ -169,6 +169,9 @@ parse_input_files
    nhashes = 1;
 
    // Fill in the hash with mock files.
+   // Because the same hash table is used every time,
+   // the reads in the same window are summed even if
+   // they are from different files.
    for (int i = 0; mock_fnames[i] != NULL; i++) {
 
       debug_print("%s %s\n", "autoparsing mock file", mock_fnames[i]);
@@ -207,8 +210,9 @@ parse_input_files
 
    }
 
-   // Merge hash tables in to a 'ChIP_t'.
-   ChIP = merge_hashes(hashtab, nhashes);
+   // Merge hash tables in to a 'ChIP_t'. The last argument
+   // says whether any mock file was provided.
+   ChIP = merge_hashes(hashtab, nhashes, mock_fnames[0] == NULL);
    if (ChIP == NULL) {
       debug_print("%s", "memory error\n");
       goto clean_and_return;
@@ -994,16 +998,21 @@ add_to_rod
 ChIP_t *
 merge_hashes
 (
-   hash_t ** hashes,
-   int       nhashes
+         hash_t ** hashes,
+         int       nhashes,
+   const int       no_mock
 )
 {
-   // Add keys and update a reference hash table.
+   // Add keys and update a reference hash table (the
+   // first, i.e. the hash table of mock controls).
    hash_t *refhash = hashes[0];
 
    for (int i = 1 ; i < nhashes ; i++) {
+      // Run over all other hash tables.
       hash_t *hashtab = hashes[i];
       for (int j = 0 ; j < HSIZE ; j++) {
+         // Visit every cell of the hash table and
+         // through every link of the list.
          for(link_t *lnk = hashtab[j] ; lnk != NULL ; lnk = lnk->next) {
             // Get chromosome from reference hash (or create it).
             link_t *reflnk = lookup_or_insert(lnk->seqname, refhash);
@@ -1013,13 +1022,16 @@ merge_hashes
             }
             // Update the max in reference hash. Note that
             // the size of this 'link_t' may be smaller.
-            if (lnk->counts->mx > reflnk->counts->mx)
+            if (lnk->counts->mx > reflnk->counts->mx) {
                reflnk->counts->mx = lnk->counts->mx;
+            }
          }
       }
    }
 
-   // Now use the data in reference hash to creat 'ChIP_t'.
+   // The reference table now contains all the chromosomes and the
+   // max value was updated as the upper bound of all the tables.
+   // Now use the data in reference hash to create 'ChIP_t'.
    int nkeys = 0;
    int nbins = 0;
    for (int j = 0 ; j < HSIZE ; j++) {
@@ -1029,6 +1041,7 @@ merge_hashes
       }
    }
 
+   // Allocate all.
    unsigned int *size = malloc(nkeys * sizeof(unsigned int));
    char *name = malloc(nkeys * 32);
    char **nptr = malloc(nkeys * sizeof(char *));
@@ -1042,6 +1055,8 @@ merge_hashes
    // Fill in the observations.
    int m = 0;
    size_t offset = 0;
+
+   // Iterate over the blocks (chromosomes).
    for (int j = 0 ; j < HSIZE ; j++) {
    for (link_t *rlnk = refhash[j] ; rlnk != NULL ; rlnk = rlnk->next) {
 
@@ -1053,6 +1068,14 @@ merge_hashes
 
       // Go through all the hashes to get the data.
       for (int i = 0 ; i < nhashes ; i++) {
+         // In case no mock file was provided, the first
+         // column of the data is replaced by 1s all along.
+         if (no_mock && i == 0) {
+            for (int k = 0 ; k < blksz ; k++) {
+               y[offset + (nhashes * k)] = 1;
+            }
+            continue;
+         }
          hash_t *hashtab = hashes[i];
          link_t *lnk = lookup_or_insert(key, hashtab);
          if (lnk == NULL) {

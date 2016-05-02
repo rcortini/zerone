@@ -36,7 +36,6 @@ const char *USAGE =
 "\n"
 "  Output options\n"
 "    -l --list-output: output list of targets (default table)\n"
-"    -c --confidence: also output confidence score (not available with -l)\n"
 "\n"
 "  Other options\n"
 "    -h --help: display this message and exit\n"
@@ -106,16 +105,16 @@ int main(int argc, char **argv) {
    int no_ChIP_specified = 1;
 
    static int list_flag = 0;
-   static int confd_flag = 0;
    static int window = 300;
+   static int mock_flag = 1;
 
    // Parse options.
    while(1) {
       int option_index = 0;
       static struct option long_options[] = {
          {"list-output", no_argument,       &list_flag,  1 },
-         {"confidence",  no_argument,       &confd_flag, 1 },
          {"mock",        required_argument,          0, '0'},
+         {"no-mock",     no_argument,       &mock_flag,  0 },
          {"chip",        required_argument,          0, '1'},
          {"help",        no_argument,                0, 'h'},
          {"version",     no_argument,                0, 'v'},
@@ -123,7 +122,7 @@ int main(int argc, char **argv) {
          {0, 0, 0, 0}
       };
 
-      int c = getopt_long(argc, argv, "0:1:chlw:",
+      int c = getopt_long(argc, argv, "0:1:hlw:",
             long_options, &option_index);
 
       // Done parsing named options. //
@@ -149,10 +148,6 @@ int main(int argc, char **argv) {
 
       case 'l':
          list_flag = 1;
-         break;
-
-      case 'c':
-         confd_flag = 1;
          break;
 
       case 'v':
@@ -186,7 +181,7 @@ int main(int argc, char **argv) {
       say_usage();
       return EXIT_FAILURE;
    }
-   if (no_mock_specified) {
+   if (no_mock_specified && mock_flag) {
       fprintf(stderr,
          "zerone error: specify a file for mock control experiment\n");
       say_usage();
@@ -197,11 +192,6 @@ int main(int argc, char **argv) {
          "zerone error: specify a file for ChIP-seq experiment\n");
       say_usage();
       return EXIT_FAILURE;
-   }
-
-   if (confd_flag && list_flag) {
-      fprintf(stderr, "ignoring --confidence flag for list output\n");
-      confd_flag = 0;
    }
 
    // Process input files.
@@ -278,19 +268,18 @@ int main(int argc, char **argv) {
 
    else {
       int wid = 0;
+      // In case no mock was provided, skip the column.
+      const int skipmock = mock_flag ? 0 : 1;
       for (int i = 0 ; i < ChIP->nb ; i++) {
          char *name = ChIP->nm + 32*i;
          for (int j = 0 ; j < ChIP->sz[i] ; j++) {
             fprintf(stdout, "%s\t%d\t%d\t%d", name, window*j + 1,
                   window*(j+1), Z->path[wid]);
-            for (int k = 0 ; k < Z->ChIP->r ; k++) {
+            for (int k = skipmock ; k < Z->ChIP->r ; k++) {
                fprintf(stdout, "\t%d", Z->ChIP->y[k+wid*Z->ChIP->r]);
             }
-            // Print confidence if required.
-            if (confd_flag) {
-               fprintf(stdout, "\t%.3f", Z->phi[2+wid*3]);
-            }
-            fprintf(stdout, "\n");
+            // Print confidence.
+            fprintf(stdout, "\t%.5f\n", Z->phi[2+wid*3]);
             wid++;
          }
       }
