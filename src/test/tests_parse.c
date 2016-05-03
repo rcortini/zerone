@@ -216,7 +216,7 @@ test_merge_hashes
    test_assert_critical(lnk != NULL);
    test_assert(add_to_rod(&lnk->counts, 8));
 
-   ChIP_t *ChIP = merge_hashes(hashes, 2);
+   ChIP_t *ChIP = merge_hashes(hashes, 2, 0);
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);
