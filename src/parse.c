@@ -497,7 +497,7 @@ bgzf_iterator
 
    int bytesread = bam_read1(state->file, state->bam);
 
-   if (bytesread < -1 || state->bam->core.tid < 0) {
+   if (bytesread < -1) {
       ERR = __LINE__;
       goto clean_and_return;
    }
@@ -508,7 +508,8 @@ bgzf_iterator
    }
 
 
-   loc->name = state->hdr->target_name[state->bam->core.tid];
+   loc->name = state->bam->core.tid < 0 ? NULL :
+      state->hdr->target_name[state->bam->core.tid];
    loc->pos = state->bam->core.pos;
 
    return bytesread;
