@@ -366,20 +366,22 @@ test_update_trans
 void
 test_eval_bw_f
 (void)
-//   double a,
-//   double pi,
-//   double p0,
-//   double A,
-//   double B,
-//   double C,
-//   double D,
-//   double E
 {
-   test_assert(0);
-   return;
-//   double term1 = (D + a*A) / p0;
-//   double term2 = B * pi*a*pow(p0,a-1) / (pi*pow(p0,a)+1-pi);
-//   return p0 + E/(term1 + term2) - 1.0 / C;
+   // Formula at the bottom of page 19 in supplementary
+   // information (numerical values cross-checked with R).
+   
+   // eval_bw_f(a, pi, p0, A, B, C, D, E)
+   
+   test_assert(eval_bw_f(1, 1, 1, 1, 1, 1, 1, 0) == .0);
+   test_assert(abs(eval_bw_f(1, 1, 1, 1, 1, 1, 1, 1) - .33333) < 1e-4);
+   test_assert(abs(eval_bw_f(2, 1, 1, 1, 1, 1, 1, 1) - .2) < 1e-4);
+   test_assert(abs(eval_bw_f(1,.5, 1, 1, 1, 1, 1, 1) - .4) < 1e-4);
+   test_assert(abs(eval_bw_f(1, 1, 1, 2, 1, 1, 1, 1) - .25) < 1e-4);
+   test_assert(abs(eval_bw_f(1, 1, 1, 1, 2, 1, 1, 1) - .25) < 1e-4);
+   test_assert(abs(eval_bw_f(1, 1, 1, 1, 1, 2, 1, 1) - .83333) < 1e-4);
+   test_assert(abs(eval_bw_f(1, 1, 1, 1, 1, 1, 2, 1) - .25) < 1e-4);
+   test_assert(abs(eval_bw_f(1, 1, 1, 1, 1, 1, 1, 2) - .66666) < 1e-4);
+
 }
 
 // Test cases for export.
