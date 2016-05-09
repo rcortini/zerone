@@ -18,6 +18,14 @@
 
 #include "unittest.h"
 
+char open_banner[] =
+"********************************\n"
+"*      Zerone unit tests       *\n"
+"********************************\n";
+
+char close_banner[] =
+"********************************\n";
+
 int
 main(
    int     argc,
@@ -44,7 +52,15 @@ main(
       NULL,
    };
 
+   // Display banner.
+   fprintf(stderr, "%s", open_banner);
+
    // Run the tests.
-   return run_unittest(argc, argv, list_of_test_cases);
+   int nfailed = run_unittest(argc, argv, list_of_test_cases);
+
+   // Display banner.
+   fprintf(stderr, "%s", close_banner);
+
+   return nfailed;
 
 }
