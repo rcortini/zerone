@@ -128,8 +128,14 @@ and reject if it is negative. If the score is higher than 1 (or lower
 than -1), the advice is considered extremely reliable.
 \end{mdframed}
 
-The rest of the lines contain the discretization proper. The first three columns
-specify the chromosome, start and end positions of each window.
+The five numeric values of the features are not important per se.
+They are used to compute the quality score. If only one replicate is
+available, the last value and the QC score will be \texttt{-nan},
+meaning that the quality control cannot be performed.
+
+The rest of the lines contain the discretization proper.
+The first three columns specify the chromosome, start and end
+positions of each window.
 
 \begin{mdframed}
 The fourth column represents the \textbf{enrichment}. Zerone classifies

@@ -25,13 +25,13 @@ zerone(y, returnall = FALSE)
     When \code{returnall = TRUE}, the Viterbi path is named as \code{path} and
     returned within a list containing also the following components:
     \item{Q}{a 3-by-3 matrix of the state transition probabilities.}
-    \item{a}{emission param}
-    \item{pi}{the zero inflation probability.}
-    \item{p}{emission params, for each state (row), the extra, input, and
-    replicates params}
-    \item{phi}{}
-    \item{pem}{}
-    \item{l}{}
+    \item{a}{the shape parameter of the emissions}
+    \item{pi}{the zero inflation probability of the emissions}
+    \item{p}{the `scaling' parameters of the emissions}
+    \item{phi}{the posterior probability of each state given the observations}
+    \item{pem}{the probability of emission of the windows for each state}
+    \item{l}{the log-likelihood of the final model}
+    \item{features}{the values of the five features used for quality control}
 }
 \author{
     Pol Cuscó and Guillaume Filion. date: October 29, 2015
