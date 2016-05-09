@@ -18,7 +18,7 @@ We recommend that you use git to keep Zerone updated. You can clone the
 repository from Github with the following command on a standard terminal.
 
 \begin{verbatim}
-git clone git@github.com:gui11aume/zerone
+git clone git@github.com:nanakiksc/zerone
 \end{verbatim}
 
 Note that this requires that you already have a Github account
@@ -27,11 +27,11 @@ on GitHub. If this is not the case, follow the instructions from
 \url{https://help.github.com/articles/generating-ssh-keys/}.
 
 Alternatively, if you prefer not to use git, you can download the source code
-from \url{https://github.com/gui11aume/zerone/archive/master.zip} with the
+from \url{https://github.com/nanakiksc/zerone/archive/master.zip} with the
 following commands.
 
 \begin{verbatim}
-wget https://github.com/gui11aume/zerone/archive/master.zip
+wget https://github.com/nanakiksc/zerone/archive/master.zip
 unzip zerone-master.zip
 mv zerone-master zerone
 \end{verbatim}
@@ -50,22 +50,9 @@ make
 This should succeed on most Linux systems because \texttt{make} is
 available by default. If this is not the case, you can obtain it by
 typing \texttt{sudo apt-get install make} on the Ubuntu terminal.
-
 Calling \texttt{make} should create an executable called \texttt{zerone}.
 
-\subsection{Testing}
 
-To check that the building was successful, test Zerone with
-the following commands.
-
-\begin{verbatim}
-make test -C src/test
-\end{verbatim}
-
-If it passes the tests without any error message, then everything went fine
-and you are done with the build. If not, something went
-wrong. In this case, you can explain how to reproduce the problem
-on \url{https://github.com/gui11aume/zerone/issues}.
 
 \subsection*{Installing the Zerone R package}
 
@@ -78,6 +65,8 @@ R CMD INSTALL ZeroneRPackage
 
 Note that you need to have R installed on your computer. If this is not the
 case, run the command \texttt{sudo apt-get install r-base} on Ubuntu.
+If applicable, you may also append \texttt{sudo} before the command
+to install the package system-wide.
 
 \section{Zerone basics}
 
@@ -98,12 +87,10 @@ directory.
 ./zerone --mock data/mock.sam --chip data/ctcf1.sam,data/ctcf2.sam
 \end{verbatim}
 
-Where file1.bam and file2.bam are negative controls done without antibody,
-and file2.bam and file3.bam are two experimental replicates.
-
-Note that path expansion will not work when using comma separated file names,
-so if you want to use path names starting with $\sim$, you can simply
-specify the mock and chip options as many times as needed, as shown below.
+Note that path expansion will not work when using comma separated file
+names, so if you want to use path names starting with $\sim$, you can
+simply specify the mock and chip options as many times as needed, as
+shown below.
 
 \begin{verbatim}
 ./zerone -0 data/mock.sam -1 data/ctcf1.sam -1 data/ctcf2.sam
@@ -112,32 +99,33 @@ specify the mock and chip options as many times as needed, as shown below.
 Enter the option \texttt{-h} or \texttt{--help} for usage instructions and
 \texttt{--version} to print the version number.
 
-\pagebreak
+\subsection{Window output}
 
-\subsection{Output}
-
-Running Zerone as shown above should produce an output like the following.
+Running any of the examples above should produce an output like
+the following.
 
 \begin{verbatim}
-# QC score: 1.289
+# QC score: 1.710
+# features: 0.472, 10.000, 0.017, 0.404, 0.858
 # advice: accept discretization.
-chr1    1       300     1   0   0   0
-chr1    301     600     1   0   0   0
-chr1    601     900     1   0   0   0
-chr1    901     1200    1   0   0   0
+chr1    1       300     1   0   0   0    0.29979
+chr1    301     600     1   0   0   0    0.16205
+chr1    601     900     1   0   0   0    0.09607
+chr1    901     1200    1   0   0   0    0.06440
 ...
-chr1    998701  999000  2   1   11  4
-chr1    999001  999300  2   2   72  34
-chr1    999301  999600  2   2   128 69
-chr1    999601  999900  2   0   10  5
+chr1    998701  999000  2   1   11  4    0.97890
+chr1    999001  999300  2   2   72  34   1.00000
+chr1    999301  999600  2   2   128 69   1.00000
+chr1    999601  999900  2   0   10  5    0.99894
 \end{verbatim}
 
 \begin{mdframed}
-The first two lines contain the result of the \textbf{quality control}.
-It consists of a quality score followed by an advice to either
-\textbf{accept or reject} the discretization, if the score is positive or
-negative, respectively. If the score is higher than 1 (or lower than -1), the
-advice is extremely reliable.
+The first three lines contain the result of the \textbf{quality control}.
+It consists of a quality score followed by the numeric values of 5
+features, and an advice to either \textbf{accept or reject} the
+discretization. The recommendation is to accept if the score is positive
+and reject if it is negative. If the score is higher than 1 (or lower
+than -1), the advice is considered extremely reliable.
 \end{mdframed}
 
 The rest of the lines contain the discretization proper. The first three columns
@@ -149,73 +137,78 @@ each window into one of three possible states. States 0 and 1 represent two
 types of background signal. State \textbf{2 represents an enriched window}.
 \end{mdframed}
 
-The fifth column contains the read count of all the control profiles summed
-together, and the rest of the columns contain the read count of each of the
-target profiles.
-
-\pagebreak
-
-The \texttt{-c} or \texttt{--confidence} option adds an extra column
-with the probability that the given window is a target. This expresses the
-confidence that a target is real and can be used for post-processing. To
-test this feature, you can run this line.
-
-\begin{verbatim}
-./zerone -c -0 data/mock.sam -1 data/ctcf1.sam -1 data/ctcf2.sam
-\end{verbatim}
-
-You should obtain the following output.
-
-\begin{verbatim}
-# QC score: 1.289
-# advice: accept discretization.
-chr1    1       300     1   0   0   0   0.300
-chr1    301     600     1   0   0   0   0.162
-chr1    601     900     1   0   0   0   0.096
-chr1    901     1200    1   0   0   0   0.064
-...
-chr1    998701  999000  2   1   11  4   0.979
-chr1    999001  999300  2   2   72  34  1.000
-chr1    999301  999600  2   2   128 69  1.000
-chr1    999601  999900  2   0   10  5   0.999
-\end{verbatim}
-
-Looking at this output, we conclude that Zerone is 99.9\% confident
-that CTCF is present on the last genomic window.
+The fifth column contains the read counts of all the control profiles
+summed together per window. The following columns show the number of
+reads per window in the ChIP-seq files, in the order they were provided.
+The final column is the estimated probability that the window is a
+target (it is a confidence score for the call).
 
 \subsection{List output}
 
-With the \texttt{-l} or \texttt{--list-output} option, Zerone produces an
-alternative output in which only enriched windows are shown. Also, all
-contiguous windows are merged together.
+With the \texttt{-l} or \texttt{--list-output} option, Zerone produces
+an alternative output in which only the targets are shown after
+merging consecutive windows. For instance, when running the following
+command
 
 \begin{verbatim}
-# QC score: 1.289
-# advice: accept discretization.
-chr1    237601  238200
-chr1    521401  522000
-chr1    567301  567900
-chr1    714001  714900
-...
-chr1    975901  976500
-chr1    990001  990600
-chr1    994201  995400
-chr1    998701  999900
+./zerone -l -0 data/mock.sam -1 data/ctcf1.sam,data/ctcf2.sam
 \end{verbatim}
+
+\noindent
+you should obtain the output shown below.
+
+\begin{verbatim}
+# QC score: 1.710
+# features: 0.472, 10.000, 0.017, 0.404, 0.858
+# advice: accept discretization.
+chr1  237601  238200  1.00000
+chr1  521401  522000  0.99969
+chr1  567301  567900  0.91610
+...
+chr1  975901  976500  1.00000
+chr1  990001  990600  0.99054
+chr1  994201  995400  1.00000
+chr1  998701  999900  1.00000
+\end{verbatim}
+
+The first three columns are the same as in window output \textit{i.e.}
+chromosome or sequence name, start and end. The last column is the
+confidence score of the called target. It is the \textit{highest}
+confidence of the windows merged in the same target region.
 
 \subsection*{The Zerone R package}
 
-You can load the package in R with this line.
+Once you have installed the Zerone R package, you can load it in
+your R session with the command
 
 \begin{verbatim}
 library(zerone)
 \end{verbatim}
 
-Type \texttt{?zerone} from an R session to see the documentation.
+The package contains a single function called \texttt{zerone()}.
+You can display the help page with the command \texttt{?zerone}.
+The object \texttt{ZeroneExampleData} is an example of
+\texttt{data.frame} properly formatted for \texttt{zerone()}.
+The command below runs \texttt{zerone()} on this data and
+returns the Viterbi path (inferred sequence of states).
+
+\begin{verbatim}
+path <- zerone(ZeroneExampleData)
+\end{verbatim}
+
+If you want to return the parameters fitted by \texttt{zerone()},
+you can do it as shown below.
+
+\begin{verbatim}
+listinfo <- zerone(ZeroneExampleData, returnall=TRUE)
+\end{verbatim}
+
+The list object \texttt{listinfo} then contains all the associated
+parameters and extra information.
 
 \section{Troubleshooting}
 
-In case Zerone crashes, start by recompiling it in debug mode. To do so,
+In case Zerone crashes, recompile it in debug mode. To do so,
 run the following commands from the \texttt{zerone} directory.
 
 \begin{verbatim}
@@ -223,8 +216,55 @@ make clean
 make debug
 \end{verbatim}
 
-Then repeat the actions that triggered the crash and contact
+Then repeat the call that triggered the crash and contact
 \href{mailto:guillaume.filion@gmail.com}{guillaume.filion@gmail.com}
 attaching the debug information.
+
+If you are using Linux, you can also run the unit tests to check
+that the code behaves as expected on your machine. For this,
+run the following commands in the Zerone directory.
+
+\begin{verbatim}
+make test -C src/test
+\end{verbatim}
+
+If everything works well, you should see the following output
+
+\begin{verbatim}
+********************************
+*      Zerone unit tests       *
+********************************
+hmm/fwdb                      OK
+hmm/fwdb (NAs)                OK
+hmm/fwdb (underflow)          OK
+hmm/block_fwdb                OK
+hmm/block_fwdb (NAs)          OK
+...
+zerone/zinm_prob              OK
+zerone/bw_zinm                OK
+zerone/update_trans           OK
+zerone/eval_bw_f              OK
+********************************
+\end{verbatim}
+
+The tests will not run on every machine (in particular they will
+not run on Mac), but this does not mean that something is broken.
+If \texttt{Zerone unit tests} in the header does not appear, it
+means that the tests cannot be compiled on your machine, but this
+does not say anything about Zerone. If one of the tests fails,
+\texttt{OK} will be replaced by \texttt{FAIL} and the test harness
+will give some more information about what went wrong. You can contact
+\href{mailto:guillaume.filion@gmail.com}{guillaume.filion@gmail.com}
+attaching the test results so that we can help you troubleshoot.
+
+You can also share your issues directly on the Github repository
+at \url{https://github.com/nanakiksc/zerone/issues}. Be sure to give
+enough information so that we can reproduce the issue.
+
+Finally, we provide a Docker image with a running implementation
+of Zerone. This can serve as an environment to run Zerone if it
+is not available on your machine, or as an example to see how to
+configure your own machine. The Docker image is available at
+\url{https://hub.docker.com/r/nanakiksc/zerone/}.
 
 \end{document}
