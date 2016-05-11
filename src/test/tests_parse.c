@@ -249,6 +249,10 @@ test_merge_hashes
       test_assert(ChIP->y[0+i*ChIP->r] == 1);
    }
 
+   // Manually destroy 'ChIP'.
+   free(ChIP->y);
+   free(ChIP);
+
    destroy_hash(hashes[0]);
    destroy_hash(hashes[1]);
 
