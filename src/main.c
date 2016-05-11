@@ -243,29 +243,42 @@ int main(int argc, char **argv) {
    fprintf(stdout, "# advice: %s discretization.\n",
          QC >= 0 ? "accept" : "reject");
 
+   // List output.
    if (list_flag) {
       int wid = 0;
       int target = 0;
+      double best = 0.0;
       for (int i = 0 ; i < ChIP->nb ; i++) {
          char *name = ChIP->nm + 32*i;
          for (int j = 0 ; j < ChIP->sz[i] ; j++) {
+            // Toggle on target state.
             if (!target && Z->path[wid] == 2) {
                fprintf(stdout, "%s\t%d\t", name, window*j + 1);
+               best = Z->phi[2+wid*3];
                target = 1;
             }
-            else if (target && Z->path[wid] != 2) {
-               fprintf(stdout, "%d\n", window*(j+1));
-               target = 0;
+            // Toggle off target state.
+            else if (target) {
+               // Update best score.
+               if (Z->phi[2+wid*3] > best) best = Z->phi[2+wid*3];
+               if (Z->path[wid] != 2) {
+                  fprintf(stdout, "%d\t%.5f\n", window*(j+1), best);
+                  best = 0.0;
+                  target = 0;
+               }
             }
             wid++;
          }
+         // In case the end of the block is a target.
          if (target) {
-            fprintf(stdout, "%d\n", window * ChIP->sz[i]);
+            fprintf(stdout, "%d\t%.5f\n", window * ChIP->sz[i], best);
+            best = 0.0;
             target = 0;
          }
       }
    }
 
+   // Table output.
    else {
       int wid = 0;
       // In case no mock was provided, skip the column.

@@ -216,6 +216,8 @@ test_merge_hashes
    test_assert_critical(lnk != NULL);
    test_assert(add_to_rod(&lnk->counts, 8));
 
+   // Merge hashes assuming using the first as mock.
+   // Note that this modifies the first hash.
    ChIP_t *ChIP = merge_hashes(hashes, 2, 0);
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
@@ -224,12 +226,31 @@ test_merge_hashes
    test_assert(ChIP->sz[1] == 76);
    test_assert(ChIP->sz[2] == 8);
 
-   destroy_hash(hashes[0]);
-   destroy_hash(hashes[1]);
-
    // Manually destroy 'ChIP'.
    free(ChIP->y);
    free(ChIP);
+
+   // Further update hash.
+   lnk = lookup_or_insert("chr17", hashes[1]);
+   test_assert_critical(lnk != NULL);
+   test_assert(add_to_rod(&lnk->counts, 5));
+
+   // Merge hash without using the first as mock.
+   ChIP = merge_hashes(hashes, 2, 1);
+   test_assert_critical(ChIP != NULL);
+   test_assert(ChIP->r == 2);
+   test_assert(ChIP->nb == 4);
+   test_assert(ChIP->sz[0] == 81);
+   test_assert(ChIP->sz[1] == 76);
+   test_assert(ChIP->sz[2] == 8);
+   test_assert(ChIP->sz[3] == 5);
+   // This should fill the arrays with 1s.
+   for (int i = 0 ; i < nobs(ChIP) ; i++) {
+      test_assert(ChIP->y[0+i*ChIP->r] == 1);
+   }
+
+   destroy_hash(hashes[0]);
+   destroy_hash(hashes[1]);
 
 }
 
@@ -600,11 +621,8 @@ test_autoparse
    test_assert(strncmp("format conflict in line:\n",
             caught_in_stderr(), 25) == 0);
 
-   // Now test .bam format. Note that there is a sequence
-   // at position 0 in this file, so the parser will choke
-   // on it. But there are 8 sequences before, that should
-   // fill the hash as tested below.
-   test_assert(!autoparse("test_file_good.bam", hashtab, 300));
+   // Now test .bam format.
+   test_assert(autoparse("test_file_good.bam", hashtab, 300));
    test_assert_critical(hashtab != NULL);
 
    lnk = lookup_or_insert("insert", hashtab);
