@@ -1,7 +1,4 @@
-*.R
 */*.bam
-*/*.bed
-*/*.bigWig
 */*.2bit
 */*.fasta
 */*.fastq.gz
@@ -10,6 +7,9 @@
 */*.map
 */*.sam
 benchmark/bigWigToBedGraph
+benchmark/idrCode/*
+benchmark/Jurkat_H3K27ac/*
+discretize/*.bed
 discretize/fetchChromSizes
 discretize/twoBitToFa
 JAMM/*

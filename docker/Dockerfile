@@ -29,15 +29,16 @@ COPY /BayesPeak/BayesPeak.R /BayesPeak/
 
 RUN mkdir /benchmark
 COPY /benchmark/Makefile /benchmark/
-COPY /benchmark/ctcf_motif_covergage.R /benchmark/
+COPY /benchmark/ctcf_motif_coverage.R /benchmark/
 COPY /benchmark/ctcf_motifs.bed /benchmark/
-COPY /benchmark/tss_covergage.R /benchmark/
+COPY /benchmark/tss_coverage.R /benchmark/
 COPY /benchmark/hg19_TSS.bed /benchmark/
 COPY /benchmark/performance.R /benchmark/
-COPY /benchmark/GSM1480325_K562_GROseq_*.bigWig /benchmark/
+COPY /benchmark/GSM1480325_K562_GROseq_minus.bigWig /benchmark/
+COPY /benchmark/GSM1480325_K562_GROseq_plus.bigWig /benchmark/
 COPY /benchmark/H1ESC_files_path.txt /benchmark/
-COPY /benchmark/H1ESC_files_pairings.txt /benchmark/
+COPY /benchmark/H1ESC_files_pairing.txt /benchmark/
 COPY /benchmark/idrCode.tar.gz /benchmark/
-RUN tar -zxf idrCode.tar.gz && rm idrCode.tar.gz
+RUN tar xzf /benchmark/idrCode.tar.gz && rm /benchmark/idrCode.tar.gz
 
 COPY $DIR/Makefile $DIR/
