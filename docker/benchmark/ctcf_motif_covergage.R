@@ -9,7 +9,8 @@ pass.idr.macs <- subset(total.macs.idr, IDR < 0.05)
 
 total.bayespeak1 <- read.table('BayesPeak/Ctcf1.bed')
 total.bayespeak2 <- read.table('BayesPeak/Ctcf2.bed')
-total.jamm       <- read.table('JAMM/Ctcf/peaks/filtered.peaks.narrowPeak')[1:3]
+# total.jamm       <- read.table('JAMM/Ctcf/peaks/filtered.peaks.narrowPeak')[1:3]
+total.jamm       <- read.table('JAMM/Ctcf/peaks/top.300k.idr.0.05.narrowPeak')[1:3]
 total.macs1      <- read.table('MACS/Ctcf1.bed')[1:3]
 total.macs2      <- read.table('MACS/Ctcf2.bed')[1:3]
 total.zerone     <- read.table('zerone/Ctcf.bed')
@@ -29,6 +30,28 @@ names(total.macs2)      <- c('chrom', 'start', 'end')
 names(total.macs.idr1)  <- c('chrom', 'start', 'end')
 names(total.macs.idr2)  <- c('chrom', 'start', 'end')
 names(total.zerone)     <- c('chrom', 'start', 'end')
+
+half.window <- 250
+total.bayespeak1$start <- rowMeans(total.bayespeak1[2:3]) - half.window
+total.bayespeak1$end   <- rowMeans(total.bayespeak1[2:3]) + half.window
+total.bayespeak2$start <- rowMeans(total.bayespeak2[2:3]) - half.window
+total.bayespeak2$end   <- rowMeans(total.bayespeak2[2:3]) + half.window
+total.jamm$start       <- rowMeans(total.jamm[2:3])       - half.window
+total.jamm$end         <- rowMeans(total.jamm[2:3])       + half.window
+total.macs1$start      <- rowMeans(total.macs1[2:3])      - half.window
+total.macs1$end        <- rowMeans(total.macs1[2:3])      + half.window
+total.macs2$start      <- rowMeans(total.macs2[2:3])      - half.window
+total.macs2$end        <- rowMeans(total.macs2[2:3])      + half.window
+total.zerone$start     <- rowMeans(total.zerone[2:3])     - half.window
+total.zerone$end       <- rowMeans(total.zerone[2:3])     + half.window
+total.jamm.idr1$start  <- rowMeans(total.jamm.idr1[2:3])  - half.window
+total.jamm.idr1$end    <- rowMeans(total.jamm.idr1[2:3])  + half.window
+total.jamm.idr2$start  <- rowMeans(total.jamm.idr2[2:3])  - half.window
+total.jamm.idr2$end    <- rowMeans(total.jamm.idr2[2:3])  + half.window
+total.macs.idr1$start  <- rowMeans(total.macs.idr1[2:3])  - half.window
+total.macs.idr1$end    <- rowMeans(total.macs.idr1[2:3])  + half.window
+total.macs.idr2$start  <- rowMeans(total.macs.idr2[2:3])  - half.window
+total.macs.idr2$end    <- rowMeans(total.macs.idr2[2:3])  + half.window
 
 library(GenomicRanges)
 gr.t.motif      <- GRanges(total.motif$chrom,      IRanges(total.motif$start,      total.motif$end))

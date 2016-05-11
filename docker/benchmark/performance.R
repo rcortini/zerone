@@ -8,7 +8,8 @@ running.times <- matrix(  # BayesPeak
                           0,
                           mean(c(335221.933, 335329.401)),
                           # JAMM
-                          24 * 60 * 60 + (60 * (8792 + 15)),
+                          # 24 * 60 * 60 + (60 * (8792 + 15)),
+                          24 * 60 * 60 + (60 * (250)),
                           60 *  653 + 35.299,
                           24 * 60 * 60 + (60 * (8792 + 15)),
                           60 *  549 + 42.371,
@@ -70,28 +71,28 @@ colnames(used.memory) <- c('BayesPeak', 'JAMM', 'MACS', 'Zerone')
 rownames(used.memory) <- c('CTCF', 'Pol2', 'H3K4me3', 'H3K36me3')
 
 setwd('/benchmark/')
-pdf('performance.pdf', height=6)
-layout(matrix(1:8, ncol=4, byrow=TRUE))
+pdf('performance.pdf', height=3)
+layout(matrix(1:4, ncol=4, byrow=TRUE))
 
 # Running times
-par(mar=c(5, 4, 4, 0), cex=1)
+par(mar=c(6, 5, 4, 0), cex=1)
 barplot(log.running.times[2:1, ], col=c('grey', 'dimgrey'), main='CTCF', las=2, ylab=expression('log'[2]*'(Running time) (s)'))
-par(mar=c(5, 3, 4, 1))
-barplot(log.running.times[4:3, ], col=c('grey', 'dimgrey'), main='Pol2', las=2)
-par(mar=c(5, 3, 4, 1))
-barplot(log.running.times[6:5, ], col=c('grey', 'dimgrey'), main='H3K4me3', las=2)
-par(mar=c(5, 2, 4, 2))
+# par(mar=c(5, 3, 4, 1))
+# barplot(log.running.times[4:3, ], col=c('grey', 'dimgrey'), main='Pol2', las=2)
+# par(mar=c(5, 3, 4, 1))
+# barplot(log.running.times[6:5, ], col=c('grey', 'dimgrey'), main='H3K4me3', las=2)
+par(mar=c(6, 3, 4, 2))
 barplot(log.running.times[8:7, ], col=c('grey', 'dimgrey'), main='H3K36me3', las=2)
 
 # Memory footprint
-par(mar=c(6, 4, 3, 0), cex=1)
-barplot(used.memory[1, ], main=NA, las=2, ylab='Memory footprint (GB)')
-par(mar=c(6, 3, 3, 1))
-barplot(used.memory[2, ], main=NA, las=2)
-par(mar=c(6, 3, 3, 1))
-barplot(used.memory[3, ], main=NA, las=2)
-par(mar=c(6, 2, 3, 2))
-barplot(used.memory[4, ], main=NA, las=2)
+par(mar=c(6, 4, 4, 1), cex=1)
+barplot(used.memory[1, ], main='CTCF', las=2, ylab='Memory footprint (GB)')
+# par(mar=c(6, 3, 3, 1))
+# barplot(used.memory[2, ], main=NA, las=2)
+# par(mar=c(6, 3, 3, 1))
+# barplot(used.memory[3, ], main=NA, las=2)
+par(mar=c(6, 3, 4, 2))
+barplot(used.memory[4, ], main='H3K36me3', las=2)
 
 par(mar=c(5, 4, 4, 2))
 layout(1)
