@@ -287,7 +287,7 @@ int main(int argc, char **argv) {
          char *name = ChIP->nm + 32*i;
          for (int j = 0 ; j < ChIP->sz[i] ; j++) {
             fprintf(stdout, "%s\t%d\t%d\t%d", name, window*j + 1,
-                  window*(j+1), Z->path[wid]);
+                  window*(j+1), Z->path[wid] == 2 ? 1 : 0);
             for (int k = skipmock ; k < Z->ChIP->r ; k++) {
                fprintf(stdout, "\t%d", Z->ChIP->y[k+wid*Z->ChIP->r]);
             }
