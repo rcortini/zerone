@@ -130,7 +130,7 @@ it produces congruent window-based outputs, and it can process hundreds
 of experiments per day on average hardware. We benchmarked Zerone against
 MACS \citep{pmid18798982}, BayesPeak \citep{pmid19772557} and
 JAMM \citep{pmid25223640} on the core task of discretizing ChIP-seq
-profiles of CTCF, Pol2, H3K4me3 and H3K36me3. Our results show that Zerone is
+profiles of CTCF and H3K36me3. Our results show that Zerone is
 competitive in terms of speed and accuracy.
 
 \begin{methods}
@@ -230,7 +230,7 @@ with ZINM emissions. The HMM has three
 states corresponding to ``low'', ``medium'' and ``high'' abundance of
 the given chromatin feature. In many ChIP-seq
 profiles, the baseline signal shows piece-wise variations of low amplitude
-but large size (typically 10-100 Kb). This will sometimes be the dominant
+but large size (typically 10-100 kb). This will sometimes be the dominant
 signal and a two-state HMM will identify these blocks instead of the
 targets. Dedicating two states to fit the baseline is a way to make sure
 that the ``high'' state corresponds to the targets of the chromatin
@@ -361,7 +361,8 @@ as a whole.
 
 \subsection{Benchmark data sets and conditions}
 \label{sub:bench_cond}
-We used all the ChIP-seq fastq files produced by the ENCODE Consortium
+To train the SVM,
+we used all the ChIP-seq fastq files produced by the ENCODE Consortium
 on the human leukemia cell line K562. Reference assembly UCSC hg19 was
 used throughout. The data was downloaded from the repository
 \href{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC}{http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC} in November 2013.
@@ -371,16 +372,14 @@ GEM \citep[\texttt{gem-mapper} version 1.376 beta, \texttt{gem-indexer} version
 \texttt{-q ignore}. We converted the mapped files to SAM format with
 \texttt{gem-2-sam} version 1.423 beta.
 
-To compare Zerone to other discretizers, we analysed four different
-ChIP-seq data sets: CCCTC-binding factor (CTCF), RNA polymerase II
-(Pol2), tri-methylated histone H3 at lysine 4 (H3K4me3)
+To compare Zerone to other discretizers, we analysed two different
+ChIP-seq data sets: CCCTC-binding factor (CTCF)
 and tri-methylated histone H3 at lysine 36 (H3K36me3).
 Each data set consists of a mock or input profile without
 immunoprecipitation and two replicate ChIP-seq profiles.
 The ENCODE accession numbers for these four data sets are
-ENCSR000DWE, ENCSR000FAJ, ENCSR000DWB and ENCSR000DWD respectively.
-For the Pol2 data set, we used the control experiment ENCSR000EWK.
-Table~\ref{tab:summary} gives a global overview of the data sets
+ENCSR000DWE and ENCSR000DWD respectively. Table~\ref{tab:summary}
+gives a global overview of the data sets
 used for benchmarking.
 
 \begin{table}[!tbp]
@@ -392,21 +391,12 @@ used for benchmarking.
         \textbf{Sequencing depth} & \textbf{Mapped reads} \\
         \midrule
         Input            & 36 & 18,123,856 & 18,064,246 \\
-        Input (Pol2)     & 36 & 36,418,708 & 36,351,513 \\
         CTCF$^{(1)}$     & 36 & 32,740,518 & 15,698,068 \\
         CTCF$^{(2)}$     & 36 & 27,953,212 & 12,971,023 \\
-        Pol2$^{(1)}$     & 36 & 10,513,992 &  7,465,806 \\
-        Pol2$^{(2)}$     & 36 & 10,855,446 &  7,027,761 \\
-        H3K4me3$^{(1)}$  & 36 & 18,685,398 & 15,148,578 \\
-        H3K4me3$^{(2)}$  & 36 & 16,968,870 & 13,656,987 \\
         H3K36me3$^{(1)}$ & 36 & 18,174,968 & 13,847,015 \\
         H3K36me3$^{(2)}$ & 36 & 18,495,290 & 14,419,200 \\
         \botrule
-\end{tabular}}{Input controls and ChIP-seq expermients were matched
-by laboratory of origin. The input profile labelled as Pol2 was used to
-discretize the Pol2 profiles. All the other profiles were discretized
-with the unlabelled input file.
-The numbers in parentheses indicate the two experimental replicates.}
+\end{tabular}}{}
 \end{table}
 
 We tested MACS \texttt{callpeak} version 2.1.0.20140616, BayesPeak
@@ -414,13 +404,19 @@ version 1.20.0 and JAMM version 1.0.7rev1. All tests were performed on
 an 8-core Intel Xeon E5606 machine with 48~GB of DDR3-RAM at 1333~MHz.
 All programs were run on a single core with the recommended options.
 Specifically, on the H3K36me3 data set, JAMM was run with the option
-\texttt{-r region} and MACS with the \texttt{--broad} option. For the rest of
+\texttt{-r region} and MACS with the \texttt{--broad} option. For
+the rest of
 the data sets and programs, the default options were used.
 When using IDR, we ran MACS with a relaxed qvalue cutoff set to 0.05
-to obtain a higher number of peaks. The IDR analysis proper was conducted
+to obtain a higher number of peaks. For JAMM, we took the top ranking
+300,000 peaks as input for IDR. The IDR analysis proper was conducted
 using the R script \texttt{batch-consistency-analysis.r}, available at
 \href{https://sites.google.com/site/anshulkundaje/projects/idr}{https://sites.google.com/site/anshulkundaje/projects/idr}.
-Peaks scoring higher than 0.05 were ignored.
+For MACS, peaks scoring lower than 0.05 were kept. For JAMM,
+the top $n$ peaks in the joint discretization were kept, where $n$
+is the number of peaks scoring lower than 0.05 in separate
+discretizations. For the CTCF benchmark, all peaks were resized to
+500 bp from the center of the window.
 
 The CTCF motif was obtained from the JASPAR database version
 5.0{\textunderscore}ALPHA \citep[motif ID MA0139.1,][]{pmid24194598}.
@@ -429,11 +425,6 @@ Subsequently we used FIMO \citep{pmid21330290} from the MEME suite version
 the human genome. The positions of Transcription Start Sites (TSS)
 were extracted from the knownGene
 table of the UCSC Genes annotation \citep{Karolchik2004}.
-Gene expression in sections \ref{subsub:pol2} and \ref{subsub:h3k4me3}
-was determined from a genomic run-on sequencing (GRO-seq)
-data set on the cell line K562 (GEO accession GSM1480325).
-%All the genomic features overlapping with at least one GRO-seq tag
-%were considered to be expressed.
 RNA counts in section \ref{subsub:h3k36me3} were obtained from the
 ENCODE data set EH000163 (already mapped bigWig files).
 
@@ -529,19 +520,18 @@ cost of IDR).
 \label{fig:expl}
 \end{figure}
 
-\begin{figure*}[!tbp]
+\begin{figure}[!tbp]
 \centerline{\includegraphics[scale=0.4]{pareto_front.pdf}}
 \caption{
   Characteristics of the discretizations for different programs
   (color version of the figure available online).
   The representation is obtained as shown on Fig.~\ref{fig:expl}.
-  When discretizing the CTCF, the Pol2 and the H3K4me3 profile,
-  Zerone produces discretizations that are very close to the Pareto
-  front. In the case of H3K36me3, the discretization is off the
+  The CTCF discretization produced by Zerone is close to the
+  Pareto front. For H3K36me3, the discretization is off the
   Pareto front, but it is more sensible than the others.
 }
 \label{fig:pareto}
-\end{figure*}
+\end{figure}
 
 The purpose of discretizers is to identify the targets of a
 transcription factor or a histone mark, \textit{i.e.} the sites of
@@ -558,7 +548,7 @@ windows from high to low amount of ChIP-seq
 reads, the cumulative number of reads forms a Pareto front.
 It represents the largest amount of reads that can be captured by the
 given amount of targets (Fig.~\ref{fig:expl}). A discretization can
-be represented as a point on the $xy$ plane.  By construction, no
+be represented as a point of this plane.  By construction, no
 discretization can lie on the left of the Pareto front, and those on
 the front represent an optimum. Others are suboptimal, since it is
 possible to capture more reads with the same amount of targets
@@ -567,29 +557,25 @@ possible to capture more reads with the same amount of targets
 We benchmarked Zerone against three ChIP-seq discretizers.
 We included MACS as the standard method for ChIP-seq peak calling,
 BayesPeak because it is powered by an HMM with ZINB emissions
-similar to the model implemented in Zerone, and JAMM because, as
-Zerone, it can perform joint discretization of experimental replicates.
-We used four datasets of similar size that represent three major
+similar to the model implemented in Zerone, and JAMM because
+it can perform joint discretization of experimental replicates.
+We used datasets of similar size that represent two major
 types of ChIP-seq signal (Table~\ref{tab:summary}). The CTCF
-signal consists of sharp
-peaks at the transcription factor binding site, the H3K36me3 signal
-consists of broad domains, and both the H3K4me3 and Pol2 signals consist
-of peaks at promoters---Pol2 potentially showing broad domains on the
-body of transcribed genes as well.
+signal consists of sharp peaks at the transcription factor binding
+site and the H3K36me3 signal consists of broad domains.
 
 This representation reveals that discretizing the CTCF profile yields
 similar outputs regardless of the software (Fig.~\ref{fig:pareto},
-left panel). On the other hand, discretizing the Pol2, the H3K4me3 or
-the H3K36me3 profile yields very distinct outputs. In
-all the cases, Zerone produces the discretization capturing the most
-reads. For CTCF, Pol2 and H3K4me3 it lies on the Pareto front. For
-H3K36me3, it lies somewhat off the Pareto front, but at a sensible
-location. As detailed below, H3K36me3 is deposited on transcribed
-genes \citep{pmid16122420,pmid23739122} so the coverage of targets
-should be higher than for transcription factors and for other profiles
-with sharp peaks. Taken together, these results shows that Zerone
-produces discretizations that are sensitive and adapted to the
-profile being discretized.
+left panel). On the other hand, discretizing the H3K36me3 profile
+yields very distinct outputs. In all the cases, Zerone produces the
+discretization capturing the most reads. For CTCF it lies on the
+Pareto front. For H3K36me3, it lies somewhat off the Pareto front,
+but at a sensible location. As detailed below, H3K36me3 is deposited
+on transcribed genes \citep{pmid16122420,pmid23739122} so the coverage
+of targets should be higher than for transcription factors and for
+other profiles with sharp peaks. Taken together, these results show
+that Zerone produces discretizations that are sensitive and adapted
+to the profile being discretized.
 
 \subsubsection{Identification of CTCF binding sites.}
 CTCF binds a 20~bp consensus sequence that is highly conserved in
@@ -600,13 +586,12 @@ compared the discretized profiles against a reference data set
 containing the positions of 85,690 occurences of the CTCF motif
 (see section \ref{sub:bench_cond}).
 
-Table~\ref{tab:ctcf} shows that Zerone has the best $F_1$ score (the
-harmonic mean of precision and recall) and the second highest recall
-score, close to that of JAMM. On the other hand, JAMM and MACS had
-much higher precision when used in combination with IDR. JAMM discovers
-the largest amount of motifs, but it also has the highest number
-of targets. For this score, Zerone comes in second position, with a
-much lower amount of targets.
+Table~\ref{tab:ctcf} shows that for most tools, the $F_1$ score
+(the harmonic mean of precision and recall) is between 0.34 and 0.41.
+The exception is JAMM, achieving significantly higher precision
+than the other tools at the cost of recall. On this dataset, the
+performance of Zerone is fair, with a good balance between precision
+and recall.
 
 \begin{table}[!b]
 \processtable{Performance on the CTCF motifs data set.
@@ -622,129 +607,18 @@ harmonic mean between Precision and Recall.
         \textbf{Software}  & \textbf{Total}  & \textbf{Motif} &
         \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
         \midrule
-        BayesPeak$^{(1)}$  &  45,229 & 24,933 & 0.55 & 0.31 & 0.40 \\
-        BayesPeak$^{(2)}$  &  45,192 & 23,136 & 0.51 & 0.29 & 0.37 \\
-        JAMM               & 321,263 & 31,859 & 0.10 & 0.39 & 0.16 \\
-        JAMM$^{(1)}$ + IDR &   7,201 &  5,159 & 0.72 & 0.07 & 0.12 \\
-        JAMM$^{(2)}$ + IDR &   7,201 &  5,159 & 0.72 & 0.07 & 0.12 \\
-        MACS$^{(1)}$       &  48,341 & 26,129 & 0.54 & 0.32 & 0.41 \\
-        MACS$^{(2)}$       &  41,048 & 23,237 & 0.57 & 0.29 & 0.38 \\
-        MACS$^{(1)}$ + IDR &  25,080 & 17,488 & 0.70 & 0.22 & 0.33 \\
-        MACS$^{(2)}$ + IDR &  25,080 & 17,483 & 0.70 & 0.22 & 0.33 \\
-        Zerone             &  54,315 & 28,738 & 0.53 & 0.38 & 0.44 \\
+        BayesPeak$^{(1)}$  &  45,229 & 25,223 & 0.56 & 0.32 & 0.40 \\
+        BayesPeak$^{(2)}$  &  45,192 & 23,637 & 0.52 & 0.30 & 0.38 \\
+        JAMM               &  11,046 &  8,777 & 0.79 & 0.11 & 0.20 \\
+        MACS$^{(1)}$       &  48,341 & 26,475 & 0.55 & 0.33 & 0.41 \\
+        MACS$^{(2)}$       &  41,048 & 23,498 & 0.57 & 0.30 & 0.39 \\
+        MACS$^{(1)}$ + IDR &  25,080 & 17,530 & 0.70 & 0.22 & 0.34 \\
+        MACS$^{(2)}$ + IDR &  25,080 & 17,527 & 0.70 & 0.22 & 0.34 \\
+        Zerone             &  54,315 & 25,324 & 0.47 & 0.32 & 0.38 \\
         \botrule
 \end{tabular}}{The numbers in parentheses indicate the results on the two
 replicates separately.}
 \end{table}
-
-In summary, Zerone achieves a good balance between sensitivity and
-specificity for transcription factor profiles, as was suggested by
-the left panel of Fig.~\ref{fig:pareto}.
-
-\subsubsection{Pol2 binding around transcription start sites.}
-\label{subsub:pol2}
-To compare the behavior of the discretizers on the Pol2 profile,
-we determined the extent to which the enriched regions contained
-annotated TSS, as the residence time of Pol2 is highest at promoters
-\citep{pmid19056941}.
-We also overlapped this annotation with a data set of
-gene expression obtained by GRO-seq in order to separate the
-promoters of transcribed from nontranscribed genes.
-
-\begin{table*}[!tbp]
-\processtable{Performance on the Pol2 data set.
-True and false positives are defined as peaks with and without a
-TSS, respectively. Total: number of peaks
-found by the program. TSS: subset of those containing at least one
-TSS. Precision: TSS divided by Total. Recall: number of TSS covered
-by peaks divided by the number of TSS in the genome. $F_{1}$ score:
-harmonic mean between Precision and Recall. A TSS is called active
-if a 1 kb window centered around it contains at least 10 GRO-seq
-reads.
-\label{tab:tss}}
-{\begin{tabular}{lr|rccc|rccc}
-        \multicolumn{2}{c}{} & \multicolumn{4}{c}{\textbf{All TSS}} & \multicolumn{4}{c}{\textbf{Active TSS}} \\
-        \midrule
-        \textbf{Software} & \textbf{Total} &
-        \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} &
-        \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
-        \midrule
-        BayesPeak$^{(1)}$  &  32,758 & 5,877 & 0.18 & 0.15 & 0.16 & 5,127 & 0.16 & 0.34 & 0.21 \\
-        BayesPeak$^{(2)}$  &  35,310 & 5,783 & 0.16 & 0.15 & 0.15 & 5,055 & 0.14 & 0.33 & 0.20 \\
-        JAMM               & 239,637 & 5,514 & 0.02 & 0.13 & 0.04 & 4,728 & 0.02 & 0.29 & 0.04 \\
-        JAMM$^{(1)}$ + IDR &  18,152 & 4,141 & 0.23 & 0.10 & 0.14 & 3,774 & 0.21 & 0.24 & 0.22 \\
-        JAMM$^{(2)}$ + IDR &  18,152 & 4,100 & 0.23 & 0.10 & 0.14 & 3,761 & 0.21 & 0.24 & 0.22 \\
-        MACS$^{(1)}$       &  51,271 & 6,860 & 0.13 & 0.17 & 0.15 & 5,920 & 0.12 & 0.39 & 0.18 \\
-        MACS$^{(2)}$       &  49,062 & 6,552 & 0.13 & 0.16 & 0.15 & 5,704 & 0.12 & 0.37 & 0.18 \\
-        MACS$^{(1)}$ + IDR &  19,369 & 5,985 & 0.31 & 0.15 & 0.21 & 5,307 & 0.27 & 0.36 & 0.31 \\
-        MACS$^{(2)}$ + IDR &  19,369 & 5,875 & 0.30 & 0.15 & 0.20 & 5,239 & 0.27 & 0.35 & 0.31 \\
-        Zerone             &  25,703 & 7,673 & 0.30 & 0.21 & 0.25 & 6,547 & 0.25 & 0.47 & 0.33 \\
-        \botrule
-\end{tabular}}{The numbers in parentheses indicate the results on the two
-replicates separately.}
-\end{table*}
-
-Table~\ref{tab:tss} shows that Zerone obtains the highest $F_1$
-score. Here the precision of Zerone is almost as high at that of MACS
-+ IDR, with a better recall. Zerone also discovers the highest net
-number of TSS and active TSS, consistent with its higher position
-in Figure~\ref{fig:pareto}. Zerone calls an intermediate number of
-targets, JAMM calling the most and JAMM + IDR the least.
-These results confirm that the performance
-of Zerone is good on this data set.
-
-\subsubsection{H3K4me3 signal on active promoters.}
-\label{subsub:h3k4me3}
-The histone mark H3K4me3 is enriched on active promoters and
-near the TSS of actively transcribed genes
-\citep{pmid15680324,pmid17512414,pmid17277777}. It is an example
-of a histone mark forming narrow peaks. We used the same TSS data set
-as above to benchmark the accurary of Zerone when discretizing
-this profile.
-
-\begin{table*}[!t]
-\processtable{Performance on the H3K4me3 data set.
-True and false positives are defined as peaks with and without a
-TSS, respectively. Total: the number of peaks
-found by the program. TSS: the subset of those containing at least one
-TSS. Precision: TSS divided by Total. Recall: the number of TSS contained
-in the peaks divided by the number of TSS in the genome. $F_{1}$ score: the
-harmonic mean between Precision and Recall. A TSS is called active
-if a 1 kb window centered around it contains at least 10 GRO-seq
-reads.
-\label{tab:H3K4}}
-{\begin{tabular}{lr|rccc|rccc}
-        \multicolumn{2}{c}{} & \multicolumn{4}{c}{\textbf{All TSS}} & \multicolumn{4}{c}{\textbf{Active TSS}} \\
-        \midrule
-        \textbf{Software} & \textbf{Total} &
-        \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} &
-        \textbf{TSS} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_{1}$ score} \\
-        \midrule
-        BayesPeak$^{(1)}$  &  26,938 & 4,330 & 0.16 & 0.12 & 0.13 & 3,507 & 0.13 & 0.25 & 0.17 \\
-        BayesPeak$^{(2)}$  &  27,132 & 4,288 & 0.16 & 0.11 & 0.13 & 3,468 & 0.13 & 0.24 & 0.17 \\
-        JAMM               & 151,655 & 3,644 & 0.02 & 0.09 & 0.04 & 2,665 & 0.02 & 0.18 & 0.03 \\
-        JAMM$^{(1)}$ + IDR &  24,065 & 3,610 & 0.15 & 0.10 & 0.12 & 2,901 & 0.12 & 0.20 & 0.15 \\
-        JAMM$^{(2)}$ + IDR &  24,065 & 3,773 & 0.16 & 0.10 & 0.12 & 3,028 & 0.13 & 0.21 & 0.16 \\
-        MACS$^{(1)}$       &  29,125 & 6,614 & 0.23 & 0.18 & 0.20 & 5,222 & 0.18 & 0.38 & 0.24 \\
-        MACS$^{(2)}$       &  29,420 & 6,542 & 0.22 & 0.18 & 0.20 & 5,183 & 0.18 & 0.37 & 0.24 \\
-        MACS$^{(1)}$ + IDR &  20,037 & 6,384 & 0.32 & 0.18 & 0.23 & 5,087 & 0.25 & 0.37 & 0.30 \\
-        MACS$^{(2)}$ + IDR &  20,037 & 6,348 & 0.32 & 0.18 & 0.23 & 5,068 & 0.25 & 0.37 & 0.30 \\
-        Zerone             &  15,602 & 6,989 & 0.45 & 0.20 & 0.28 & 5,528 & 0.35 & 0.41 & 0.38 \\
-        \botrule
-\end{tabular}}{The numbers in parentheses indicate the results on the two
-replicates separately.}
-\end{table*}
-
-Table~\ref{tab:H3K4} shows that Zerone achieves better $F_1$ score,
-better precision and better recall than the other tools, with
-a neat advantage in precision. In this case, discarding the
-nonreproducible peaks found by MACS only gives a mild increase in
-precision, that does not reach the performance of Zerone.
-Again, Zerone discovers the highest net number of TSS and active
-TSS, consistently with its position above the other tools in
-Figure~\ref{fig:pareto}. In this example, Zerone also calls
-less targets than the other tools. This shows that Zerone accurately
-describes profiles of this category.
 
 \subsubsection{H3K36me3-enriched domains on active genes.}
 \label{subsub:h3k36me3}
@@ -767,7 +641,7 @@ the high coverage of H3K36me3 is confirmed by expression data.
 
 A Venn diagram gives a graphical overview of the relationships
 between the discretizations (Fig.~\ref{fig:venn}, right panel). Zerone finds
-most of the targets detected by the other discretizers (except JAMM),
+most of the targets detected by the other discretizers,
 while discovering enriched windows not found by the others.
 
 \begin{figure}[!tpb]
@@ -783,7 +657,8 @@ while discovering enriched windows not found by the others.
   is proportional to the coverage of the targets, and their overlap
   approximates the amount of targets shared by the programs. Note
   that the discretizations made by BayesPeak overlap almost completely and
-  are indistinguishable in this representation.
+  are indistinguishable in this representation. Also note that JAMM is
+  used ``unthresholded'', as IDR is not recommended for broad signal.
 }\label{fig:venn}
 \end{figure}
 
@@ -791,15 +666,15 @@ while discovering enriched windows not found by the others.
 \label{sub:perf}
 We compared the running times of the different programs on
 discretizing the four data sets used above, containing
-7 to 36 million reads (Table~\ref{tab:summary}).
+18 to 32 million reads (Table~\ref{tab:summary}).
 The results were similar between experiments. Zerone was
 consistently the fastest tool, with a running time of around 5 minutes
 (Fig.~\ref{fig:perf}, top row). The advantage is marginal over
 MACS, which ran for around 10 minutes, but it is substantial over
 JAMM and BayesPeak which ran in hours or in days, respectively.
 Post-processing the output with IDR did not significantly increase
-the running time of MACS, but it did so for JAMM, bringing the total
-running time over a week (Fig.~\ref{fig:perf}, dark grey bars).
+the running time of MACS, but it did so for JAMM, increasing the total
+running time by a few hours (Fig.~\ref{fig:perf}, dark grey bars).
 The results for peak memory usage were variable between experiments
 (Fig.~\ref{fig:perf},
 bottom row). MACS achieved the best performance with a memory
@@ -811,13 +686,12 @@ windows in the genome. As an example, for the human genome at
 300 bp resolution, the memory footprint of Zerone is expected to
 be around 500~MB + 40~MB per replicate.
 
-The benchmark is partly confounded by the fact that BayesPeak and MACS
-discretize a single input per run, whereas Zerone and JAMM discretize
-multiple inputs simultaneously. This makes a difference for pipelines
-where all files have to be processed in parallel with the minimum
-amount of resources. In this benchmark, Zerone processed twice as
-many files per run as MACS. Per processed file, Zerone is thus
-four times faster than MACS while using 30\% less memory.
+The benchmark is partly confounded by the fact that Zerone
+discretizes multiple profiles simultaneously. This makes a difference
+for pipelines where all files have to be processed in parallel with
+the minimum amount of resources. In this benchmark, Zerone processed
+twice as many files per run as MACS. Per processed file, Zerone is
+thus four times faster than MACS while using 30\% less memory.
 
 \begin{figure}[!tpb]
 \centerline{\includegraphics[scale=0.5]{performance.pdf}}
@@ -895,28 +769,30 @@ far from the front may be preferable to one lying closer to it.
 
 This representation naturally suggests a naive approach to discretize
 ChIP-seq profiles. Indeed, one could sort the genomic windows by
-decreasing amount of ChIP-seq reads and declare `target' any window
+decreasing amount of ChIP-seq reads and call `target' any window
 above a chosen threshold. While this method would only produce
 discretizations on the Pareto front, adjusting the threshold to the
 conditions would be challenging for lack of an underlying model.
 This is one of the major strengths of Zerone: the statistical model
 automatically adjusts conservativity and sensitivity in a sensible way.
 
-In summary, the superior performance of Zerone on different classes
+In summary, the good performance of Zerone on different classes
 of profiles, combined with the automatic quality control meet the
 needs for general and robust ChIP-seq tools.
 
 \section*{Acknowledgement}
-\paragraph{Funding\textcolon}
-% These acknowledgements are compliant (October 17, 2015).
-The fellowship of P.C. is partly financed by the Spanish Ministry
-of Economy and Competitiveness (State Training Subprogram: predoctoral
-fellowships for the training of PhD students (FPI) 2013).
-We acknowledge support of the Spanish Ministry of Economy and
-Competitiveness, `Centro de Excelencia Severo Ochoa 2013-2017',
-SEV-2012-0208. We would like to thank the anonymous reviewers
+ We would like to thank the anonymous reviewers
 for their suggestions and their constructive criticism of the
 manuscript.
+\paragraph{Funding\textcolon}
+% These acknowledgements are compliant (October 17, 2015).
+This research was supported by the Government of Catalonia and
+the Spanish Ministery of Economy and Competitiveness (Plan Nacional
+BFU2012-37168, Centro de Excelencia Severo Ochoa 2013–2017
+SEV-2012‐0208). The fellowship of P.C. was partly supported by
+the Spanish Ministry of Economy and Competitiveness [State
+Training Subprogram: predoctoral fellowships for the training
+of PhD students (FPI) 2013].
 
 \bibliographystyle{natbib}
 \bibliography{document,extra}
