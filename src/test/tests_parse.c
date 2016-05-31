@@ -631,11 +631,11 @@ test_autoparse
 
    lnk = lookup_or_insert("insert", hashtab);
    test_assert_critical(lnk != NULL);
-   test_assert(lnk->counts->array[0] == 2);
+   test_assert(lnk->counts->array[0] == 1);
 
    lnk = lookup_or_insert("ref1", hashtab);
    test_assert_critical(lnk != NULL);
-   test_assert(lnk->counts->array[0] == 5);
+   test_assert(lnk->counts->array[0] == 4);
 
    // Now test .bed format. Also check the error message.
    redirect_stderr();
