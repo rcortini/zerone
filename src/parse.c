@@ -37,6 +37,14 @@ int    ERR;
 #define SUCCESS 1
 #define FAILURE 0
 
+#define BAM_SECOND_PAIR (BAM_FPAIRED | BAM_FREAD2)
+#define BAM_PROPER_PAIR (BAM_FPAIRED | BAM_FPROPER_PAIR)
+
+// Macro function.
+#define min(a,b) ((a) < (b) ? (a) : (b))
+#define max(a,b) ((a) > (b) ? (a) : (b))
+#define abs(a)   ((a) < 0 ? -(a) : (a))
+
 // Prime number for the size of hash table.
 #define HSIZE 997
 #define BSIZE 100000000
@@ -507,10 +515,21 @@ bgzf_iterator
       goto clean_and_return;
    }
 
+   // Discard unmapped and 2nd align of PE files.
+   if (state->bam->core.tid < 0 ||
+       (state->bam->core.flag & BAM_SECOND_PAIR) == BAM_SECOND_PAIR ||
+       (state->bam->core.flag & BAM_PROPER_PAIR) == BAM_FPAIRED)
+      loc->name = NULL;
+   else 
+      loc->name = state->hdr->target_name[state->bam->core.tid];
 
-   loc->name = state->bam->core.tid < 0 ? NULL :
-      state->hdr->target_name[state->bam->core.tid];
-   loc->pos = state->bam->core.pos;
+   // Compute middle point for PE intervals.
+   if (state->bam->core.flag & BAM_FPROPER_PAIR) {
+      loc->pos = min(state->bam->core.pos, state->bam->core.mpos)
+         + abs(state->bam->core.isize)/2;
+   }
+   else
+      loc->pos = state->bam->core.pos;
 
    return bytesread;
 
@@ -584,7 +603,7 @@ parse_sam
    }
 
                  strsep(&line, "\t"); // Discard QNAME.
-                 strsep(&line, "\t"); // Discard FLAG.
+   char *flag  = strsep(&line, "\t");
    char *chrom = strsep(&line, "\t");
    char *tmp   = strsep(&line, "\t");
 
@@ -597,12 +616,37 @@ parse_sam
       return SUCCESS;
    }
 
+   // Discard second alignment of paired end files.
+   int f = atoi(flag);
+   if ((f & BAM_SECOND_PAIR) == BAM_SECOND_PAIR ||
+       (f & BAM_PROPER_PAIR) == BAM_FPAIRED) {
+      loc->name = NULL;
+      return SUCCESS;
+   }
+   
    // Positions in the genome cannot be 0, so we can identify
    // failures of 'atoi' to convert numbers.
    int pos = atoi(tmp);
 
    // Field position is not a number.
-   if (pos == 0) return FAILURE;
+   if (pos == 0 && strcmp(tmp,"0")) return FAILURE;
+
+   // Compute PE interval middle-point.
+   if (f & BAM_FPROPER_PAIR) {
+                     strsep(&line, "\t"); // Discard MAPQ.
+                     strsep(&line, "\t"); // Discard CIGAR.
+      char *pchrom = strsep(&line, "\t");
+      char *mpos   = strsep(&line, "\t");
+      char *isize  = strsep(&line, "\t");
+
+      // Check chromosome.
+      if (strcmp(pchrom, "=") != 0) {
+         loc->name = NULL;
+         return SUCCESS;
+      }
+
+      pos = min(pos, atoi(mpos)) + abs(atoi(isize))/2;
+   }
 
    loc->name = chrom;
    loc->pos = pos;
@@ -1038,7 +1082,7 @@ merge_hashes
    for (int j = 0 ; j < HSIZE ; j++) {
       for(link_t *lnk = refhash[j] ; lnk != NULL ; lnk = lnk->next) {
          nkeys++;
-         nbins += lnk->counts->mx;
+         nbins += lnk->counts->mx + 1;
       }
    }
 
@@ -1065,7 +1109,7 @@ merge_hashes
       char *key = rlnk->seqname;
       nptr[m] = name + 32*m;
       strncpy(nptr[m], key, 32);
-      size_t blksz = size[m++] = rlnk->counts->mx;
+      size_t blksz = size[m++] = rlnk->counts->mx+1;
 
       // Go through all the hashes to get the data.
       for (int i = 0 ; i < nhashes ; i++) {
