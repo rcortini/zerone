@@ -250,7 +250,10 @@ int main(int argc, char **argv) {
       double best = 0.0;
       for (int i = 0 ; i < ChIP->nb ; i++) {
          char *name = ChIP->nm + 32*i;
-         for (int j = 0 ; j < ChIP->sz[i] ; j++) {
+
+         // Do not print the last bin because it may extend
+         // beyond the limit of the chromosome.
+         for (int j = 0 ; j < ChIP->sz[i]-1 ; j++) {
             // Toggle on target state.
             if (!target && Z->path[wid] == 2) {
                fprintf(stdout, "%s\t%d\t", name, window*j + 1);
@@ -283,9 +286,13 @@ int main(int argc, char **argv) {
       int wid = 0;
       // In case no mock was provided, skip the column.
       const int skipmock = mock_flag ? 0 : 1;
+
       for (int i = 0 ; i < ChIP->nb ; i++) {
          char *name = ChIP->nm + 32*i;
-         for (int j = 0 ; j < ChIP->sz[i] ; j++) {
+
+         // Do not print the last bin because it may extend
+         // beyond the limit of the chromosome.
+         for (int j = 0 ; j < ChIP->sz[i]-1 ; j++) {
             fprintf(stdout, "%s\t%d\t%d\t%d", name, window*j + 1,
                   window*(j+1), Z->path[wid] == 2 ? 1 : 0);
             for (int k = skipmock ; k < Z->ChIP->r ; k++) {

@@ -40,7 +40,7 @@ typedef struct block_t block_t;
 
 struct ChIP_t {
    size_t  r;       // number of dimensions of 'y' //
-   int     nb;      // number of blocks //
+   int     nb;      // number of blocks (chromosomes) //
    int   * y;       // observations //
    char  * nm;      // block names //
    uint    sz[];    // block sizes //

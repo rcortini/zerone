@@ -37,9 +37,6 @@ int    ERR;
 #define SUCCESS 1
 #define FAILURE 0
 
-#define BAM_SECOND_PAIR (BAM_FPAIRED | BAM_FREAD2)
-#define BAM_PROPER_PAIR (BAM_FPAIRED | BAM_FPROPER_PAIR)
-
 // Macro function.
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))
@@ -94,8 +91,8 @@ struct link_t {
 };
 
 struct rod_t {
-   size_t sz;
-   size_t mx;
+   size_t sz;            // Size (in bytes) of the array.
+   size_t mx;            // Highest index with nonzero count.
    uint32_t array[];
 };
 
@@ -442,7 +439,7 @@ generic_iterator
    // Cast as state for generic iterator.
    generic_state_t *state = (generic_state_t *) STATE;
    parser_t parse = state->parser;
-   reader_t read = state->reader;
+   reader_t doread = state->reader;
 
    if (loc == NULL) {
       // Interruption.
@@ -450,7 +447,7 @@ generic_iterator
    }
 
    // Read one line.
-   int nbytes = read(&state->buff, &state->bsz, state->file);
+   int nbytes = doread(&state->buff, &state->bsz, state->file);
 
    if (nbytes < -1) {
       ERR = __LINE__;
@@ -504,6 +501,7 @@ bgzf_iterator
    }
 
    int bytesread = bam_read1(state->file, state->bam);
+   bam1_core_t core = state->bam->core;
 
    if (bytesread < -1) {
       ERR = __LINE__;
@@ -516,20 +514,21 @@ bgzf_iterator
    }
 
    // Discard unmapped and 2nd align of PE files.
-   if (state->bam->core.tid < 0 ||
-       (state->bam->core.flag & BAM_SECOND_PAIR) == BAM_SECOND_PAIR ||
-       (state->bam->core.flag & BAM_PROPER_PAIR) == BAM_FPAIRED)
+   if (core.tid < 0 || core.flag & BAM_FREAD2)
       loc->name = NULL;
    else 
-      loc->name = state->hdr->target_name[state->bam->core.tid];
+      loc->name = state->hdr->target_name[core.tid];
 
+   // Note that the bam format is 0-based, so we add 1 to the
+   // position because genomic positions are 1-based.
+   
    // Compute middle point for PE intervals.
-   if (state->bam->core.flag & BAM_FPROPER_PAIR) {
-      loc->pos = min(state->bam->core.pos, state->bam->core.mpos)
-         + abs(state->bam->core.isize)/2;
+   if (core.flag & BAM_FPAIRED) {
+      if (core.mtid != core.tid) loc->name = NULL;
+      loc->pos = 1 + min(core.pos, core.mpos) + abs(core.isize)/2;
    }
    else
-      loc->pos = state->bam->core.pos;
+      loc->pos = 1 + core.pos;
 
    return bytesread;
 
@@ -616,42 +615,43 @@ parse_sam
       return SUCCESS;
    }
 
-   // Discard second alignment of paired end files.
-   int f = atoi(flag);
-   if ((f & BAM_SECOND_PAIR) == BAM_SECOND_PAIR ||
-       (f & BAM_PROPER_PAIR) == BAM_FPAIRED) {
+   // Binary sam flags.
+   int blag = atoi(flag);
+
+   // Always skip read 2.
+   if (blag & BAM_FREAD2) {
       loc->name = NULL;
       return SUCCESS;
    }
    
-   // Positions in the genome cannot be 0, so we can identify
-   // failures of 'atoi' to convert numbers.
+   // Note that the sam format is 1-based, so if 'atoi()'
+   // has returned 0, something is wrong with the format.
    int pos = atoi(tmp);
+   if (pos == 0) return FAILURE;
 
-   // Field position is not a number.
-   if (pos == 0 && strcmp(tmp,"0")) return FAILURE;
-
-   // Compute PE interval middle-point.
-   if (f & BAM_FPROPER_PAIR) {
+   // If read is paired use mid-point of the mapping.
+   if (blag & BAM_FPAIRED) {
                      strsep(&line, "\t"); // Discard MAPQ.
                      strsep(&line, "\t"); // Discard CIGAR.
       char *pchrom = strsep(&line, "\t");
       char *mpos   = strsep(&line, "\t");
       char *isize  = strsep(&line, "\t");
 
-      // Check chromosome.
+      // If pairing failed, skip read.
       if (strcmp(pchrom, "=") != 0) {
          loc->name = NULL;
          return SUCCESS;
       }
 
       pos = min(pos, atoi(mpos)) + abs(atoi(isize))/2;
+
    }
 
    loc->name = chrom;
    loc->pos = pos;
 
    return SUCCESS;
+
 }
 
 
@@ -1058,7 +1058,7 @@ merge_hashes
       for (int j = 0 ; j < HSIZE ; j++) {
          // Visit every cell of the hash table and
          // through every link of the list.
-         for(link_t *lnk = hashtab[j] ; lnk != NULL ; lnk = lnk->next) {
+         for (link_t *lnk = hashtab[j] ; lnk != NULL ; lnk = lnk->next) {
             // Get chromosome from reference hash (or create it).
             link_t *reflnk = lookup_or_insert(lnk->seqname, refhash);
             if (reflnk == NULL) {
@@ -1080,7 +1080,7 @@ merge_hashes
    int nkeys = 0;
    int nbins = 0;
    for (int j = 0 ; j < HSIZE ; j++) {
-      for(link_t *lnk = refhash[j] ; lnk != NULL ; lnk = lnk->next) {
+      for (link_t *lnk = refhash[j] ; lnk != NULL ; lnk = lnk->next) {
          nkeys++;
          nbins += lnk->counts->mx + 1;
       }
@@ -1109,7 +1109,7 @@ merge_hashes
       char *key = rlnk->seqname;
       nptr[m] = name + 32*m;
       strncpy(nptr[m], key, 32);
-      size_t blksz = size[m++] = rlnk->counts->mx+1;
+      size_t blksz = size[m++] = rlnk->counts->mx + 1;
 
       // Go through all the hashes to get the data.
       for (int i = 0 ; i < nhashes ; i++) {

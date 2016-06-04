@@ -222,9 +222,9 @@ test_merge_hashes
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);
-   test_assert(ChIP->sz[0] == 81);
-   test_assert(ChIP->sz[1] == 76);
-   test_assert(ChIP->sz[2] == 8);
+   test_assert(ChIP->sz[0] == 82);
+   test_assert(ChIP->sz[1] == 77);
+   test_assert(ChIP->sz[2] == 9);
 
    // Manually destroy 'ChIP'.
    free(ChIP->y);
@@ -240,10 +240,10 @@ test_merge_hashes
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 4);
-   test_assert(ChIP->sz[0] == 81);
-   test_assert(ChIP->sz[1] == 76);
-   test_assert(ChIP->sz[2] == 8);
-   test_assert(ChIP->sz[3] == 5);
+   test_assert(ChIP->sz[0] == 82);
+   test_assert(ChIP->sz[1] == 77);
+   test_assert(ChIP->sz[2] == 9);
+   test_assert(ChIP->sz[3] == 6);
    // This should fill the arrays with 1s.
    for (int i = 0 ; i < nobs(ChIP) ; i++) {
       test_assert(ChIP->y[0+i*ChIP->r] == 1);
@@ -774,9 +774,9 @@ test_parse_input_files
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);
-   test_assert(ChIP->sz[0] == 445385);
-   test_assert(ChIP->sz[1] == 317504);
-   test_assert(ChIP->sz[2] == 55024);
+   test_assert(ChIP->sz[0] == 445386);
+   test_assert(ChIP->sz[1] == 317505);
+   test_assert(ChIP->sz[2] == 55025);
 
    // Manually destroy 'ChIP'.
    free(ChIP->y);
@@ -788,9 +788,9 @@ test_parse_input_files
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);
-   test_assert(ChIP->sz[0] == 668077);
-   test_assert(ChIP->sz[1] == 476256);
-   test_assert(ChIP->sz[2] == 82537);
+   test_assert(ChIP->sz[0] == 668078);
+   test_assert(ChIP->sz[1] == 476257);
+   test_assert(ChIP->sz[2] == 82538);
 
    // Manually destroy 'ChIP'.
    free(ChIP->y);
@@ -805,9 +805,9 @@ test_parse_input_files
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);
-   test_assert(ChIP->sz[0] == 445385);
-   test_assert(ChIP->sz[1] == 317504);
-   test_assert(ChIP->sz[2] == 55024);
+   test_assert(ChIP->sz[0] == 445386);
+   test_assert(ChIP->sz[1] == 317505);
+   test_assert(ChIP->sz[2] == 55025);
 
    // Manually destroy 'ChIP'.
    free(ChIP->y);
