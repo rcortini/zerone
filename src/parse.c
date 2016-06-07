@@ -60,6 +60,7 @@ int    ERR;
 struct hash_t;
 struct link_t;
 struct rod_t;
+struct bf_t;
 struct loc_t;
 
 struct bgzf_state_t;
@@ -69,7 +70,7 @@ struct generic_state_t;
 typedef struct link_t link_t;
 typedef struct loc_t loc_t;
 typedef struct rod_t rod_t;
-
+typedef struct bf_t bf_t;
 typedef struct bgzf_state_t bgzf_state_t;
 typedef struct generic_state_t generic_state_t;
 
@@ -87,6 +88,7 @@ typedef ssize_t (*reader_t) (char **, size_t *, FILE *);
 struct link_t {
    char     seqname[32]; // Chromosome or sequence name.
    rod_t  * counts;      // Counts in chromosome bins.
+   bf_t   * repeats;     // Read bitfield.
    link_t * next;        // Next node on the link list.
 };
 
@@ -95,6 +97,12 @@ struct rod_t {
    size_t mx;            // Highest index with nonzero count.
    uint32_t array[];
 };
+
+struct bf_t {
+   size_t sz;            // Size (in bytes) of the array.
+   uint8_t array[];
+};
+
 
 struct loc_t {
    char * name;
@@ -137,7 +145,9 @@ int      parse_wig (loc_t *, char *);
 // Hash handling functions.
 int      add_to_rod (rod_t **, uint32_t);
 int      bloom_query_and_set(const char *, int, bloom_t);
+int      bf_query_and_set (int, link_t *);
 void     destroy_hash(hash_t *);
+void     destroy_bitfields(hash_t *);
 link_t * lookup_or_insert (const char *, hash_t *);
 ChIP_t * merge_hashes (hash_t **, int, int);
 
@@ -372,7 +382,6 @@ autoparse
 
    int status = SUCCESS;
 
-   bloom_t bloom = NULL;
    loc_t loc = {0};
 
    // Find an iterator for the given file type.
@@ -384,13 +393,6 @@ autoparse
       goto clean_and_return;
    }
 
-   bloom = calloc(1, BSIZE);
-   if (bloom == NULL) {
-      debug_print("%s", "memory error\n");
-      status = FAILURE;
-      goto clean_and_return;
-   }
-
    ERR = 0;
    while (iterate(&loc) > 0) {
 
@@ -398,7 +400,7 @@ autoparse
       if (loc.name == NULL) continue;
 
       // Check in Bloom filter whether the read was seen before.
-      if (bloom_query_and_set(loc.name, loc.pos, bloom)) continue;
+      // if (bloom_query_and_set(loc.name, loc.pos, bloom)) continue;
 
       link_t *lnk = lookup_or_insert(loc.name, hashtab);
 
@@ -407,6 +409,9 @@ autoparse
          status = FAILURE;
          goto clean_and_return;
       }
+
+      // Check in bit field whether the read was seen before.
+      if (bf_query_and_set(loc.pos, lnk)) continue;
 
       // Add read to counts.
       if (!add_to_rod(&lnk->counts, loc.pos / window)) {
@@ -424,7 +429,7 @@ autoparse
    }
 
 clean_and_return:
-   free(bloom);
+   destroy_bitfields(hashtab);
    return status;
 
 }
@@ -848,6 +853,7 @@ destroy_hash
       for (link_t *lnk = hashtab[i] ; lnk != NULL ; ) {
          link_t *tmp = lnk->next;
          free(lnk->counts);
+         if (lnk->repeats != NULL) free(lnk->repeats);
          free(lnk);
          lnk = tmp;
       }
@@ -855,6 +861,20 @@ destroy_hash
    free(hashtab);
 }
 
+void
+destroy_bitfields
+(
+ hash_t * hashtab
+)
+{
+   for (int i = 0 ; i < HSIZE ; i++) {
+      for (link_t *lnk = hashtab[i] ; lnk != NULL ; ) {
+         if (lnk->repeats != NULL) free(lnk->repeats);
+         lnk->repeats = NULL;
+         lnk = lnk->next;
+      }
+   }
+}
 
 int
 is_gzipped
@@ -1179,21 +1199,61 @@ lookup_or_insert
       return NULL;
    }
 
-   // Initiatile 'rod_t'.
+   bf_t *rep = malloc(sizeof(rod_t) + 32*sizeof(uint8_t));
+   if (rep == NULL) {
+      debug_print("%s", "memory error\n");
+      free(new);
+      return NULL;
+   }
+
+   // Initiatile count 'rod_t'.
    memset(rod->array, 0, 32*sizeof(uint32_t));
    rod->sz = 32;
    rod->mx = 0;
 
+   // Initiatile repeat 'rod_t'.
+   memset(rep->array, 0, 32*sizeof(uint8_t));
+   rep->sz = 32*8;
+
    // Update 'link_t'.
    strncpy(new->seqname, s, 31);
-   new->counts = rod;
+   new->counts  = rod;
+   new->repeats = rep;
 
    // Add 'link_t' to table hash table.
    new->next = htab[hv(s)];
    htab[hv(s)] = new;
 
    return new;
+}
 
+int
+bf_query_and_set
+(
+ int      pos,
+ link_t * lnk
+)
+{
+   // Extend bf if necessary.
+   if (pos >= lnk->repeats->sz) {
+      uint64_t newbeg = lnk->repeats->sz/8+1;
+      uint64_t newend = pos/8+1;
+      lnk->repeats = realloc(lnk->repeats, sizeof(rod_t)+newend*sizeof(uint8_t));
+      if (lnk->repeats == NULL) {
+         fprintf(stderr, "memory error\n");
+         return -1;
+      }
+      memset(lnk->repeats->array + newbeg, 0, newend-newbeg+1);
+      lnk->repeats->sz = newend*8;
+   }
+   // Check bit.
+   int byte = pos/8;
+   int bit  = pos%8;
+   int set = (lnk->repeats->array[byte] >> bit) & 1;
+   // Set bit.
+   lnk->repeats->array[byte] |= (1 << bit);
+
+   return set;
 }
 
 int
@@ -1204,12 +1264,17 @@ bloom_query_and_set
          bloom_t bloom
 )
 {
-
-   uint32_t a = (djb2(name) + pos) % (8*BSIZE);
-   uint32_t b = (a + pos) % (8*BSIZE);
+   char * text_a = calloc(strlen(name)+16,1);
+   char * text_b = calloc(strlen(name)+16,1);
+   int len_a = sprintf(text_a, "%s%d",name,pos);
+   int len_b = sprintf(text_b, "%d%s",pos,name);
+   uint32_t a = XXH32(text_a, len_a, 0) % (8*BSIZE);
+   uint32_t b = XXH32(text_b, len_b, 1) % (8*BSIZE);
+   free(text_a);
+   free(text_b);
 
    int abyte = a/8, abit = a%8;
-   int bbyte = a/8, bbit = b%8;
+   int bbyte = b/8, bbit = b%8;
 
    // Get bits.
    int a_yes = (bloom[abyte] >> (abit)) & 1;
