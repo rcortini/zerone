@@ -341,38 +341,9 @@ static const double __ac_HASH_UPPER = 0.77;
  */
 #define kh_int64_hash_equal(a, b) ((a) == (b))
 /*! @function
-  @abstract     const char* hash function
-  @param  s     Pointer to a null terminated string
-  @return       The hash value
- */
-static kh_inline khint_t __ac_X31_hash_string(const char *s)
-{
-	khint_t h = (khint_t)*s;
-	if (h) for (++s ; *s; ++s) h = (h << 5) - h + (khint_t)*s;
-	return h;
-}
-/*! @function
-  @abstract     Another interface to const char* hash function
-  @param  key   Pointer to a null terminated string [const char*]
-  @return       The hash value [khint_t]
- */
-#define kh_str_hash_func(key) __ac_X31_hash_string(key)
-/*! @function
   @abstract     Const char* comparison function
  */
 #define kh_str_hash_equal(a, b) (strcmp(a, b) == 0)
-
-static kh_inline khint_t __ac_Wang_hash(khint_t key)
-{
-    key += ~(key << 15);
-    key ^=  (key >> 10);
-    key +=  (key << 3);
-    key ^=  (key >> 6);
-    key += ~(key << 11);
-    key ^=  (key >> 16);
-    return key;
-}
-#define kh_int_hash_func2(k) __ac_Wang_hash((khint_t)key)
 
 /* --- END OF HASH FUNCTIONS --- */
 
@@ -596,23 +567,9 @@ struct __bgzidx_t
     uint64_t ublock_addr;   // offset of the current block (uncompressed data)
 };
 
-static inline void packInt16(uint8_t *buffer, uint16_t value)
-{
-    buffer[0] = value;
-    buffer[1] = value >> 8;
-}
-
 static inline int unpackInt16(const uint8_t *buffer)
 {
     return buffer[0] | buffer[1] << 8;
-}
-
-static inline void packInt32(uint8_t *buffer, uint32_t value)
-{
-    buffer[0] = value;
-    buffer[1] = value >> 8;
-    buffer[2] = value >> 16;
-    buffer[3] = value >> 24;
 }
 
 static BGZF *bgzf_read_init(hFILE *hfpr)
