@@ -1262,6 +1262,42 @@ bloom_query_and_set
          int     pos,
          bloom_t bloom
 )
+// SYNOPSIS:                                                             
+//   The Bloom filter stores the position of mapped reads in order to    
+//   remove duplicates. When parsing the mapping data, a read is first   
+//   looked up in the Bloom filter before beind added. If a match is     
+//   found, the read is skipped. The Bloom filter has 800,000,000 bits   
+//   and uses two hash functions. These days, a ChIP-seq lane is         
+//   typically 200 million reads, filling a maximum of 400,000,000 or    
+//   half of the Bloom filter, but at that stage the false positive      
+//   rate is already close to 1/4 (meaning that only 3/4 of the reads    
+//   will be included by the end of the parsing). Until approximately    
+//   41,000,000 unique reads haveebeen queried, the false positive rate  
+//   is under 1%.                                                        
+//                                                                       
+//   For a Bloom filter of size N, after inserting n distinct objects,   
+//   the number of set bits is approximately equal to                    
+//                                                                       
+//                           N(1-exp(-2n/N)),                            
+//                                                                       
+//   which is accurate within 1%. The total number of false positives    
+//   (here the number of lost reads) is approximately equal to           
+//                                                                       
+//              n - N(3/4 - exp(-2n/N)(1-exp(-2n/N)/4))                  
+//                                                                       
+//   which understimates the true value by about 4%. For a lane of 200   
+//   million distinct reads, the amount of loss is approximately 6%.     
+//                                                                       
+//   The first hash function uses the efficient 'djb2()' to produce a    
+//   32 bit integer from the chomosome name and adds the position of     
+//   the read. The second hash function is computed from the first by    
+//   adding again the position of the read. The scheme can be schema-    
+//   tized as shown below for a read mapping on chr1 at position 8.      
+//                                                                       
+//       .|.|X|.|.|.|.|.|.|.|1|.|.|.|.|.|.|.|1|.|.|.|.|.|.|.|.|.|.|.     
+//           |               |               |                           
+//       djb2(chr1)         +8              +16                          
+//                                                                       
 {
    char * text_a = calloc(strlen(name)+16,1);
    char * text_b = calloc(strlen(name)+16,1);

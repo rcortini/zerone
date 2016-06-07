@@ -459,50 +459,6 @@ typedef struct {
     size_t length, pos;
 } hFILE_mem;
 
-static ssize_t mem_read(hFILE *fpv, void *buffer, size_t nbytes)
-{
-    hFILE_mem *fp = (hFILE_mem *) fpv;
-    size_t avail = fp->length - fp->pos;
-    if (nbytes > avail) nbytes = avail;
-    memcpy(buffer, fp->buffer + fp->pos, nbytes);
-    fp->pos += nbytes;
-    return nbytes;
-}
-
-static off_t mem_seek(hFILE *fpv, off_t offset, int whence)
-{
-    hFILE_mem *fp = (hFILE_mem *) fpv;
-    size_t absoffset = (offset >= 0)? offset : -offset;
-    size_t origin;
-
-    switch (whence) {
-    case SEEK_SET: origin = 0; break;
-    case SEEK_CUR: origin = fp->pos; break;
-    case SEEK_END: origin = fp->length; break;
-    default: errno = EINVAL; return -1;
-    }
-
-    if ((offset  < 0 && absoffset > origin) ||
-        (offset >= 0 && absoffset > fp->length - origin)) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    fp->pos = origin + offset;
-    return fp->pos;
-}
-
-static int mem_close(hFILE *fpv)
-{
-    return 0;
-}
-
-static const struct hFILE_backend mem_backend =
-{
-    mem_read, NULL, mem_seek, NULL, mem_close
-};
-
-
 /******************************
  * hopen() backend dispatcher *
  ******************************/
