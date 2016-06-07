@@ -868,10 +868,9 @@ destroy_bitfields
 )
 {
    for (int i = 0 ; i < HSIZE ; i++) {
-      for (link_t *lnk = hashtab[i] ; lnk != NULL ; ) {
+      for (link_t *lnk = hashtab[i] ; lnk != NULL ; lnk = lnk->next) {
          if (lnk->repeats != NULL) free(lnk->repeats);
          lnk->repeats = NULL;
-         lnk = lnk->next;
       }
    }
 }

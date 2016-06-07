@@ -283,27 +283,28 @@ int main(int argc, char **argv) {
 
    // Table output.
    else {
-      int wid = 0;
-      // In case no mock was provided, skip the column.
+      uint64_t offset = 0;
+      // In case no mock was provided, skip the column.                                                                                                                                                              
       const int skipmock = mock_flag ? 0 : 1;
 
       for (int i = 0 ; i < ChIP->nb ; i++) {
          char *name = ChIP->nm + 32*i;
 
-         // Do not print the last bin because it may extend
-         // beyond the limit of the chromosome.
+         // Do not print the last bin because it may extend                                                                                                                                                          
+         // beyond the limit of the chromosome.                                                                                                                                                                      
          for (int j = 0 ; j < ChIP->sz[i]-1 ; j++) {
             fprintf(stdout, "%s\t%d\t%d\t%d", name, window*j + 1,
-                  window*(j+1), Z->path[wid] == 2 ? 1 : 0);
+                    window*(j+1), Z->path[offset+j] == 2 ? 1 : 0);
             for (int k = skipmock ; k < Z->ChIP->r ; k++) {
-               fprintf(stdout, "\t%d", Z->ChIP->y[k+wid*Z->ChIP->r]);
+               fprintf(stdout, "\t%d", Z->ChIP->y[(offset+j)*Z->ChIP->r+k]);
             }
-            // Print confidence.
-            fprintf(stdout, "\t%.5f\n", Z->phi[2+wid*3]);
-            wid++;
+            // Print confidence.                                                                                                                                                                                     
+            fprintf(stdout, "\t%.5f\n", Z->phi[2+(offset+j)*3]);
          }
+         offset += Z->ChIP->sz[i];
       }
    }
+
 
    destroy_zerone_all(Z); // Also frees ChIP.
 
