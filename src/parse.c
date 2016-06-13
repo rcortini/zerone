@@ -1299,14 +1299,13 @@ bloom_query_and_set
 //       djb2(chr1)         +8              +16                          
 //                                                                       
 {
-   char * text_a = calloc(strlen(name)+16,1);
-   char * text_b = calloc(strlen(name)+16,1);
-   int len_a = sprintf(text_a, "%s%d",name,pos);
-   int len_b = sprintf(text_b, "%d%s",pos,name);
+
+   char text_a[48];
+   char text_b[48];
+   int len_a = sprintf(text_a, "%s%d", name, pos);
+   int len_b = sprintf(text_b, "%d%s", pos, name);
    uint32_t a = XXH32(text_a, len_a, 0) % (8*BSIZE);
    uint32_t b = XXH32(text_b, len_b, 1) % (8*BSIZE);
-   free(text_a);
-   free(text_b);
 
    int abyte = a/8, abit = a%8;
    int bbyte = b/8, bbit = b%8;
