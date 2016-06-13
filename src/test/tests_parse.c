@@ -25,6 +25,53 @@
 
 
 void
+test_bitf
+(void)
+{
+
+   hash_t *hashtab = calloc(HSIZE, sizeof(link_t *));
+   link_t *lnk = NULL;
+
+   // Insert an entry for chromosome 1.
+   lnk = lookup_or_insert("chr1", hashtab);
+   test_assert_critical(lnk != NULL);
+
+   // Add a read at position 123 and check it is added.
+   test_assert(bitf_query_and_set(123, lnk) == 0);
+   test_assert(bitf_query_and_set(123, lnk) == 1);
+
+   // Add a read at position 456 and check it is added.
+   test_assert(bitf_query_and_set(456, lnk) == 0);
+   test_assert(bitf_query_and_set(456, lnk) == 1);
+
+   // Insert an entry for chromosome 2.
+   lnk = lookup_or_insert("chr2", hashtab);
+   test_assert_critical(lnk != NULL);
+
+   // Add a read at position 789 and check it is added.
+   test_assert(bitf_query_and_set(789, lnk) == 0);
+   test_assert(bitf_query_and_set(789, lnk) == 1);
+
+   // Add a read at position 159 and check it is added.
+   test_assert(bitf_query_and_set(159, lnk) == 0);
+   test_assert(bitf_query_and_set(159, lnk) == 1);
+
+   // Query the entry for chromosome 1.
+   lnk = lookup_or_insert("chr1", hashtab);
+   test_assert_critical(lnk != NULL);
+
+   // Check that the reads are still there.
+   test_assert(bitf_query_and_set(123, lnk) == 1);
+   test_assert(bitf_query_and_set(456, lnk) == 1);
+
+   // Clean.
+   destroy_bitfields(hashtab);
+   destroy_hash(hashtab);
+
+}
+
+
+void
 test_bloom
 (void)
 {
@@ -817,6 +864,7 @@ test_parse_input_files
 
 // Test cases for export.
 const test_case_t test_cases_parse[] = {
+   {"parse/bitf",              test_bitf},
    {"parse/bloom",             test_bloom},
    {"parse/add_to_rod",        test_add_to_rod},
    {"parse/djb2",              test_djb2},

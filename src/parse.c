@@ -60,7 +60,7 @@ int    ERR;
 struct hash_t;
 struct link_t;
 struct rod_t;
-struct bf_t;
+struct bitf_t;
 struct loc_t;
 
 struct bgzf_state_t;
@@ -70,7 +70,7 @@ struct generic_state_t;
 typedef struct link_t link_t;
 typedef struct loc_t loc_t;
 typedef struct rod_t rod_t;
-typedef struct bf_t bf_t;
+typedef struct bitf_t bitf_t;
 typedef struct bgzf_state_t bgzf_state_t;
 typedef struct generic_state_t generic_state_t;
 
@@ -88,7 +88,7 @@ typedef ssize_t (*reader_t) (char **, size_t *, FILE *);
 struct link_t {
    char     seqname[32]; // Chromosome or sequence name.
    rod_t  * counts;      // Counts in chromosome bins.
-   bf_t   * repeats;     // Read bitfield.
+   bitf_t * repeats;     // Read bitfield.
    link_t * next;        // Next node on the link list.
 };
 
@@ -98,7 +98,7 @@ struct rod_t {
    uint32_t array[];
 };
 
-struct bf_t {
+struct bitf_t {
    size_t sz;            // Size (in bytes) of the array.
    uint8_t array[];
 };
@@ -145,7 +145,7 @@ int      parse_wig (loc_t *, char *);
 // Hash handling functions.
 int      add_to_rod (rod_t **, uint32_t);
 int      bloom_query_and_set(const char *, int, bloom_t);
-int      bf_query_and_set (int, link_t *);
+int      bitf_query_and_set (int, link_t *);
 void     destroy_hash(hash_t *);
 void     destroy_bitfields(hash_t *);
 link_t * lookup_or_insert (const char *, hash_t *);
@@ -411,7 +411,7 @@ autoparse
       }
 
       // Check in bit field whether the read was seen before.
-      if (bf_query_and_set(loc.pos, lnk)) continue;
+      if (bitf_query_and_set(loc.pos, lnk)) continue;
 
       // Add read to counts.
       if (!add_to_rod(&lnk->counts, loc.pos / window)) {
@@ -1198,7 +1198,7 @@ lookup_or_insert
       return NULL;
    }
 
-   bf_t *rep = malloc(sizeof(rod_t) + 32*sizeof(uint8_t));
+   bitf_t *rep = malloc(sizeof(rod_t) + 32*sizeof(uint8_t));
    if (rep == NULL) {
       debug_print("%s", "memory error\n");
       free(new);
@@ -1227,7 +1227,7 @@ lookup_or_insert
 }
 
 int
-bf_query_and_set
+bitf_query_and_set
 (
  int      pos,
  link_t * lnk
