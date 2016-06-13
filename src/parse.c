@@ -148,6 +148,7 @@ int      bloom_query_and_set(const char *, int, bloom_t);
 int      bitf_query_and_set (int, link_t *);
 void     destroy_hash(hash_t *);
 void     destroy_bitfields(hash_t *);
+void     reset_bitfields(hash_t *);
 link_t * lookup_or_insert (const char *, hash_t *);
 ChIP_t * merge_hashes (hash_t **, int, int);
 
@@ -196,7 +197,10 @@ parse_input_files
          goto clean_and_return;
       }
 
+      reset_bitfields(hashtab[0]);
    }
+
+   destroy_bitfields(hashtab[0]);
 
 
    // Create distinct hash for each ChIP file.
@@ -222,6 +226,8 @@ parse_input_files
          debug_print("%s", "autoparse failed\n");
          goto clean_and_return;
       }
+
+      destroy_bitfields(hashtab[nhashes-1]);
 
    }
 
@@ -429,7 +435,6 @@ autoparse
    }
 
 clean_and_return:
-   destroy_bitfields(hashtab);
    return status;
 
 }
@@ -875,6 +880,23 @@ destroy_bitfields
    }
 }
 
+void
+reset_bitfields
+(
+ hash_t * hashtab
+)
+{
+   for (int i = 0 ; i < HSIZE ; i++) {
+      for (link_t *lnk = hashtab[i] ; lnk != NULL ; lnk = lnk->next) {
+         if (lnk->repeats == NULL) {
+            lnk->repeats = malloc(sizeof(bitf_t)+32*sizeof(uint8_t));
+            lnk->repeats->sz = 32*8;
+         } 
+         memset(lnk->repeats->array, 0, lnk->repeats->sz/8);
+      }
+   }
+}
+
 int
 is_gzipped
 (
@@ -1198,7 +1220,7 @@ lookup_or_insert
       return NULL;
    }
 
-   bitf_t *rep = malloc(sizeof(rod_t) + 32*sizeof(uint8_t));
+   bitf_t *rep = malloc(sizeof(bitf_t) + 32*sizeof(uint8_t));
    if (rep == NULL) {
       debug_print("%s", "memory error\n");
       free(new);
@@ -1235,14 +1257,14 @@ bitf_query_and_set
 {
    // Extend bf if necessary.
    if (pos >= lnk->repeats->sz) {
-      uint64_t newbeg = lnk->repeats->sz/8+1;
+      uint64_t newbeg = lnk->repeats->sz/8;
       uint64_t newend = pos/8+1;
-      lnk->repeats = realloc(lnk->repeats, sizeof(rod_t)+newend*sizeof(uint8_t));
+      lnk->repeats = realloc(lnk->repeats, sizeof(bitf_t)+newend*sizeof(uint8_t));
       if (lnk->repeats == NULL) {
          fprintf(stderr, "memory error\n");
          return -1;
       }
-      memset(lnk->repeats->array + newbeg, 0, newend-newbeg+1);
+      memset(lnk->repeats->array + newbeg, 0, newend-newbeg);
       lnk->repeats->sz = newend*8;
    }
    // Check bit.

@@ -1,2 +1,2 @@
-b tests.c:1260
+b bitf_query_and_set
 run --debug
