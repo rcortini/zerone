@@ -38,8 +38,15 @@ all: $(P)
 debug: CFLAGS += -DDEBUG -g -O0
 debug: $(P)
 
+atac: CFLAGS += -O3 -DATAC_SEQ
+atac: $(P)_atac
+
 $(P): $(OBJECTS) $(SOURCES)
 	$(CC) $(CFLAGS) $(SOURCES) $(OBJECTS) $(LDLIBS) -o $@ -lz -lm
+
+$(P)_atac: $(OBJECTS) $(SOURCES)
+	$(CC) $(CFLAGS) $(SOURCES) $(OBJECTS) $(LDLIBS) -o $@ -lz -lm
+
 
 $(SRC_DIR)/%.o: $(SRC_DIR)/%.c $(SRC_DIR)/%.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@

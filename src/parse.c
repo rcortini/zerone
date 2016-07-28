@@ -221,7 +221,6 @@ parse_input_files
       }
 
       nhashes++;
-
       if (!autoparse(ChIP_fnames[i], hashtab[nhashes-1], window)) {
          debug_print("%s", "autoparse failed\n");
          goto clean_and_return;
@@ -268,21 +267,18 @@ choose_iterator
 
       state->file = bgzf_open(fname, "r");
       if (state->file == NULL) {
-         // XXX non debug error XXX //
          fprintf(stderr, "cannot open file %s\n", fname);
          goto exit_bgzf_error;
       }
 
       state->hdr = bam_hdr_read(state->file);
       if (state->hdr == NULL) {
-         // XXX non debug error XXX //
          fprintf(stderr, "cannot read header from file %s\n", fname);
          goto exit_bgzf_error;
       }
 
       state->bam = bam_init1();
       if (state->bam == NULL) {
-         // XXX non debug error XXX //
          fprintf(stderr, "bam! error (sorry)\n");
          goto exit_bgzf_error;
       }
@@ -312,7 +308,6 @@ exit_bgzf_error:
    state->file = fopen(fname, "r");
 
    if (state->file == NULL) {
-      // XXX non debug error XXX //
       fprintf(stderr, "cannot open file %s\n", fname);
       goto exit_generic_error;
    }
@@ -358,7 +353,6 @@ exit_bgzf_error:
       state->parser = parse_wig;
    }
    else {
-      // XXX non debug error XXX //
       fprintf(stderr, "unknown format for file %s\n", fname);
       goto exit_generic_error;
    }
@@ -394,14 +388,14 @@ autoparse
    iter_t iterate = choose_iterator(fname);
 
    if (iterate == NULL) {
-      debug_print("%s", "choosing iterator failed\n");
+      debug_print("%s", "unrecognized iterator\n");
       status = FAILURE;
       goto clean_and_return;
    }
 
    ERR = 0;
-   while (iterate(&loc) > 0) {
 
+   while (iterate(&loc) > 0) {
       // 'loc.name' is set to NULL for unmapped reads.
       if (loc.name == NULL) continue;
 
@@ -446,13 +440,16 @@ generic_iterator
    loc_t *loc
 )
 {
+
+   static unsigned int lineno;
+
    // Cast as state for generic iterator.
    generic_state_t *state = (generic_state_t *) STATE;
    parser_t parse = state->parser;
    reader_t doread = state->reader;
 
    if (loc == NULL) {
-      // Interruption.
+      // Interruption by the caller.
       goto clean_and_return;
    }
 
@@ -475,10 +472,11 @@ generic_iterator
    char buffer[64] = {0};
    strncpy(buffer, state->buff, 63);
 
+   lineno++;
    if (!parse(loc, state->buff)) {
       // XXX non debug error XXX //
-      fprintf(stderr, "format conflict in line:\n%s%s", buffer,
-            sz > 63 ? "...\n" : "");
+      fprintf(stderr, "format conflict in line %d:\n%s%s",
+            lineno, buffer, sz > 63 ? "...\n" : "");
       ERR = __LINE__;
       goto clean_and_return;
    }
@@ -489,6 +487,8 @@ clean_and_return:
    free(state->buff);
    fclose(state->file);
    free(state);
+
+   lineno = 0;
 
    STATE = NULL;
    return -1;
@@ -502,12 +502,24 @@ bgzf_iterator
 )
 {
 
+   static int n_parsed_header_targets;
+
    // Cast as state for bgzf iterator.
    bgzf_state_t *state = (bgzf_state_t *) STATE;
+   bam_hdr_t *hdr = state->hdr;
 
    if (loc == NULL) {
-      // Interruption.
+      // Interruption by the caller.
       goto clean_and_return;
+   }
+
+
+   // First parse the header one item at a time.
+   if (n_parsed_header_targets < hdr->n_targets) {
+      loc->name = hdr->target_name[n_parsed_header_targets];
+      loc->pos = hdr->target_len[n_parsed_header_targets];
+      n_parsed_header_targets++;
+      return SUCCESS;
    }
 
    int bytesread = bam_read1(state->file, state->bam);
@@ -523,32 +535,44 @@ bgzf_iterator
       goto clean_and_return;
    }
 
-   // Discard unmapped and 2nd align of PE files.
-   if (core.tid < 0 || core.flag & BAM_FREAD2)
-      loc->name = NULL;
-   else 
-      loc->name = state->hdr->target_name[core.tid];
-
-   // Note that the bam format is 0-based, so we add 1 to the
-   // position because genomic positions are 1-based.
-   
-   // Compute middle point for PE intervals.
-   if (core.flag & BAM_FPAIRED) {
-      if (core.mtid != core.tid) loc->name = NULL;
-      loc->pos = 1 + min(core.pos, core.mpos) + abs(core.isize)/2;
-   }
-   else
+#ifdef ATAC_SEQ
+      // Discard unmapped and 2nd align of PE files.
+      if (core.tid < 0)
+         loc->name = NULL;
+      else 
+         loc->name = hdr->target_name[core.tid];
+      // Compute middle point for PE intervals.
       loc->pos = 1 + core.pos;
+#else
+      // Discard unmapped and 2nd align of PE files.
+      if (core.tid < 0 || core.flag & BAM_FREAD2)
+         loc->name = NULL;
+      else 
+         loc->name = hdr->target_name[core.tid];
+
+      // Note that the bam format is 0-based, so we add 1 to the
+      // position because genomic positions are 1-based.
+   
+      // Compute middle point for PE intervals.
+      if (core.flag & BAM_FPAIRED) {
+         if (core.mtid != core.tid) loc->name = NULL;
+         loc->pos = 1 + min(core.pos, core.mpos) + abs(core.isize)/2;
+      }
+      else
+         loc->pos = 1 + core.pos;
+#endif
 
    return bytesread;
 
 clean_and_return:
    // This bit is executed when the iterator needs to be
    // cleaned (end of file, interruption or error).
-   bam_hdr_destroy(state->hdr);
+   bam_hdr_destroy(hdr);
    bgzf_close(state->file);
    bam_destroy1(state->bam);
    free(state);
+
+   n_parsed_header_targets = 0;
 
    STATE = NULL;
    return -1;
@@ -605,10 +629,35 @@ parse_sam
    char  *line
 )
 {
-   // Ignore header.
+
+   // Parse header.
    if (line[0] == '@') {
-      loc->name = NULL;
+      if (strncmp(line, "@SQ", 3) != 0) {
+         // Ignore non "@SQ" lines of the header.
+         loc->name = NULL;
+         return SUCCESS;
+      }
+
+      // Get chromosome lengths from "@SQ" lines. 
+                    strsep(&line, "\t"); // Discard "@SQ".
+      char *chrom = strsep(&line, "\t");
+      char *len   = strsep(&line, "\t");
+
+      if (strncmp(chrom, "SN:", 3) != 0 ||
+                  strncmp(len, "LN:", 3) != 0) {
+         // Cannot parse. Skip and ignore.
+         loc->name = NULL;
+         return SUCCESS;
+      }
+
+      // Remove "SN:" and "LN:" field identifiers and
+      // create a pseudo count at the last position of
+      // the chromosome.
+      loc->name = chrom + 3;
+      loc->pos = atoi(len+3);
+
       return SUCCESS;
+
    }
 
                  strsep(&line, "\t"); // Discard QNAME.
@@ -625,6 +674,12 @@ parse_sam
       return SUCCESS;
    }
 
+   // Note that the sam format is 1-based, so if 'atoi()'
+   // has returned 0, something is wrong with the format.
+   int pos = atoi(tmp);
+   if (pos == 0) return FAILURE;
+
+#ifndef ATAC_SEQ
    // Binary sam flags.
    int blag = atoi(flag);
 
@@ -634,11 +689,6 @@ parse_sam
       return SUCCESS;
    }
    
-   // Note that the sam format is 1-based, so if 'atoi()'
-   // has returned 0, something is wrong with the format.
-   int pos = atoi(tmp);
-   if (pos == 0) return FAILURE;
-
    // If read is paired use mid-point of the mapping.
    if (blag & BAM_FPAIRED) {
                      strsep(&line, "\t"); // Discard MAPQ.
@@ -654,8 +704,8 @@ parse_sam
       }
 
       pos = min(pos, atoi(mpos)) + abs(atoi(isize))/2;
-
    }
+#endif
 
    loc->name = chrom;
    loc->pos = pos;
