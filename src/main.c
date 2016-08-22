@@ -33,6 +33,7 @@ const char *USAGE =
 "    -0 --mock: given file is a mock control\n"
 "    -1 --chip: given file is a ChIP-seq experiment\n"
 "    -w --window: window size in bp (default 300)\n"
+"    -q --quality: minimum mapping quality (default 20)\n"
 "\n"
 "  Output options\n"
 "    -l --list-output: output list of targets (default table)\n"
@@ -50,10 +51,17 @@ const char *USAGE =
 #define MAXNARGS 255
 
 
+// Snippets.
+int strtoul_check (char *, char *);
+
 
 //  -----------  Definitions of local one-liners  ----------- //
 void say_usage(void) { fprintf(stderr, "%s\n", USAGE); }
 void say_version(void) { fprintf(stderr, VERSION "\n"); }
+
+
+//  -----------  Globals  ----------- //
+int errno = 0;
 
 
 void
@@ -105,10 +113,15 @@ int main(int argc, char **argv) {
    int no_ChIP_specified = 1;
 
    static int list_flag = 0;
+   static int minmapq = 20;
    static int window = 300;
    static int mock_flag = 1;
 
+   // Needed to check 'strtoul()'.
+   char *endptr;
+
    // Parse options.
+   debug_print("%s", "arguments:'\n");
    while(1) {
       int option_index = 0;
       static struct option long_options[] = {
@@ -117,12 +130,13 @@ int main(int argc, char **argv) {
          {"no-mock",     no_argument,       &mock_flag,  0 },
          {"chip",        required_argument,          0, '1'},
          {"help",        no_argument,                0, 'h'},
+         {"quality",     required_argument,          0, 'q'},
          {"version",     no_argument,                0, 'v'},
          {"window",      required_argument,          0, 'w'},
          {0, 0, 0, 0}
       };
 
-      int c = getopt_long(argc, argv, "0:1:hlw:",
+      int c = getopt_long(argc, argv, "0:1:hlq:vw:",
             long_options, &option_index);
 
       // Done parsing named options. //
@@ -133,11 +147,13 @@ int main(int argc, char **argv) {
          break;
 
       case '0':
+         debug_print("| mock files(s): %s\n", optarg);
          parse_fname(mock_fnames, optarg, &n_mock_files);
          no_mock_specified = 0;
          break;
 
       case '1':
+         debug_print("| ChIP files(s): %s\n", optarg);
          parse_fname(ChIP_fnames, optarg, &n_ChIP_files);
          no_ChIP_specified = 0;
          break;
@@ -150,12 +166,35 @@ int main(int argc, char **argv) {
          list_flag = 1;
          break;
 
+      case 'q':
+         // Decode argument with 'strtoul()'
+         errno = 0;
+         endptr = NULL;
+         minmapq = strtoul(optarg, &endptr, 10);
+         if (!strtoul_check(optarg, endptr) ||
+               minmapq < 0 || minmapq > 254) {
+            fprintf(stderr,
+                  "zerone error: minimum mapping quality must be "
+                  "a number between 0 and 254\n");
+            say_usage();
+            return EXIT_FAILURE;
+         }
+         debug_print("| minmapq: %d\n", minmapq);
+         break;
+
       case 'v':
          say_version();
          return EXIT_SUCCESS;
 
       case 'w':
          window = atoi(optarg);
+         if (window <= 0) {
+            fprintf(stderr, "zerone error: window must be a "
+                  "positive integer\n");
+            say_usage();
+            return EXIT_FAILURE;
+         }
+         debug_print("| window: %d\n", window);
          break;
 
       default:
@@ -175,12 +214,6 @@ int main(int argc, char **argv) {
    debug_print("%s", "done parsing arguments\n");
 
    // Check options.
-   if (window <= 0) {
-      fprintf(stderr,
-            "zerone error: window must be a positive integer\n");
-      say_usage();
-      return EXIT_FAILURE;
-   }
    if (no_mock_specified && mock_flag) {
       fprintf(stderr,
          "zerone error: specify a file for mock control experiment\n");
@@ -195,22 +228,47 @@ int main(int argc, char **argv) {
    }
 
    // Process input files.
-   ChIP_t *ChIP = parse_input_files(mock_fnames, ChIP_fnames, window);
+   zerone_parser_args_t args;
+   args.window = window;
+   args.minmapq = minmapq;
+
+   ChIP_t *ChIP = parse_input_files(mock_fnames, ChIP_fnames, args);
 
    if (ChIP == NULL) {
       fprintf(stderr, "error while reading input\n");
       exit(EXIT_FAILURE);
    }
 
-   debug_print("%s", "done reading input files\n");
-   debug_print("ChIP: r = %ld\n", ChIP->r);
-   debug_print("ChIP: nb = %d\n", ChIP->nb);
-   for (int i = 0 ; i < ChIP->nb ; i++) {
-      debug_print("ChIP: block %s (%d)\n",
-            ChIP->nm + 32*i, ChIP->sz[i]);
+   // debug info //
+   {
+      debug_print("%s", "done reading input files\n");
+      debug_print("%s", "ChIP:\n");
+      debug_print("| r = %ld (dimension)\n", ChIP->r);
+      debug_print("| nb = %d (block number)\n", ChIP->nb);
+      for (int j = 0 ; j < ChIP->nb ; j++) {
+         debug_print("| block %s (size: %d)\n",
+               ChIP->nm + 32*j, ChIP->sz[j]);
+      }
+      // Sum reads of all blocks.
+      size_t *nreads = calloc(ChIP->r, sizeof(size_t));
+      if (nreads == NULL) {
+         fprintf(stderr, "memory error\n");
+         exit(EXIT_FAILURE);
+      }
+      for (int i = 0 ; i < nobs(ChIP) ; i++) {
+         for (int j = 0 ; j < ChIP->r ; j++) {
+            nreads[j] += ChIP->y[j + i*ChIP->r];
+         }
+      }
+      debug_print("| aggregated mock: %ld reads\n", nreads[0]);
+      for (int j = 0 ; j < ChIP->r-1 ; j++) {
+         debug_print("| %s: %ld reads\n", ChIP_fnames[j], nreads[j+1]);
+      }
+      free(nreads);
    }
 
    // Do zerone.
+   debug_print("%s", "starting zerone\n");
    zerone_t *Z = do_zerone(ChIP);
 
    if (Z == NULL) {
@@ -218,20 +276,23 @@ int main(int argc, char **argv) {
       exit(EXIT_FAILURE);
    }
 
-   debug_print("%s", "Q:\n");
-   debug_print("%.3f %.3f %.3f\n", Z->Q[0], Z->Q[3], Z->Q[6]);
-   debug_print("%.3f %.3f %.3f\n", Z->Q[1], Z->Q[4], Z->Q[7]);
-   debug_print("%.3f %.3f %.3f\n", Z->Q[2], Z->Q[5], Z->Q[8]);
+   // debug info //
+   {
+      debug_print("%s", "Q:\n");
+      debug_print("%.3f %.3f %.3f\n", Z->Q[0], Z->Q[3], Z->Q[6]);
+      debug_print("%.3f %.3f %.3f\n", Z->Q[1], Z->Q[4], Z->Q[7]);
+      debug_print("%.3f %.3f %.3f\n", Z->Q[2], Z->Q[5], Z->Q[8]);
 
-   debug_print("%s", "p:\n");
-   for (int j = 0 ; j < 3 ; j++) {
-      int off = 0;
-      char debuf[512];
-      for (int i = 0 ; i < Z->r+1 ; i++) {
-         off += sprintf(debuf + off, "%.3f ", Z->p[i+j*(Z->r+1)]);
-         if (off > 499) break;
+      debug_print("%s", "p:\n");
+      for (int j = 0 ; j < 3 ; j++) {
+         int off = 0;
+         char debuf[512];
+         for (int i = 0 ; i < Z->r+1 ; i++) {
+            off += sprintf(debuf + off, "%.3f ", Z->p[i+j*(Z->r+1)]);
+            if (off > 499) break;
+         }
+         debug_print("%s\n", debuf);
       }
-      debug_print("%s\n", debuf);
    }
 
    // Quality control.

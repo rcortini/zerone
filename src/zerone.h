@@ -30,12 +30,12 @@
 
 struct ChIP_t;
 struct zerone_t;
-struct block_t;
+struct zerone_parser_args_t;
 
 typedef unsigned int uint;
 typedef struct ChIP_t ChIP_t;
 typedef struct zerone_t zerone_t;
-typedef struct block_t block_t;
+typedef struct zerone_parser_args_t zerone_parser_args_t;
 
 
 struct ChIP_t {
@@ -61,6 +61,11 @@ struct zerone_t {
    int      iter;   // number of BW iterations //
 };
 
+struct zerone_parser_args_t {
+   int window;      // window size
+   int minmapq;     // minimum mapping quality
+};
+
 void       bw_zinm(zerone_t *);
 void       destroy_zerone_all(zerone_t *);
 zerone_t * do_zerone(ChIP_t *);
@@ -68,7 +73,8 @@ ChIP_t   * new_ChIP(uint, uint, int *, const char **, const uint *);
 zerone_t * new_zerone(uint, ChIP_t *);
 uint       nobs(const ChIP_t *);
 ChIP_t   * read_file(FILE *);
-void       set_zerone_par(zerone_t *, const double *, double, double, const double *);
+void       set_zerone_par(zerone_t *, const double *,
+               double, double, const double *);
 void       update_trans(size_t, double *, const double *);
 void       zinm_prob(zerone_t *, const int *, int, double *);
 

@@ -22,7 +22,7 @@ vpath %.h lib
 
 P= runtests
 
-OBJECTS= libunittest.so xxhash.o sam.o bgzf.o hfile.o \
+OBJECTS= libunittest.so xxhash.o sam.o bgzf.o hfile.o snippets.o \
 	 tests_zinm.o tests_hmm.o tests_predict.o tests_zerone.o \
 	 tests_parse.o tests_utils.o
 SOURCES= zinm.c hmm.c predict.c zerone.c parse.c utils.c

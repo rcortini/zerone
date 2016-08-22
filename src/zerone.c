@@ -656,13 +656,17 @@ bw_zinm
    const double         pi   = zerone->pi;
    const double         R    = (zerone->p[1]) / zerone->p[0];
 
-   debug_print("n: %ld\n", n);
-   debug_print("m: %ld\n", m);
-   debug_print("r: %ld\n", r);
-   debug_print("nb: %d\n", nb);
-   debug_print("a: %.3f\n", a);
-   debug_print("pi: %.3f\n", pi);
-   debug_print("R: %.3f\n", R);
+   // debug info //
+   {
+      debug_print("%s", "arguments:\n");
+      debug_print("| n: %ld\n", n);
+      debug_print("| m: %ld\n", m);
+      debug_print("| r: %ld\n", r);
+      debug_print("| nb: %d\n", nb);
+      debug_print("| a: %.3f\n", a);
+      debug_print("| pi: %.3f\n", pi);
+      debug_print("| R: %.3f\n", R);
+   }
 
    // Variables optimized by the Baum-Welch algorithm.
    double *p = zerone->p;

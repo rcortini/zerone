@@ -155,9 +155,10 @@ zscale
 )
 {
    // Z-score scaling.
+   debug_print("%s", "scaled features:\n");
    for (int i = 0; i < DIM; i++) {
       features[i] = (features[i] - CENTER[i]) / SCALE[i];
-      debug_print("scaled feature %d: %.3f\n", i, features[i]);
+      debug_print("| %d: %.3f\n", i, features[i]);
    }
 
    return features;

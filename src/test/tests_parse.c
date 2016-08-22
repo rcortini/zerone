@@ -412,12 +412,12 @@ test_parse_sam
 
       // NOTE that we cannot pass constant strings to
       // 'parse_sam()' because it modifies them in general.
-      char line1[] = "a\tb\tchr1\t456";
+      char line1[] = "a\tb\tchr1\t456\t60";
       test_assert(parse_sam(&loc, line1));
       test_assert(strcmp(loc.name, "chr1") == 0);
       test_assert(loc.pos == 456);
 
-      char line2[] = "a\tb\tchr2\t345";
+      char line2[] = "a\tb\tchr2\t345\t60";
       test_assert(parse_sam(&loc, line2));
       test_assert(strcmp(loc.name, "chr2") == 0);
       test_assert(loc.pos == 345);
@@ -425,19 +425,19 @@ test_parse_sam
       char line3[] = "abc0chr18:-:16507402:A35";
       test_assert(!parse_sam(&loc, line3));
 
-      char line4[] = "a\tb\tc\twrong";
+      char line4[] = "a\tb\tc\twrong\twrong";
       test_assert(!parse_sam(&loc, line4));
 
       char line5[] = "a\tb\tc\t0\t...";
       test_assert(!parse_sam(&loc, line5));
 
-      char line6[] = "a\tb\t*\t0\t...";
+      char line6[] = "a\tb\t*\t0\t60";
       test_assert(parse_sam(&loc, line6));
       test_assert(loc.name == NULL);
 
-      char line7[] = "@\tb\tc\t0\t...";
+      char line7[] = "#\tb\tc\t1\t60";
       test_assert(parse_sam(&loc, line7));
-      test_assert(loc.name == NULL);
+      test_assert(strcmp(loc.name, "c") == 0);
 
       return;
 
@@ -728,8 +728,8 @@ test_autoparse
 
    lnk = lookup_or_insert("chrM", hashtab);
    test_assert_critical(lnk != NULL);
-   test_assert(lnk->counts->array[19] == 1);
-   test_assert(lnk->counts->array[32] == 1);
+   test_assert(lnk->counts->array[19] == 0); // Low quality.
+   test_assert(lnk->counts->array[32] == 0); // Low quality.
    test_assert(lnk->counts->array[55] == 1);
 
    lnk = lookup_or_insert("chr1", hashtab);
@@ -852,7 +852,11 @@ test_parse_input_files
    char *mock_fnames_1[] = { "test_file_good.map", NULL };
    char *ChIP_fnames_1[] = { "test_file_good.map", NULL };
 
-   ChIP = parse_input_files(mock_fnames_1, ChIP_fnames_1, 300);
+   zerone_parser_args_t args;
+   args.window = 300;
+   args.minmapq = 20;
+
+   ChIP = parse_input_files(mock_fnames_1, ChIP_fnames_1, args);
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);
@@ -866,7 +870,8 @@ test_parse_input_files
    ChIP = NULL;
 
    // Try again with a different window size.
-   ChIP = parse_input_files(mock_fnames_1, ChIP_fnames_1, 200);
+   args.window = 200;
+   ChIP = parse_input_files(mock_fnames_1, ChIP_fnames_1, args);
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);
@@ -883,7 +888,8 @@ test_parse_input_files
    char *mock_fnames_2[] = { "test_file_good.map.gz", NULL };
    char *ChIP_fnames_2[] = { "test_file_good.map.gz", NULL };
 
-   ChIP = parse_input_files(mock_fnames_2, ChIP_fnames_2, 300);
+   args.window = 300;
+   ChIP = parse_input_files(mock_fnames_2, ChIP_fnames_2, args);
    test_assert_critical(ChIP != NULL);
    test_assert(ChIP->r == 2);
    test_assert(ChIP->nb == 3);

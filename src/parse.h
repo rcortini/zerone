@@ -21,6 +21,6 @@
 
 #include "zerone.h"
 
-ChIP_t * parse_input_files(char **, char **, const int);
+ChIP_t * parse_input_files(char **, char **, zerone_parser_args_t);
 
 #endif

@@ -28,10 +28,22 @@
 #include "sam.h"
 #include "zerone.h"
 
+// Snippets.
+int strtoul_check (char *, char *);
 
 //  ----- Globals ----- //
 void * STATE;
 int    ERR;
+
+// XXXXXXXX            BAD CODE ALERT            XXXXXXXX //
+//  This is relatively bad design. The minimum mapping    //
+//  quality should be a parameter of the parsers and not  //
+//  and global variable of the module. For instance, the  //
+//  behavior of the parsers cannot be checked by unit     //
+//  testing.                                              //
+// XXXXXXXX  ----------------------------------  XXXXXXXX //
+// Minimum mapping quality.
+uint8_t MINMAPQ;
 
 
 #define SUCCESS 1
@@ -164,11 +176,28 @@ int      is_gzipped (FILE *);
 ChIP_t *
 parse_input_files
 (
-         char * mock_fnames[],
-         char * ChIP_fnames[],
-   const int    window
+   char                 * mock_fnames[],
+   char                 * ChIP_fnames[],
+   zerone_parser_args_t   args
 )
 {
+
+   // Unpack arguments.
+   int window = args.window;
+   MINMAPQ = args.minmapq;
+
+   // debug info //
+   {
+      debug_print("%s", "arguments:'\n");
+      debug_print("| window: %d\n", window);
+      debug_print("| minmapq: %d\n", MINMAPQ);
+      for (int i = 0; mock_fnames[i] != NULL; i++) {
+         debug_print("| mock file: %s\n", mock_fnames[i]);
+      }
+      for (int i = 0; ChIP_fnames[i] != NULL; i++) {
+         debug_print("| ChIP file: %s\n", ChIP_fnames[i]);
+      }
+   }
 
    ChIP_t * ChIP = NULL;         // Return value.
    hash_t * hashtab[512] = {0};  // Array of hash tables.
@@ -209,7 +238,6 @@ parse_input_files
       debug_print("%s %s\n", "autoparsing ChIP file", ChIP_fnames[i]);
 
       if (nhashes >= 512) {
-         // XXX non debug error XXX //
          fprintf(stderr, "too many files\n");
          goto clean_and_return;
       }
@@ -522,6 +550,8 @@ bgzf_iterator
       return SUCCESS;
    }
 
+   // Parse alignments.
+
    int bytesread = bam_read1(state->file, state->bam);
    bam1_core_t core = state->bam->core;
 
@@ -544,8 +574,9 @@ bgzf_iterator
       // Compute middle point for PE intervals.
       loc->pos = 1 + core.pos;
 #else
-      // Discard unmapped and 2nd align of PE files.
-      if (core.tid < 0 || core.flag & BAM_FREAD2)
+      // Discard unmapped, low mapping quality and
+      // 2nd align of PE files.
+      if (core.tid < 0 || core.qual < MINMAPQ || core.flag & BAM_FREAD2)
          loc->name = NULL;
       else 
          loc->name = hdr->target_name[core.tid];
@@ -622,6 +653,7 @@ parse_gem
 
 }
 
+
 int
 parse_sam
 (
@@ -660,13 +692,17 @@ parse_sam
 
    }
 
+   // Parse alignment.
+
                  strsep(&line, "\t"); // Discard QNAME.
    char *flag  = strsep(&line, "\t");
    char *chrom = strsep(&line, "\t");
-   char *tmp   = strsep(&line, "\t");
+   char *Xpos  = strsep(&line, "\t");
+   char *Xmapq = strsep(&line, "\t");
 
    // Cannot find chromosome or position.
-   if (chrom == NULL || tmp == NULL) return FAILURE;
+   if (chrom == NULL || Xpos == NULL || Xmapq == NULL)
+      return FAILURE;
 
    // Unmapped read.
    if (strcmp(chrom, "*") == 0) {
@@ -674,9 +710,26 @@ parse_sam
       return SUCCESS;
    }
 
+   // The mapping quality can be 0. Use 'strtoul()' to
+   // convert the input to an integer because it allows
+   // error-checking.
+   char *endptr = NULL;
+
+   errno = 0;
+   int mapq = strtoul(Xmapq, &endptr, 10);
+   if (!strtoul_check(Xmapq, endptr))
+      return FAILURE;
+
+   // Low mapping quality.
+   if (mapq < MINMAPQ) {
+      loc->name = NULL;
+      return SUCCESS;
+   }
+
+
    // Note that the sam format is 1-based, so if 'atoi()'
    // has returned 0, something is wrong with the format.
-   int pos = atoi(tmp);
+   int pos = atoi(Xpos);
    if (pos == 0) return FAILURE;
 
 #ifndef ATAC_SEQ
@@ -716,21 +769,6 @@ parse_sam
 
 
 int
-strtoul_check
-(
-  char *endptr,
-  char *nptr
-)
-{
-   if (endptr == NULL)    return 0;
-   if (endptr == nptr)    return 0;
-   if (*endptr == '\0')   return 1;
-   if (isspace(*endptr)) return 1;
-   return 0;
-}
-
-
-int
 parse_bed
 (
    loc_t *loc,
@@ -752,11 +790,11 @@ parse_bed
 
    errno = 0;
    int start = 1 + strtoul(tmp1, &endptr, 10);
-   if (!strtoul_check(endptr, tmp1))
+   if (!strtoul_check(tmp1, endptr))
       return FAILURE;
 
    int end = 1 + strtoul(tmp2, &endptr, 10);
-   if (!strtoul_check(endptr, tmp2))
+   if (!strtoul_check(tmp2, endptr))
       return FAILURE;
 
    // 'strtoul' may set 'errno' in case of overflow.
