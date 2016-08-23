@@ -35,17 +35,6 @@ int check_strtoX (char *, char *);
 void * STATE;
 int    ERR;
 
-// XXXXXXXX            BAD CODE ALERT            XXXXXXXX //
-//  This is relatively bad design. The minimum mapping    //
-//  quality should be a parameter of the parsers and not  //
-//  and global variable of the module. For instance, the  //
-//  behavior of the parsers cannot be checked by unit     //
-//  testing.                                              //
-// XXXXXXXX  ----------------------------------  XXXXXXXX //
-// Minimum mapping quality.
-uint8_t MINMAPQ;
-
-
 #define SUCCESS 1
 #define FAILURE 0
 
@@ -119,6 +108,7 @@ struct bitf_t {
 struct loc_t {
    char * name;
    int    pos;
+   int    mapq;
 };
 
 // Iterator states.
@@ -126,6 +116,7 @@ struct bgzf_state_t {
    BGZF      * file;
    bam_hdr_t * hdr;
    bam1_t    * bam;
+   int         minmapq;
 };
 
 struct generic_state_t {
@@ -134,11 +125,12 @@ struct generic_state_t {
    parser_t    parser;
    char      * buff;
    size_t      bsz;
+   int         minmapq;
 };
 
 
 //  ---- Declaration of local functions  ---- //
-int      autoparse (const char *, hash_t *, const int);
+int      autoparse (const char *, hash_t *, zerone_parser_args_t);
 iter_t   choose_iterator (const char *);
 
 // Iterators.
@@ -182,15 +174,8 @@ parse_input_files
 )
 {
 
-   // Unpack arguments.
-   int window = args.window;
-   MINMAPQ = args.minmapq;
-
    // debug info //
    {
-      debug_print("%s", "arguments:'\n");
-      debug_print("| window: %d\n", window);
-      debug_print("| minmapq: %d\n", MINMAPQ);
       for (int i = 0; mock_fnames[i] != NULL; i++) {
          debug_print("| mock file: %s\n", mock_fnames[i]);
       }
@@ -221,7 +206,7 @@ parse_input_files
 
       debug_print("%s %s\n", "autoparsing mock file", mock_fnames[i]);
 
-      if(!autoparse(mock_fnames[i], hashtab[0], window)) {
+      if(!autoparse(mock_fnames[i], hashtab[0], args)) {
          debug_print("%s", "autoparse failed\n");
          goto clean_and_return;
       }
@@ -249,7 +234,7 @@ parse_input_files
       }
 
       nhashes++;
-      if (!autoparse(ChIP_fnames[i], hashtab[nhashes-1], window)) {
+      if (!autoparse(ChIP_fnames[i], hashtab[nhashes-1], args)) {
          debug_print("%s", "autoparse failed\n");
          goto clean_and_return;
       }
@@ -402,11 +387,22 @@ exit_generic_error:
 int
 autoparse
 (
-   const char   * fname,
-         hash_t * hashtab,
-   const int      window
+   const char                 * fname,
+         hash_t               * hashtab,
+         zerone_parser_args_t   args
 )
 {
+
+   // Unpack arguments
+   int window = args.window;
+   int minmapq = args.minmapq;
+
+   // debug info //
+   {
+      debug_print("%s", "arguments:'\n");
+      debug_print("| window: %d\n", window);
+      debug_print("| minmapq: %d\n", minmapq);
+   }
 
    int status = SUCCESS;
 
@@ -425,7 +421,8 @@ autoparse
 
    while (iterate(&loc) > 0) {
       // 'loc.name' is set to NULL for unmapped reads.
-      if (loc.name == NULL) continue;
+      // Also, ignore reads with low quality.
+      if (loc.name == NULL || loc.mapq < minmapq) continue;
 
       // Check in Bloom filter whether the read was seen before.
       // if (bloom_query_and_set(loc.name, loc.pos, bloom)) continue;
@@ -546,6 +543,8 @@ bgzf_iterator
    if (n_parsed_header_targets < hdr->n_targets) {
       loc->name = hdr->target_name[n_parsed_header_targets];
       loc->pos = hdr->target_len[n_parsed_header_targets];
+      // Make sure this is not ignored when checking 'mapq'.
+      loc->mapq = 2147483647;
       n_parsed_header_targets++;
       return SUCCESS;
    }
@@ -574,9 +573,8 @@ bgzf_iterator
       // Compute middle point for PE intervals.
       loc->pos = 1 + core.pos;
 #else
-      // Discard unmapped, low mapping quality and
-      // 2nd align of PE files.
-      if (core.tid < 0 || core.qual < MINMAPQ || core.flag & BAM_FREAD2)
+      // Discard unmapped reads and 2nd align of PE files.
+      if (core.tid < 0 || core.flag & BAM_FREAD2)
          loc->name = NULL;
       else 
          loc->name = hdr->target_name[core.tid];
@@ -591,6 +589,7 @@ bgzf_iterator
       }
       else
          loc->pos = 1 + core.pos;
+         loc->mapq = core.qual;
 #endif
 
    return bytesread;
@@ -648,6 +647,8 @@ parse_gem
 
    loc->name = chrom;
    loc->pos = pos;
+   // GEM does not have mapping quality.
+   loc->mapq = 2147483647;
 
    return SUCCESS;
 
@@ -687,6 +688,8 @@ parse_sam
       // the chromosome.
       loc->name = chrom + 3;
       loc->pos = atoi(len+3);
+      // Make sure this is not ignored when checking 'mapq'.
+      loc->mapq = 2147483647;
 
       return SUCCESS;
 
@@ -714,18 +717,10 @@ parse_sam
    // convert the input to an integer because it allows
    // error-checking.
    char *endptr = NULL;
-
    errno = 0;
    int mapq = strtoul(Xmapq, &endptr, 10);
    if (!check_strtoX(Xmapq, endptr))
       return FAILURE;
-
-   // Low mapping quality.
-   if (mapq < MINMAPQ) {
-      loc->name = NULL;
-      return SUCCESS;
-   }
-
 
    // Note that the sam format is 1-based, so if 'atoi()'
    // has returned 0, something is wrong with the format.
@@ -744,7 +739,6 @@ parse_sam
    
    // If read is paired use mid-point of the mapping.
    if (blag & BAM_FPAIRED) {
-                     strsep(&line, "\t"); // Discard MAPQ.
                      strsep(&line, "\t"); // Discard CIGAR.
       char *pchrom = strsep(&line, "\t");
       char *mpos   = strsep(&line, "\t");
@@ -762,6 +756,7 @@ parse_sam
 
    loc->name = chrom;
    loc->pos = pos;
+   loc->mapq = mapq;
 
    return SUCCESS;
 
@@ -803,6 +798,8 @@ parse_bed
 
    loc->name = chrom;
    loc->pos = (start + end) / 2;
+   // BED has mot mapping quality.
+   loc->mapq = 2147483647;
 
    return SUCCESS;
 
@@ -912,6 +909,8 @@ parse_wig
 
       end = start + span - 1;
       loc->pos = (start + end) / 2;
+      // WIG has no mapping quality.
+      loc->mapq = 2147483647;
 
       return SUCCESS;
 
@@ -927,7 +926,7 @@ djb2
 (
    const char * s
 )
-// The magic djb2 (http://www.cse.yorku.ca/~oz/hash.html).
+// The reference for djb2 (http://www.cse.yorku.ca/~oz/hash.html).
 {
    uint32_t val = 5381;
    for (int i = 0 ; i < 31 && s[i] != '\0' ; i++)

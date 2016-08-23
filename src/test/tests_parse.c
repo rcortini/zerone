@@ -598,6 +598,8 @@ test_autoparse
 (void)
 {
 
+   zerone_parser_args_t args;
+
    hash_t *hashtab = NULL;
    link_t *lnk = NULL;
 
@@ -609,8 +611,9 @@ test_autoparse
       return;
    }
 
-   test_assert(autoparse("test_file_good.map", hashtab, 300));
-   test_assert_critical(hashtab != NULL);
+   args.window = 300;
+   args.minmapq = 20;
+   test_assert(autoparse("test_file_good.map", hashtab, args));
 
    lnk = lookup_or_insert("chr6", hashtab);
    test_assert_critical(lnk != NULL);
@@ -634,8 +637,9 @@ test_autoparse
       return;
    }
 
-   test_assert(autoparse("test_file_good.map", hashtab, 200));
-   test_assert_critical(hashtab != NULL);
+   args.window = 200;
+   args.minmapq = 20;
+   test_assert(autoparse("test_file_good.map", hashtab, args));
 
    lnk = lookup_or_insert("chr6", hashtab);
    test_assert_critical(lnk != NULL);
@@ -650,31 +654,35 @@ test_autoparse
    test_assert(lnk->counts->array[668077] == 1);
 
    // Try parsing a non gem file.
+   args.window = 300;
+   args.minmapq = 20;
    redirect_stderr();
-   test_assert(!autoparse("tests_parse.c", hashtab, 300));
+   test_assert(!autoparse("tests_parse.c", hashtab, args));
    unredirect_stderr();
-   test_assert(hashtab != NULL);
    test_assert(strncmp("unknown format for file tests_parse.c",
             caught_in_stderr(), 25) == 0);
 
    // Try parsing bad gem files.
+   args.window = 300;
+   args.minmapq = 20;
    redirect_stderr();
-   test_assert(!autoparse("test_file_bad1.map", hashtab, 300));
+   test_assert(!autoparse("test_file_bad1.map", hashtab, args));
    unredirect_stderr();
-   test_assert(hashtab != NULL);
    test_assert(strncmp("format conflict in line 2:\n",
             caught_in_stderr(), 27) == 0);
 
+   args.window = 300;
+   args.minmapq = 20;
    redirect_stderr();
-   test_assert(!autoparse("test_file_bad2.map", hashtab, 300));
+   test_assert(!autoparse("test_file_bad2.map", hashtab, args));
    unredirect_stderr();
-   test_assert(hashtab != NULL);
    test_assert(strncmp("format conflict in line 2:\n",
             caught_in_stderr(), 27) == 0);
 
    // Now test .bam format.
-   test_assert(autoparse("test_file_good.bam", hashtab, 300));
-   test_assert_critical(hashtab != NULL);
+   args.window = 300;
+   args.minmapq = 20;
+   test_assert(autoparse("test_file_good.bam", hashtab, args));
 
    lnk = lookup_or_insert("insert", hashtab);
    test_assert_critical(lnk != NULL);
@@ -689,22 +697,57 @@ test_autoparse
    test_assert_critical(lnk != NULL);
    test_assert(lnk->counts->array[0] == 7);
 
+   // From the header.
+   lnk = lookup_or_insert("ref3", hashtab);
+   test_assert_critical(lnk != NULL);
+   test_assert(lnk->counts->array[0] == 1);
+
+
+   // Do it again with higher required mapping quality.
+   // Only the header will be counted.
+   destroy_hash(hashtab);
+   hashtab = calloc(HSIZE, sizeof(link_t *));
+
+   if (hashtab == NULL) {
+      fprintf(stderr, "error in test function '%s()' %s:%d\n",
+            __func__, __FILE__, __LINE__);
+      return;
+   }
+
+   args.window = 300;
+   args.minmapq = 31;
+   test_assert(autoparse("test_file_good.bam", hashtab, args));
+
+   lnk = lookup_or_insert("insert", hashtab);
+   test_assert_critical(lnk != NULL);
+   test_assert(lnk->counts->array[1] == 1);
+
+   lnk = lookup_or_insert("ref1", hashtab);
+   test_assert_critical(lnk != NULL);
+   test_assert(lnk->counts->array[0] == 1);
+
+   lnk = lookup_or_insert("ref2", hashtab);
+   test_assert_critical(lnk != NULL);
+   test_assert(lnk->counts->array[0] == 1);
+
    lnk = lookup_or_insert("ref3", hashtab);
    test_assert_critical(lnk != NULL);
    test_assert(lnk->counts->array[0] == 1);
 
    // Now test .bed format. Also check the error message.
+   args.window = 300;
+   args.minmapq = 20;
    redirect_stderr();
-   test_assert(!autoparse("test_file_bad1.bed", hashtab, 300));
+   test_assert(!autoparse("test_file_bad1.bed", hashtab, args));
    unredirect_stderr();
-   test_assert(hashtab != NULL);
    test_assert(strcmp("format conflict in line 1:\nchr1\t34\twrong\n",
             caught_in_stderr()) == 0);
 
+   args.window = 300;
+   args.minmapq = 20;
    redirect_stderr();
-   test_assert(!autoparse("test_file_bad2.bed", hashtab, 300));
+   test_assert(!autoparse("test_file_bad2.bed", hashtab, args));
    unredirect_stderr();
-   test_assert(hashtab != NULL);
    test_assert(strcmp("format conflict in line 1:\n"
                "a_very_long_chromosome_name\t1\t"
                "some_shit_that_will_cause_a_failu...\n",
@@ -723,13 +766,14 @@ test_autoparse
 
    // This is a paired-end sam file.
    // Half of the lines are ignored.
-   test_assert(autoparse("test_file_good.sam", hashtab, 300));
-   test_assert_critical(hashtab != NULL);
+   args.window = 300;
+   args.minmapq = 20;
+   test_assert(autoparse("test_file_good.sam", hashtab, args));
 
    lnk = lookup_or_insert("chrM", hashtab);
    test_assert_critical(lnk != NULL);
    test_assert(lnk->counts->array[19] == 0); // Low quality.
-   test_assert(lnk->counts->array[32] == 0); // Low quality.
+   test_assert(lnk->counts->array[32] == 1);
    test_assert(lnk->counts->array[55] == 1);
 
    lnk = lookup_or_insert("chr1", hashtab);
