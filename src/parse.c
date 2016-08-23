@@ -29,7 +29,7 @@
 #include "zerone.h"
 
 // Snippets.
-int strtoul_check (char *, char *);
+int check_strtoX (char *, char *);
 
 //  ----- Globals ----- //
 void * STATE;
@@ -717,7 +717,7 @@ parse_sam
 
    errno = 0;
    int mapq = strtoul(Xmapq, &endptr, 10);
-   if (!strtoul_check(Xmapq, endptr))
+   if (!check_strtoX(Xmapq, endptr))
       return FAILURE;
 
    // Low mapping quality.
@@ -790,11 +790,11 @@ parse_bed
 
    errno = 0;
    int start = 1 + strtoul(tmp1, &endptr, 10);
-   if (!strtoul_check(tmp1, endptr))
+   if (!check_strtoX(tmp1, endptr))
       return FAILURE;
 
    int end = 1 + strtoul(tmp2, &endptr, 10);
-   if (!strtoul_check(tmp2, endptr))
+   if (!check_strtoX(tmp2, endptr))
       return FAILURE;
 
    // 'strtoul' may set 'errno' in case of overflow.

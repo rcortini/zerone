@@ -37,14 +37,17 @@ const char *USAGE =
 "\n"
 "  Output options\n"
 "    -l --list-output: output list of targets (default table)\n"
+"    -c --confidence: print targets only with higher confidence\n"
+"                     restricts intervals accordingly in list output\n"
 "\n"
 "  Other options\n"
 "    -h --help: display this message and exit\n"
-"       --version: display version and exit\n"
+"    -v --version: display version and exit\n"
 "\n"
 "EXAMPLES:\n"
 " zerone --mock file1.bam,file2.bam --chip file3.bam,file4.bam\n"
-" zerone -l -0 file1.map -1 file2.map -1 file4.map\n";
+" zerone -l -0 file1.map -1 file2.map -1 file4.map\n"
+" zerone -l -c.99 -w200 -0 file1.sam -1 file2.sam,file4.sam\n";
 
 
 #define VERSION "zerone-v1.0"
@@ -52,7 +55,7 @@ const char *USAGE =
 
 
 // Snippets.
-int strtoul_check (char *, char *);
+int check_strtoX (char *, char *);
 
 
 //  -----------  Definitions of local one-liners  ----------- //
@@ -116,6 +119,7 @@ int main(int argc, char **argv) {
    static int minmapq = 20;
    static int window = 300;
    static int mock_flag = 1;
+   static double minconf = 0.0;
 
    // Needed to check 'strtoul()'.
    char *endptr;
@@ -125,18 +129,19 @@ int main(int argc, char **argv) {
    while(1) {
       int option_index = 0;
       static struct option long_options[] = {
+         {"chip",        required_argument,          0, '1'},
+         {"confidence",  required_argument,          0, 'c'},
+         {"help",        no_argument,                0, 'h'},
          {"list-output", no_argument,       &list_flag,  1 },
          {"mock",        required_argument,          0, '0'},
          {"no-mock",     no_argument,       &mock_flag,  0 },
-         {"chip",        required_argument,          0, '1'},
-         {"help",        no_argument,                0, 'h'},
          {"quality",     required_argument,          0, 'q'},
          {"version",     no_argument,                0, 'v'},
          {"window",      required_argument,          0, 'w'},
          {0, 0, 0, 0}
       };
 
-      int c = getopt_long(argc, argv, "0:1:hlq:vw:",
+      int c = getopt_long(argc, argv, "0:1:c:hlq:vw:",
             long_options, &option_index);
 
       // Done parsing named options. //
@@ -166,16 +171,31 @@ int main(int argc, char **argv) {
          list_flag = 1;
          break;
 
+      case 'c':
+         // Decode argument with 'strtod()'
+         errno = 0;
+         endptr = NULL;
+         minconf = strtod(optarg, &endptr);
+         if (!check_strtoX(optarg, endptr) || minconf < 0 || minconf > 1) {
+            fprintf(stderr,
+                  "zerone error: confidence must be "
+                  "a float between 0 and 1\n");
+            say_usage();
+            return EXIT_FAILURE;
+         }
+         debug_print("| minconf: %f\n", minconf);
+         break;
+
       case 'q':
          // Decode argument with 'strtoul()'
          errno = 0;
          endptr = NULL;
          minmapq = strtoul(optarg, &endptr, 10);
-         if (!strtoul_check(optarg, endptr) ||
+         if (!check_strtoX(optarg, endptr) ||
                minmapq < 0 || minmapq > 254) {
             fprintf(stderr,
                   "zerone error: minimum mapping quality must be "
-                  "a number between 0 and 254\n");
+                  "an integer between 0 and 254\n");
             say_usage();
             return EXIT_FAILURE;
          }
@@ -316,16 +336,17 @@ int main(int argc, char **argv) {
          // beyond the limit of the chromosome.
          for (int j = 0 ; j < ChIP->sz[i]-1 ; j++) {
             // Toggle on target state.
-            if (!target && Z->path[wid] == 2) {
+            double conf = Z->phi[2+wid*3];
+            if (!target && Z->path[wid] == 2 && conf > minconf) {
                fprintf(stdout, "%s\t%d\t", name, window*j + 1);
-               best = Z->phi[2+wid*3];
+               best = conf;
                target = 1;
             }
             // Toggle off target state.
             else if (target) {
                // Update best score.
-               if (Z->phi[2+wid*3] > best) best = Z->phi[2+wid*3];
-               if (Z->path[wid] != 2) {
+               if (conf > best) best = conf;
+               if (Z->path[wid] != 2 || conf < minconf) {
                   fprintf(stdout, "%d\t%.5f\n", window*(j+1), best);
                   best = 0.0;
                   target = 0;
@@ -344,24 +365,33 @@ int main(int argc, char **argv) {
 
    // Table output.
    else {
+      // Use 'offset' to navigate in the ChIP blocks.
       uint64_t offset = 0;
-      // In case no mock was provided, skip the column.                                                                                                                                                              
+      // In case no mock was provided, skip the column.
       const int skipmock = mock_flag ? 0 : 1;
 
       for (int i = 0 ; i < ChIP->nb ; i++) {
          char *name = ChIP->nm + 32*i;
 
-         // Do not print the last bin because it may extend                                                                                                                                                          
-         // beyond the limit of the chromosome.                                                                                                                                                                      
+         // Do not print the last bin because it may extend
+         // beyond the limit of the chromosome.
          for (int j = 0 ; j < ChIP->sz[i]-1 ; j++) {
+            // Skip if 'confidence' too low.
+            if (Z->phi[2+(offset+j)*3] < minconf) continue;
             fprintf(stdout, "%s\t%d\t%d\t%d", name, window*j + 1,
+                    // Block name, window start, end, state.
                     window*(j+1), Z->path[offset+j] == 2 ? 1 : 0);
             for (int k = skipmock ; k < Z->ChIP->r ; k++) {
-               fprintf(stdout, "\t%d", Z->ChIP->y[(offset+j)*Z->ChIP->r+k]);
+               fprintf(stdout, "\t%d",
+                    // Read numbers of each file.
+                    Z->ChIP->y[(offset+j)*Z->ChIP->r+k]);
             }
-            // Print confidence.                                                                                                                                                                                     
-            fprintf(stdout, "\t%.5f\n", Z->phi[2+(offset+j)*3]);
+            fprintf(stdout, "\t%.5f\n",
+                    // Confidence score.
+                    Z->phi[2+(offset+j)*3]);
          }
+         // End of the block. Update 'offset' before
+         // local window number is reset to 0.
          offset += Z->ChIP->sz[i];
       }
    }
