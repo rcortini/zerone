@@ -35,7 +35,7 @@ code from <https://github.com/nanakiksc/zerone/archive/master.zip> with
 the following commands.
 
     wget https://github.com/nanakiksc/zerone/archive/master.zip
-    unzip zerone-master.zip
+    unzip master.zip
     mv zerone-master zerone
 
 This should create a directory named `zerone`.
