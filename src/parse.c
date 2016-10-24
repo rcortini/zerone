@@ -104,10 +104,10 @@ struct bitf_t {
    uint8_t array[];
 };
 
-
 struct loc_t {
    char * name;
    int    pos;
+   int    count;
    int    mapq;
 };
 
@@ -147,7 +147,7 @@ int      parse_bed (loc_t *, char *);
 int      parse_wig (loc_t *, char *);
 
 // Hash handling functions.
-int      add_to_rod (rod_t **, uint32_t);
+int      add_to_rod (rod_t **, uint32_t, int);
 int      bloom_query_and_set(const char *, int, bloom_t);
 int      bitf_query_and_set (int, link_t *);
 void     destroy_hash(hash_t *);
@@ -439,7 +439,7 @@ autoparse
       if (bitf_query_and_set(loc.pos, lnk)) continue;
 
       // Add read to counts.
-      if (!add_to_rod(&lnk->counts, loc.pos / window)) {
+      if (!add_to_rod(&lnk->counts, loc.pos / window, loc.count)) {
          debug_print("%s", "adding read failed\n");
          status = FAILURE;
          goto clean_and_return;
@@ -649,6 +649,7 @@ parse_gem
    loc->pos = pos;
    // GEM does not have mapping quality.
    loc->mapq = 2147483647;
+   loc->count = 1;
 
    return SUCCESS;
 
@@ -757,6 +758,7 @@ parse_sam
    loc->name = chrom;
    loc->pos = pos;
    loc->mapq = mapq;
+   loc->count = 1;
 
    return SUCCESS;
 
@@ -771,35 +773,39 @@ parse_bed
 )
 {
 
-   char *chrom = strsep(&line, "\t");
-   char *tmp1  = strsep(&line, "\t");
-   char *tmp2  = strsep(&line, "\t");
+   char *chrom  = strsep(&line, "\t");
+   char *tmp1   = strsep(&line, "\t");
+   char *tmp2   = strsep(&line, "\t");
+   char *Xcount = strsep(&line, "\t");
 
    // Cannot find chromosome or position.
-   if (chrom == NULL || tmp1 == NULL || tmp2 == NULL)
+   if (chrom == NULL || tmp1 == NULL || tmp2 == NULL || Xcount == NULL)
       return FAILURE;
 
    // The bed format is 0-based. We cannot use 'atoi()' to
    // parse the coodrinates.
    char *endptr = NULL;
 
+   // 'strtoul' may set 'errno' in case of overflow.
    errno = 0;
+
    int start = 1 + strtoul(tmp1, &endptr, 10);
-   if (!check_strtoX(tmp1, endptr))
+   if (!check_strtoX(tmp1, endptr) || errno)
       return FAILURE;
 
    int end = 1 + strtoul(tmp2, &endptr, 10);
-   if (!check_strtoX(tmp2, endptr))
+   if (!check_strtoX(tmp2, endptr) || errno)
       return FAILURE;
 
-   // 'strtoul' may set 'errno' in case of overflow.
-   if (errno)
+   int count = strtoul(Xcount, &endptr, 10);
+   if (!check_strtoX(Xcount, endptr) || errno)
       return FAILURE;
 
    loc->name = chrom;
    loc->pos = (start + end) / 2;
    // BED has mot mapping quality.
    loc->mapq = 2147483647;
+   loc->count = count;
 
    return SUCCESS;
 
@@ -888,6 +894,7 @@ parse_wig
    // Line is data.
    else {
 
+      // TODO: REWRITE //
       int start, end, reads;
 
       if (fixedstep) start = fstart + iter++ * step;
@@ -911,6 +918,7 @@ parse_wig
       loc->pos = (start + end) / 2;
       // WIG has no mapping quality.
       loc->mapq = 2147483647;
+      loc->count = 1;
 
       return SUCCESS;
 
@@ -1138,7 +1146,8 @@ int
 add_to_rod
 (
    rod_t   ** addr,
-   uint32_t   pos
+   uint32_t   pos,
+   int        count
 )
 {
 
@@ -1160,7 +1169,7 @@ add_to_rod
       rod->sz = newsz;
    }
 
-   rod->array[pos]++;
+   rod->array[pos] += count;
    if (pos > rod->mx) rod->mx = pos;
 
    return SUCCESS;
