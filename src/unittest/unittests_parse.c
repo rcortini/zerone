@@ -72,29 +72,6 @@ test_bitf
 
 
 void
-test_bloom
-(void)
-{
-
-   bloom_t bloom = calloc(1, BSIZE);
-   if (bloom == NULL) {
-      fprintf(stderr, "error in test function '%s()' %s:%d\n",
-            __func__, __FILE__, __LINE__);
-      return;
-   }
-
-   test_assert(bloom_query_and_set("text", 33, bloom) == 0);
-   test_assert(bloom_query_and_set("text", 33, bloom) == 1);
-
-   test_assert(bloom_query_and_set("aaa", 159753, bloom) == 0);
-   test_assert(bloom_query_and_set("aaa", 159753, bloom) == 1);
-
-   free(bloom);
-
-}
-
-
-void
 test_add_to_rod
 (void)
 {
@@ -109,31 +86,46 @@ test_add_to_rod
    rod->mx = 0;
    bzero(rod->array, 32*sizeof(uint32_t));
 
-   test_assert(add_to_rod(&rod, 0));
+   test_assert(add_to_rod(&rod, 0, 1));
    test_assert(rod->mx == 0);
    test_assert(rod->array[0] == 1);
 
-   test_assert(add_to_rod(&rod, 1));
+   test_assert(add_to_rod(&rod, 1, 1));
    test_assert(rod->mx == 1);
    test_assert(rod->array[1] == 1);
 
-   test_assert(add_to_rod(&rod, 32));
+   test_assert(add_to_rod(&rod, 32, 1));
    test_assert_critical(rod->sz == 64);
    test_assert(rod->mx == 32);
    test_assert(rod->array[32] == 1);
 
-   test_assert(add_to_rod(&rod, 1));
+   test_assert(add_to_rod(&rod, 1, 1));
    test_assert(rod->mx == 32);
    test_assert(rod->array[1] == 2);
 
-   test_assert(add_to_rod(&rod, 63));
+   test_assert(add_to_rod(&rod, 63, 1));
    test_assert(rod->mx == 63);
    test_assert(rod->array[63] == 1);
 
-   test_assert(add_to_rod(&rod, 65));
+   test_assert(add_to_rod(&rod, 65, 1));
    test_assert_critical(rod->sz == 130);
    test_assert(rod->mx == 65);
    test_assert(rod->array[65] == 1);
+
+   test_assert(add_to_rod(&rod, 65, 9));
+   test_assert_critical(rod->sz == 130);
+   test_assert(rod->mx == 65);
+   test_assert(rod->array[65] == 10);
+
+   test_assert(add_to_rod(&rod, 129, 17));
+   test_assert_critical(rod->sz == 130);
+   test_assert(rod->mx == 129);
+   test_assert(rod->array[129] == 17);
+
+   test_assert(add_to_rod(&rod, 131, 37));
+   test_assert_critical(rod->sz == 262);
+   test_assert(rod->mx == 131);
+   test_assert(rod->array[131] == 37);
 
    free(rod);
 
@@ -174,7 +166,7 @@ test_lookup_or_insert
    // Test that the pointer is the same.
    test_assert_critical(lnk == lookup_or_insert("chr1", hashtab));
 
-   test_assert(add_to_rod(&lnk->counts, 157));
+   test_assert(add_to_rod(&lnk->counts, 157, 1));
    test_assert(lnk->counts->sz == 314);
    test_assert(lnk->counts->mx == 157);
 
@@ -186,7 +178,7 @@ test_lookup_or_insert
    test_assert(lnk->counts->sz == 32);
    test_assert(lnk->counts->mx == 0);
 
-   test_assert(add_to_rod(&lnk->counts, 39));
+   test_assert(add_to_rod(&lnk->counts, 39, 1));
    test_assert(lnk->counts->sz == 78);
    test_assert(lnk->counts->mx == 39);
 
@@ -194,7 +186,7 @@ test_lookup_or_insert
    for (int i = 0 ; i < 10000 ; i++) {
       lnk = lookup_or_insert("chr2", hashtab);;
       test_assert_critical(lnk != NULL);
-      test_assert(add_to_rod(&lnk->counts, i));
+      test_assert(add_to_rod(&lnk->counts, i, 1));
    }
 
    test_assert(lnk->counts->sz == 19968);
@@ -251,17 +243,17 @@ test_merge_hashes
 
    lnk = lookup_or_insert("chr1", hashes[0]);
    test_assert_critical(lnk != NULL);
-   test_assert(add_to_rod(&lnk->counts, 5));
+   test_assert(add_to_rod(&lnk->counts, 5, 1));
    lnk = lookup_or_insert("chr2", hashes[0]);
    test_assert_critical(lnk != NULL);
-   test_assert(add_to_rod(&lnk->counts, 76));
+   test_assert(add_to_rod(&lnk->counts, 76, 1));
 
    lnk = lookup_or_insert("chr1", hashes[1]);
    test_assert_critical(lnk != NULL);
-   test_assert(add_to_rod(&lnk->counts, 81));
+   test_assert(add_to_rod(&lnk->counts, 81, 1));
    lnk = lookup_or_insert("chr3", hashes[1]);
    test_assert_critical(lnk != NULL);
-   test_assert(add_to_rod(&lnk->counts, 8));
+   test_assert(add_to_rod(&lnk->counts, 8, 1));
 
    // Merge hashes assuming using the first as mock.
    // Note that this modifies the first hash.
@@ -280,7 +272,7 @@ test_merge_hashes
    // Further update hash.
    lnk = lookup_or_insert("chr17", hashes[1]);
    test_assert_critical(lnk != NULL);
-   test_assert(add_to_rod(&lnk->counts, 5));
+   test_assert(add_to_rod(&lnk->counts, 5, 1));
 
    // Merge hash without using the first as mock.
    ChIP = merge_hashes(hashes, 2, 1);
@@ -453,15 +445,17 @@ test_parse_bed
 
       // NOTE that we cannot pass constant strings to
       // 'parse_bed()' because it modifies them in general.
-      char line1[] = "chr1\t1\t3";
+      char line1[] = "chr1\t1\t3\t10";
       test_assert(parse_bed(&loc, line1));
       test_assert(strcmp(loc.name, "chr1") == 0);
       test_assert(loc.pos == 3);
+      test_assert(loc.count == 10);
 
-      char line2[] = "chr2\t345\t345";
+      char line2[] = "chr2\t345\t345\t89";
       test_assert(parse_bed(&loc, line2));
       test_assert(strcmp(loc.name, "chr2") == 0);
       test_assert(loc.pos == 346);
+      test_assert(loc.count == 89);
 
       char line3[] = "abc0chr18:-:16507402:A35";
       test_assert(!parse_bed(&loc, line3));
@@ -487,10 +481,10 @@ test_parse_bed
       char line10[] = "a\t123y\t45";
       test_assert(!parse_bed(&loc, line10));
 
-      char line11[] = "a\t123\t45\n";
+      char line11[] = "a\t123\t45\t67\n";
       test_assert(parse_bed(&loc, line11));
 
-      char line12[] = "a\t123 \t45";
+      char line12[] = "a\t123 \t45\t67";
       test_assert(parse_bed(&loc, line12));
 
       return;
@@ -586,7 +580,7 @@ test_parse_wig
       test_assert(!parse_wig(&loc, line20));
 
       char line21[] = "1\t0";
-      test_assert(!parse_wig(&loc, line21));
+      test_assert(parse_wig(&loc, line21));
 
       return;
 
@@ -657,10 +651,10 @@ test_autoparse
    args.window = 300;
    args.minmapq = 20;
    redirect_stderr();
-   test_assert(!autoparse("tests_parse.c", hashtab, args));
+   test_assert(!autoparse("unittests_parse.c", hashtab, args));
    unredirect_stderr();
-   test_assert(strncmp("unknown format for file tests_parse.c",
-            caught_in_stderr(), 25) == 0);
+   test_assert(strncmp("unknown format for file unittests_parse.c",
+            caught_in_stderr(), 30) == 0);
 
    // Try parsing bad gem files.
    args.window = 300;
@@ -687,20 +681,20 @@ test_autoparse
    lnk = lookup_or_insert("insert", hashtab);
    test_assert_critical(lnk != NULL);
    test_assert(lnk->counts->array[0] == 1);
-   test_assert(lnk->counts->array[1] == 1);
+   test_assert(lnk->counts->array[1] == 0);
 
    lnk = lookup_or_insert("ref1", hashtab);
    test_assert_critical(lnk != NULL);
-   test_assert(lnk->counts->array[0] == 5);
+   test_assert(lnk->counts->array[0] == 4);
 
    lnk = lookup_or_insert("ref2", hashtab);
    test_assert_critical(lnk != NULL);
-   test_assert(lnk->counts->array[0] == 7);
+   test_assert(lnk->counts->array[0] == 6);
 
    // From the header.
    lnk = lookup_or_insert("ref3", hashtab);
    test_assert_critical(lnk != NULL);
-   test_assert(lnk->counts->array[0] == 1);
+   test_assert(lnk->counts->array[0] == 0);
 
 
    // Do it again with higher required mapping quality.
@@ -720,19 +714,19 @@ test_autoparse
 
    lnk = lookup_or_insert("insert", hashtab);
    test_assert_critical(lnk != NULL);
-   test_assert(lnk->counts->array[1] == 1);
+   test_assert(lnk->counts->array[1] == 0);
 
    lnk = lookup_or_insert("ref1", hashtab);
    test_assert_critical(lnk != NULL);
-   test_assert(lnk->counts->array[0] == 1);
+   test_assert(lnk->counts->array[0] == 0);
 
    lnk = lookup_or_insert("ref2", hashtab);
    test_assert_critical(lnk != NULL);
-   test_assert(lnk->counts->array[0] == 1);
+   test_assert(lnk->counts->array[0] == 0);
 
    lnk = lookup_or_insert("ref3", hashtab);
    test_assert_critical(lnk != NULL);
-   test_assert(lnk->counts->array[0] == 1);
+   test_assert(lnk->counts->array[0] == 0);
 
    // Now test .bed format. Also check the error message.
    args.window = 300;
@@ -774,11 +768,11 @@ test_autoparse
    test_assert_critical(lnk != NULL);
    test_assert(lnk->counts->array[19] == 0); // Low quality.
    test_assert(lnk->counts->array[32] == 1);
-   test_assert(lnk->counts->array[55] == 1);
+   test_assert(lnk->counts->array[55] == 0);
 
    lnk = lookup_or_insert("chr1", hashtab);
    test_assert_critical(lnk != NULL);
-   test_assert(lnk->counts->array[830835] == 1);
+   test_assert(lnk->counts->array[830835] == 0);
 
    destroy_hash(hashtab);
 
@@ -950,7 +944,6 @@ test_parse_input_files
 // Test cases for export.
 const test_case_t test_cases_parse[] = {
    {"parse/bitf",              test_bitf},
-   {"parse/bloom",             test_bloom},
    {"parse/add_to_rod",        test_add_to_rod},
    {"parse/djb2",              test_djb2},
    {"parse/lookup_or_insert",  test_lookup_or_insert},

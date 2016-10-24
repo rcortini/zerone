@@ -420,12 +420,10 @@ autoparse
    ERR = 0;
 
    while (iterate(&loc) > 0) {
-      // 'loc.name' is set to NULL for unmapped reads.
-      // Also, ignore reads with low quality.
+      // 'loc.name' is set to NULL for unmapped reads or
+      // any read that needs to be ignored. Also ignore
+      // reads with low quality.
       if (loc.name == NULL || loc.mapq < minmapq) continue;
-
-      // Check in Bloom filter whether the read was seen before.
-      // if (bloom_query_and_set(loc.name, loc.pos, bloom)) continue;
 
       link_t *lnk = lookup_or_insert(loc.name, hashtab);
 
@@ -545,6 +543,9 @@ bgzf_iterator
       loc->pos = hdr->target_len[n_parsed_header_targets];
       // Make sure this is not ignored when checking 'mapq'.
       loc->mapq = 2147483647;
+      // Add 0 read. This will still set assocaited
+      // 'rod_t' to the right length.
+      loc->count = 0;
       n_parsed_header_targets++;
       return SUCCESS;
    }
@@ -572,8 +573,10 @@ bgzf_iterator
          loc->name = hdr->target_name[core.tid];
       // Compute middle point for PE intervals.
       loc->pos = 1 + core.pos;
+      loc->count = 1;
 #else
       // Discard unmapped reads and 2nd align of PE files.
+      // The read will be ignored by setting 'name' to NULL.
       if (core.tid < 0 || core.flag & BAM_FREAD2)
          loc->name = NULL;
       else 
@@ -581,15 +584,16 @@ bgzf_iterator
 
       // Note that the bam format is 0-based, so we add 1 to the
       // position because genomic positions are 1-based.
-   
       // Compute middle point for PE intervals.
       if (core.flag & BAM_FPAIRED) {
          if (core.mtid != core.tid) loc->name = NULL;
          loc->pos = 1 + min(core.pos, core.mpos) + abs(core.isize)/2;
       }
-      else
+      else {
          loc->pos = 1 + core.pos;
-         loc->mapq = core.qual;
+      }
+      loc->mapq = core.qual;
+      loc->count = 1;
 #endif
 
    return bytesread;
@@ -647,7 +651,7 @@ parse_gem
 
    loc->name = chrom;
    loc->pos = pos;
-   // GEM does not have mapping quality.
+   // GEM has no mapping quality.
    loc->mapq = 2147483647;
    loc->count = 1;
 
@@ -803,7 +807,7 @@ parse_bed
 
    loc->name = chrom;
    loc->pos = (start + end) / 2;
-   // BED has mot mapping quality.
+   // BED has no mapping quality.
    loc->mapq = 2147483647;
    loc->count = count;
 
@@ -894,31 +898,42 @@ parse_wig
    // Line is data.
    else {
 
-      // TODO: REWRITE //
-      int start, end, reads;
+      int start;
+      char *endptr = NULL;
 
-      if (fixedstep) start = fstart + iter++ * step;
+      if (fixedstep) {
+         // Line is just a count.
+         start = fstart + iter++ * step;
+      }
       else {
-         start = atoi(strsep(&line, "\t"));
-         if (line == NULL) return FAILURE;
+         // Line is a position and a count.
+         char *Xstart = strsep(&line, "\t");
+
+         // Cannot parse if position cannot be found
+         // or if it is the last token of the line.
+         if (Xstart == NULL || line == NULL)
+            return FAILURE;
+
+         // 'strtoul' may set 'errno' in case of overflow.
+         errno = 0;
+
+         start = strtoul(Xstart, &endptr, 10);
+         if (!check_strtoX(Xstart, endptr) || errno)
+            return FAILURE;
       }
 
-      char *endptr;
-      // Not using read counts for now.
-      reads = strtol(line, &endptr, 10);
-      if (line == endptr) return FAILURE;
+      // Now only count is left on 'line'.
+      // 'strtoul' may set 'errno' in case of overflow.
+      errno = 0;
 
-      strsep(&line, "\t");
-
-      // Final sanity check.
-      if (line != NULL || chrom[0] == '\0' || start <= 0 || reads < 0)
+      int count = strtoul(line, &endptr, 10);
+      if (!check_strtoX(line, endptr) || errno)
          return FAILURE;
 
-      end = start + span - 1;
-      loc->pos = (start + end) / 2;
+      loc->pos = (2*start + span - 1) / 2;
       // WIG has no mapping quality.
       loc->mapq = 2147483647;
-      loc->count = 1;
+      loc->count = count;
 
       return SUCCESS;
 
@@ -1155,7 +1170,7 @@ add_to_rod
    rod_t *rod = *addr;
 
    if (pos >= rod->sz) {
-      // Double size of the rod.
+      // At least double the size of the rod.
       size_t oldsz = rod->sz;
       size_t newsz = 2*pos;
       rod_t *tmp = realloc(rod, sizeof(rod_t) + newsz*sizeof(uint32_t));
@@ -1371,71 +1386,4 @@ bitf_query_and_set
    lnk->repeats->array[byte] |= (1 << bit);
 
    return set;
-}
-
-int
-bloom_query_and_set
-(
-   const char  * name,
-         int     pos,
-         bloom_t bloom
-)
-// SYNOPSIS:                                                             
-//   The Bloom filter stores the position of mapped reads in order to    
-//   remove duplicates. When parsing the mapping data, a read is first   
-//   looked up in the Bloom filter before beind added. If a match is     
-//   found, the read is skipped. The Bloom filter has 800,000,000 bits   
-//   and uses two hash functions. These days, a ChIP-seq lane is         
-//   typically 200 million reads, filling a maximum of 400,000,000 or    
-//   half of the Bloom filter, but at that stage the false positive      
-//   rate is already close to 1/4 (meaning that only 3/4 of the reads    
-//   will be included by the end of the parsing). Until approximately    
-//   41,000,000 unique reads haveebeen queried, the false positive rate  
-//   is under 1%.                                                        
-//                                                                       
-//   For a Bloom filter of size N, after inserting n distinct objects,   
-//   the number of set bits is approximately equal to                    
-//                                                                       
-//                           N(1-exp(-2n/N)),                            
-//                                                                       
-//   which is accurate within 1%. The total number of false positives    
-//   (here the number of lost reads) is approximately equal to           
-//                                                                       
-//              n - N(3/4 - exp(-2n/N)(1-exp(-2n/N)/4))                  
-//                                                                       
-//   which understimates the true value by about 4%. For a lane of 200   
-//   million distinct reads, the amount of loss is approximately 6%.     
-//                                                                       
-//   The first hash function uses the efficient 'djb2()' to produce a    
-//   32 bit integer from the chomosome name and adds the position of     
-//   the read. The second hash function is computed from the first by    
-//   adding again the position of the read. The scheme can be schema-    
-//   tized as shown below for a read mapping on chr1 at position 8.      
-//                                                                       
-//       .|.|X|.|.|.|.|.|.|.|1|.|.|.|.|.|.|.|1|.|.|.|.|.|.|.|.|.|.|.     
-//           |               |               |                           
-//       djb2(chr1)         +8              +16                          
-//                                                                       
-{
-
-   char text_a[48];
-   char text_b[48];
-   int len_a = sprintf(text_a, "%s%d", name, pos);
-   int len_b = sprintf(text_b, "%d%s", pos, name);
-   uint32_t a = XXH32(text_a, len_a, 0) % (8*BSIZE);
-   uint32_t b = XXH32(text_b, len_b, 1) % (8*BSIZE);
-
-   int abyte = a/8, abit = a%8;
-   int bbyte = b/8, bbit = b%8;
-
-   // Get bits.
-   int a_yes = (bloom[abyte] >> (abit)) & 1;
-   int b_yes = (bloom[bbyte] >> (bbit)) & 1;
-
-   // Set bits.
-   bloom[abyte] |= (1 << abit);
-   bloom[bbyte] |= (1 << bbit);
-
-   return a_yes && b_yes;
-
 }
