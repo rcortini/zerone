@@ -326,9 +326,11 @@ int main(int argc, char **argv) {
 
    // List output.
    if (list_flag) {
-      int wid = 0;
+
+      int offset = 0;
       int target = 0;
       double best = 0.0;
+
       for (int i = 0 ; i < ChIP->nb ; i++) {
          char *name = ChIP->nm + 32*i;
 
@@ -336,8 +338,8 @@ int main(int argc, char **argv) {
          // beyond the limit of the chromosome.
          for (int j = 0 ; j < ChIP->sz[i]-1 ; j++) {
             // Toggle on target state.
-            double conf = Z->phi[2+wid*3];
-            if (!target && Z->path[wid] == 2 && conf > minconf) {
+            double conf = Z->phi[2+(offset+j)*3];
+            if (!target && Z->path[offset+j] == 2 && conf > minconf) {
                fprintf(stdout, "%s\t%d\t", name, window*j + 1);
                best = conf;
                target = 1;
@@ -346,13 +348,12 @@ int main(int argc, char **argv) {
             else if (target) {
                // Update best score.
                if (conf > best) best = conf;
-               if (Z->path[wid] != 2 || conf < minconf) {
+               if (Z->path[offset+j] != 2 || conf < minconf) {
                   fprintf(stdout, "%d\t%.5f\n", window*(j+1), best);
                   best = 0.0;
                   target = 0;
                }
             }
-            wid++;
          }
          // In case the end of the block is a target.
          if (target) {
@@ -360,6 +361,10 @@ int main(int argc, char **argv) {
             best = 0.0;
             target = 0;
          }
+
+         // Update offset.
+         offset += ChIP->sz[i];
+
       }
    }
 
