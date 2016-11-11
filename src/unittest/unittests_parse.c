@@ -445,16 +445,16 @@ test_parse_bed
 
       // NOTE that we cannot pass constant strings to
       // 'parse_bed()' because it modifies them in general.
-      char line1[] = "chr1\t1\t3\t10";
+      char line1[] = "chr1\t1\t3\tname\t10";
       test_assert(parse_bed(&loc, line1));
       test_assert(strcmp(loc.name, "chr1") == 0);
       test_assert(loc.pos == 3);
       test_assert(loc.count == 10);
 
-      char line2[] = "chr2\t345\t345\t89";
+      char line2[] = "chr2\t123\t456\tseven\t89";
       test_assert(parse_bed(&loc, line2));
       test_assert(strcmp(loc.name, "chr2") == 0);
-      test_assert(loc.pos == 346);
+      test_assert(loc.pos == 290);
       test_assert(loc.count == 89);
 
       char line3[] = "abc0chr18:-:16507402:A35";
@@ -481,10 +481,10 @@ test_parse_bed
       char line10[] = "a\t123y\t45";
       test_assert(!parse_bed(&loc, line10));
 
-      char line11[] = "a\t123\t45\t67\n";
+      char line11[] = "a\t123\t45\tsix\t7\n";
       test_assert(parse_bed(&loc, line11));
 
-      char line12[] = "a\t123 \t45\t67";
+      char line12[] = "a\t123 \t45\t name_with_ spaces \t67";
       test_assert(parse_bed(&loc, line12));
 
       return;

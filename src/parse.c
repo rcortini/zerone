@@ -777,12 +777,13 @@ parse_bed
 )
 {
 
-   char *chrom  = strsep(&line, "\t");
-   char *tmp1   = strsep(&line, "\t");
-   char *tmp2   = strsep(&line, "\t");
-   char *Xcount = strsep(&line, "\t");
+   char *chrom  = strsep(&line, "\t"); // chrom
+   char *tmp1   = strsep(&line, "\t"); // chromStart
+   char *tmp2   = strsep(&line, "\t"); // chromEnd
+                  strsep(&line, "\t"); // name
+   char *Xcount = strsep(&line, "\t"); // score
 
-   // Cannot find chromosome or position.
+   // Cannot find chromosome, position or count.
    if (chrom == NULL || tmp1 == NULL || tmp2 == NULL || Xcount == NULL)
       return FAILURE;
 

@@ -17,6 +17,7 @@
 */
 
 #include <stdio.h>
+#include <strings.h>
 #include <getopt.h>
 #include "debug.h"
 #include "parse.h"
@@ -95,6 +96,64 @@ parse_fname
    return;
 
 }
+
+
+void
+print_format_warnings_if_needed
+(
+   char * mock_fnames[],
+   char * ChIP_fnames[]
+)
+// Print warning about .bed and .wig file formats in the header
+// of the output file.
+{
+
+   int has_bed = 0;
+   int has_wig = 0;
+
+   // Check if any input was in .bed format.
+   for (int i = 0 ; i < MAXNARGS ; i++) {
+      char *fname = mock_fnames[i];
+      if (fname == NULL) break;
+      int sz = strlen(fname);
+      if ( strcmp(fname + sz - 4, ".bed") == 0 ||
+           strcmp(fname + sz - 4, ".BED") == 0) {
+         has_bed = 1;
+      }
+      if ( strcmp(fname + sz - 4, ".wig") == 0 ||
+           strcmp(fname + sz - 4, ".WIG") == 0) {
+         has_wig = 1;
+      }
+   }
+
+   for (int i = 0 ; i < MAXNARGS ; i++) {
+      char *fname = ChIP_fnames[i];
+      if (fname == NULL) break;
+      int sz = strlen(fname);
+      if ( strcmp(fname + sz - 4, ".bed") == 0 ||
+           strcmp(fname + sz - 4, ".BED") == 0) {
+         has_bed = 1;
+      }
+      if ( strcmp(fname + sz - 4, ".wig") == 0 ||
+           strcmp(fname + sz - 4, ".WIG") == 0) {
+         has_wig = 1;
+      }
+   }
+
+   if (has_bed || has_wig) {
+      fprintf(stdout,
+         "# -----------    WARNING    ------------\n"
+         "# Input file(s) in .bed/.wig format.\n"
+         "# Make sure that scores are read counts\n"
+         "# and that PCR duplicates were removed.\n"
+         "# Make sure that window size is constant\n"
+         "# and matches Zerone window option -w.\n"
+         "# --------------------------------------\n"
+      );
+   }
+
+}
+
 
 
 int main(int argc, char **argv) {
@@ -314,6 +373,9 @@ int main(int argc, char **argv) {
          debug_print("%s\n", debuf);
       }
    }
+
+   // First things first.
+   print_format_warnings_if_needed(mock_fnames, ChIP_fnames);
 
    // Quality control.
    double feat[5];
