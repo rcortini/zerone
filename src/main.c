@@ -391,6 +391,7 @@ int main(int argc, char **argv) {
 
       int offset = 0;
       int target = 0;
+      int argmax = 0;
       double best = 0.0;
 
       for (int i = 0 ; i < ChIP->nb ; i++) {
@@ -399,21 +400,32 @@ int main(int argc, char **argv) {
          // Do not print the last bin because it may extend
          // beyond the limit of the chromosome.
          for (int j = 0 ; j < ChIP->sz[i]-1 ; j++) {
-            // Toggle on target state.
+
+            // Get the confidence score.
             double conf = Z->phi[2+(offset+j)*3];
+
+            // Toggle on target state.
             if (!target && Z->path[offset+j] == 2 && conf > minconf) {
                fprintf(stdout, "%s\t%d\t", name, window*j + 1);
                best = conf;
                target = 1;
+               argmax = j;
             }
+
             // Toggle off target state.
             else if (target) {
                // Update best score.
-               if (conf > best) best = conf;
+               if (conf > best) {
+                  best = conf;
+                  argmax = j;
+               }
+
                if (Z->path[offset+j] != 2 || conf < minconf) {
-                  fprintf(stdout, "%d\t%.5f\n", window*(j+1), best);
+                  fprintf(stdout, "%d\t%.5f\t%d\n",
+                        window*(j+1), best, window*argmax + window/2);
                   best = 0.0;
                   target = 0;
+                  argmax = 0;
                }
             }
          }
