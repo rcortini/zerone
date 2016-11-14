@@ -182,6 +182,15 @@ chromosome or sequence name, start and end. The last column is the
 confidence score of the called target. It is the \textit{highest}
 confidence of the windows merged in the same target region.
 
+\begin{mdframed}
+\subsubsection*{BED and WIG formats}
+Zerone accepts files in BED and WIG formats, but they must be used with
+caution. Always make sure that the scores represent the number of reads in
+each window, and use a window size equal to that used by Zerone (it defaults
+to 300, and can be set with the option -w). This also means that all windows
+must have the same size.
+\end{mdframed}
+
 \subsection*{The Zerone R package}
 
 Once you have installed the Zerone R package, you can load it in

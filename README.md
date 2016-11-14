@@ -53,7 +53,7 @@ default. If this is not the case, you can obtain it by typing
 `sudo apt-get install make` on the Ubuntu terminal. Calling `make`
 should create an executable called `zerone`.
 
-Installing the Zerone R package 
+Installing the Zerone R package
 -------------------------------
 
 To install the Zerone R package, simply run this command from the
@@ -74,7 +74,7 @@ Running Zerone
 
 To run Zerone, you have to specify the files that contain the mapped
 reads of the ChIP-seq experiment you want to discretize. These can be in
-BED, SAM/BAM and GEM (.map) formats and can be gzipped. You can include
+BED, WIG, SAM/BAM and GEM (.map) formats and can be gzipped. You can include
 as many mock control files and as many experimental replicates as you
 need, provided there is at least one mock control and one experimental
 replicate. Just enter mock controls after the `-0` or `--mock` option,
@@ -167,7 +167,16 @@ chromosome or sequence name, start and end. The last column is the
 confidence score of the called target. It is the *highest* confidence of
 the windows merged in the same target region.
 
-The Zerone R package 
+BED and WIG formats
+-------------------
+
+Zerone accepts files in BED and WIG formats, but they must be used with
+caution. Always make sure that the scores represent the number of reads in
+each window, and use a window size equal to that used by Zerone (it defaults
+to 300, and can be set with the option -w). This also means that all windows
+must have the same size.
+
+The Zerone R package
 --------------------
 
 Once you have installed the Zerone R package, you can load it in your R
