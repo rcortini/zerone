@@ -10,6 +10,14 @@ Zerone discretizes several ChIP-seq replicates simultaneously and resolves
 conflicts between them. After the job is done, Zerone checks the results
 and tells you whether it passes the quality control.
 
+If you use this software, please cite our paper, where you can find all the
+information on the algorithm in our publication:
+
+P. Cuscó, G. J. Filion, "Zerone: a ChIP-seq discretizer for multiple replicates
+with built-in quality control", *Bioinformatics* (2016) 32 (19): 2896-2902.
+doi: 10.1093/bioinformatics/btw336
+<http://bioinformatics.oxfordjournals.org/content/32/19/2896>
+
 Building instructions
 =====================
 
