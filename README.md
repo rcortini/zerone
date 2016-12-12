@@ -31,6 +31,10 @@ We recommend that you use git to keep Zerone updated. You can clone the
 repository from Github with the following command on a standard
 terminal.
 
+    git clone https://github.com/nanakiksc/zerone.git
+
+If you prefer using SSH cloning, you can use
+
     git clone git@github.com:nanakiksc/zerone
 
 Note that this requires that you already have a Github account and that
