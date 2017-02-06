@@ -411,7 +411,7 @@ int main(int argc, char **argv) {
                // Update best score.
                if (conf > best) best = conf;
                if (Z->path[offset+j] != 2 || conf < minconf) {
-                  fprintf(stdout, "%d\t%.5f\n", window*(j+1), best);
+                  fprintf(stdout, "%d\t%.5f\n", window*j, best);
                   best = 0.0;
                   target = 0;
                }

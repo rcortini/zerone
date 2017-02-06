@@ -228,7 +228,7 @@ If you are using Linux, you can also run the unit tests to check that
 the code behaves as expected on your machine. For this, run the
 following commands in the Zerone directory.
 
-    make test -C src/test
+    make test -C src/unittest
 
 If everything works well, you should see the following output
 
