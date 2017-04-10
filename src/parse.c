@@ -17,6 +17,7 @@
 */
 
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -137,8 +138,10 @@ iter_t   choose_iterator (const char *);
 int      bgzf_iterator (loc_t *);
 int      generic_iterator (loc_t *);
 
-// Raders.
+// Readers.
 ssize_t  getgzline (char **, size_t *, FILE *);
+ssize_t  getline   (char **, size_t *, FILE *);
+ssize_t  getdelim  (char **, size_t *, int, FILE *);
 
 // Parsers.
 int      parse_gem (loc_t *, char *);
@@ -569,7 +572,7 @@ bgzf_iterator
       // Discard unmapped and 2nd align of PE files.
       if (core.tid < 0)
          loc->name = NULL;
-      else 
+      else
          loc->name = hdr->target_name[core.tid];
       // Compute middle point for PE intervals.
       loc->pos = 1 + core.pos;
@@ -579,7 +582,7 @@ bgzf_iterator
       // The read will be ignored by setting 'name' to NULL.
       if (core.tid < 0 || core.flag & BAM_FREAD2)
          loc->name = NULL;
-      else 
+      else
          loc->name = hdr->target_name[core.tid];
 
       // Note that the bam format is 0-based, so we add 1 to the
@@ -676,7 +679,7 @@ parse_sam
          return SUCCESS;
       }
 
-      // Get chromosome lengths from "@SQ" lines. 
+      // Get chromosome lengths from "@SQ" lines.
                     strsep(&line, "\t"); // Discard "@SQ".
       char *chrom = strsep(&line, "\t");
       char *len   = strsep(&line, "\t");
@@ -741,7 +744,7 @@ parse_sam
       loc->name = NULL;
       return SUCCESS;
    }
-   
+
    // If read is paired use mid-point of the mapping.
    if (blag & BAM_FPAIRED) {
                      strsep(&line, "\t"); // Discard CIGAR.
@@ -1002,7 +1005,7 @@ reset_bitfields
          if (lnk->repeats == NULL) {
             lnk->repeats = malloc(sizeof(bitf_t)+32*sizeof(uint8_t));
             lnk->repeats->sz = 32*8;
-         } 
+         }
          memset(lnk->repeats->array, 0, lnk->repeats->sz/8);
       }
    }
@@ -1157,6 +1160,81 @@ exit_io_error:
 }
 
 
+ssize_t
+getline
+(
+   char   ** lineptr,
+   size_t *  n,
+   FILE   *  stream
+)
+{
+   return getdelim(lineptr, n, '\n', stream);
+}
+
+/* Default value for line length.  */
+static const int line_size = 128;
+
+ssize_t
+getdelim
+(
+   char   ** lineptr,
+   size_t *  n,
+   int       delim,
+   FILE   *  stream
+)
+{
+  int indx = 0;
+  int c;
+
+  /* Sanity checks.  */
+  if (lineptr == NULL || n == NULL || stream == NULL)
+    return -1;
+
+  /* Allocate the line the first time.  */
+  if (*lineptr == NULL)
+    {
+      *lineptr = malloc (line_size);
+      if (*lineptr == NULL)
+       return -1;
+      *n = line_size;
+    }
+
+  while ((c = getc (stream)) != EOF)
+    {
+      /* Check if more memory is needed.  */
+      if (indx >= *n)
+       {
+         *lineptr = realloc (*lineptr, *n + line_size);
+         if (*lineptr == NULL)
+           return -1;
+         *n += line_size;
+      }
+
+      /* Push the result in the line.  */
+      (*lineptr)[indx++] = c;
+
+      /* Bail out.  */
+      if (c == delim)
+       break;
+   }
+
+  /* Make room for the null character.  */
+  if (indx >= *n)
+    {
+      *lineptr = realloc (*lineptr, *n + line_size);
+      if (*lineptr == NULL)
+       return -1;
+      *n += line_size;
+      }
+
+  /* Null terminate the buffer.  */
+  (*lineptr)[indx++] = 0;
+
+  /* The last line may not have the delimiter, we have to
+   * return what we got and the error will be seen on the
+   * next iteration.  */
+  return (c == EOF && (indx - 1) == 0) ? -1 : indx - 1;
+}
 
 int
 add_to_rod
