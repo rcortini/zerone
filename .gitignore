@@ -26,3 +26,4 @@ docker/discretize/*.2bit
 docker/discretize/fetchChromSizes
 docker/discretize/twoBitToFa
 docker/simulate_ChIP/*
+*.pyc
