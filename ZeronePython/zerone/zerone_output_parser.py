@@ -28,16 +28,16 @@ class ZeroneOutput :
                 if not line.startswith('#') :
                     break
         n_readcols = len(line.split())-6
-        zerone_dtype = [('chr','S256'),
-                        ('start',np.int64),
-                        ('end',np.int64),
-                        ('enrichment',np.int32),
-                        ('control',np.int64)]
+        self.zerone_dtype = [('chr','S256'),
+                             ('start',np.int64),
+                             ('end',np.int64),
+                             ('enrichment',np.int32),
+                             ('control',np.int64)]
         for i in range(n_readcols) :
-            zerone_dtype.append(('read_%d'%(i+1),np.int64))
-        zerone_dtype.append(('p',float))
+            self.zerone_dtype.append(('read_%d'%(i+1),np.int64))
+        self.zerone_dtype.append(('p',float))
         # now we parse the file using the `genfromtxt` function from numpy
-        self.zerone = np.genfromtxt(self.fname,dtype=np.dtype(zerone_dtype))
+        self.zerone = np.genfromtxt(self.fname,dtype=np.dtype(self.zerone_dtype))
 
     def make_zerone_output_index(self) :
         # if the chromosome names are not given, get them
@@ -69,6 +69,6 @@ class ZeroneOutput :
         peak_idx_start = start//bin_size
         peak_idx_end = end//bin_size
         if peak_idx_start == peak_idx_end :
-            return [self.zerone[c_start+peak_idx_start]]
+            return np.array([self.zerone[c_start+peak_idx_start]],dtype=self.zerone_dtype)
         else :
             return self.zerone[c_start+peak_idx_start:c_start+peak_idx_end+1]
